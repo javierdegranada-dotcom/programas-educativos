@@ -1,1085 +1,1487 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Entrenador de Formulación - Javier Gijón</title>
-    
-    <!-- React y ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    
-    <!-- Babel para traducir JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
+    <title>Entrenador de Reacciones Químicas</title>
+    <!-- Fuente para química y matemáticas -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital@0;1&family=Segoe+UI:wght@400;600;800;900&display=swap" rel="stylesheet">
     <style>
-        /* Estilos personalizados para animaciones */
-        @keyframes explode {
-            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
-            80% { opacity: 1; }
-            100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(1); opacity: 0; }
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        /* --- RESET Y BASES PARA MÓVIL --- */
+        * {
+            box-sizing: border-box; 
         }
 
-        .animate-shake {
-            animation: shake 0.5s ease-in-out;
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #16a34a;
+            --warning: #f59e0b;
+            --error: #dc2626;
+            --bg-color: #ffffff;
+            --card: #ffffff;
+            --text: #334155;
+            --border: #cbd5e1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 15px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text);
+            overflow-x: hidden; 
+        }
+
+        /* --- PANTALLA INICIAL (LANDING) --- */
+        #landing-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(to bottom, #d8b4fe 0%, #e9d5ff 25%, #f8fafc 100%);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            text-align: center;
+            transition: opacity 0.5s ease-out;
+        }
+
+        /* --- PANTALLA NIVEL --- */
+        #level-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(to bottom, #d8b4fe 0%, #e9d5ff 25%, #f8fafc 100%);
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            text-align: center;
+            animation: fadeInLevel 0.5s ease-out;
+        }
+
+        @keyframes fadeInLevel {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .level-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            max-width: 90%;
+            width: 100%;
+            border: 1px solid white;
+        }
+
+        .medal-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .level-title {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #1e1b4b;
+            margin-bottom: 0.5rem;
+        }
+
+        .level-subtitle {
+            font-size: 1.1rem;
+            color: #475569;
+            margin-bottom: 1.5rem;
+        }
+
+        .level-stats {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            text-align: left;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            color: #334155;
+        }
+
+        .landing-content {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .landing-title {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #1e1b4b;
+            margin-bottom: 1rem;
+            letter-spacing: -1px;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+        }
+
+        .landing-text {
+            font-size: 1.1rem;
+            color: #475569;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        /* Animación de rotación de móvil */
+        .rotate-hint-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .phone-icon {
+            width: 30px;
+            height: 50px;
+            border: 2px solid #334155;
+            border-radius: 4px;
+            position: relative;
+            margin-bottom: 10px;
+            animation: rotate-phone 3s infinite ease-in-out;
         }
         
-        /* Scrollbar personalizado */
-        .custom-scrollbar::-webkit-scrollbar {
+        .phone-icon::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 50%;
+            transform: translateX(-50%);
             width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
+            height: 1px;
+            background-color: #334155;
         }
 
-        /* Ajustes móviles */
-        .touch-manipulation {
-            touch-action: manipulation;
+        .phone-icon::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 3px;
+            background-color: #334155;
+            border-radius: 50%;
         }
+
+        @keyframes rotate-phone {
+            0%, 10% { transform: rotate(0deg); }
+            40%, 60% { transform: rotate(90deg); }
+            90%, 100% { transform: rotate(90deg); }
+        }
+
+        .rotate-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-start {
+            background: linear-gradient(to right, #2563eb, #4f46e5);
+            color: white;
+            border: none;
+            padding: 14px 36px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 20px -3px rgba(37, 99, 235, 0.4);
+        }
+
+        /* --- BOTÓN DE ABANDONO --- */
+        .btn-abandon {
+            background: transparent;
+            color: #ef4444;
+            border: 2px solid #fecaca;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            letter-spacing: 0.5px;
+            width: 100%; 
+            max-width: 300px;
+        }
+
+        .btn-abandon:hover {
+            background: #fef2f2;
+            border-color: #ef4444;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.15);
+        }
+        
+        .btn-abandon svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 2.5;
+            fill: none;
+        }
+
+        /* --- APLICACIÓN PRINCIPAL --- */
+        #app-container {
+            display: none;
+            max-width: 950px;
+            width: 100%;
+            background-image: linear-gradient(to bottom, #d8b4fe 0%, #e9d5ff 25%, #f8fafc 100%);
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+            position: relative;
+            padding-bottom: 4rem;
+            border: 1px solid #e2e8f0;
+            animation: fadeInApp 0.8s ease-out;
+        }
+
+        @keyframes fadeInApp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: #1e1b4b;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-weight: 800;
+            font-size: 1.5rem;
+            letter-spacing: -0.5px;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+        }
+
+        .header-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 0.8rem 1.2rem;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            backdrop-filter: blur(4px);
+        }
+
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .exercise-card {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            background: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .tag-type {
+            display: inline-block;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            color: var(--primary-dark);
+            border: 1px solid #bfdbfe;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .step-instruction {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #475569;
+            font-size: 1rem;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .step-number {
+            background: var(--primary);
+            color: white;
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 0.85rem;
+            margin-right: 8px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+        }
+
+        /* --- LAYOUT EN FILA (ROW WRAPPER) --- */
+        .row-wrapper {
+            display: flex;
+            flex-direction: row;
+            align-items: center; /* Alineación por defecto para botones */
+            justify-content: center;
+            flex-wrap: wrap; 
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        /* --- CORRECCIÓN DE ALINEACIÓN FASE 1 (FORMULACIÓN) --- */
+        /* Usamos flex-end para que los operadores se alineen con la base de los inputs */
+        .reaction-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end; /* ESTO ES LO IMPORTANTE PARA QUE EL + NO SUBA */
+            justify-content: center;
+            gap: 5px; 
+            padding: 0;
+        }
+
+        .compound-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: auto;
+        }
+
+        .compound-name {
+            font-size: 0.8rem;
+            color: #475569;
+            margin-bottom: 5px;
+            text-align: center;
+            min-height: 30px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            font-weight: 600;
+            line-height: 1.1;
+            max-width: 120px;
+        }
+
+        /* --- ESTILOS DE INPUTS --- */
+        input {
+            text-align: center;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        input[type="text"] {
+            padding: 8px;
+            font-size: 1.2rem;
+            width: 110px;
+            font-family: 'Noto Serif', serif;
+            letter-spacing: 0px;
+        }
+
+        input[type="number"] {
+            font-family: 'Noto Serif', serif;
+            padding: 4px;
+            font-size: 1.5rem;
+            width: 55px;
+            font-weight: 700;
+            -moz-appearance: textfield;
+            border-width: 2px;
+        }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Colores Específicos */
+        input[data-type="reactant"] {
+            background: linear-gradient(to bottom, #ffffff, #f0f9ff);
+            border-color: #bae6fd;
+            color: #0369a1;
+        }
+        input[data-type="reactant"]:focus {
+            outline: none;
+            border-color: #0284c7;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+            transform: translateY(-1px);
+        }
+
+        input[data-type="product"] {
+            background: linear-gradient(to bottom, #ffffff, #fff7ed);
+            border-color: #fed7aa;
+            color: #c2410c;
+        }
+        input[data-type="product"]:focus {
+            outline: none;
+            border-color: #ea580c;
+            box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
+            transform: translateY(-1px);
+        }
+
+        input.correct {
+            background: linear-gradient(to bottom, #f0fdf4, #dcfce7) !important;
+            border-color: #16a34a !important;
+            color: #15803d !important;
+            box-shadow: none !important;
+        }
+
+        input.incorrect {
+            background: linear-gradient(to bottom, #fef2f2, #fee2e2) !important;
+            border-color: #dc2626 !important;
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* --- OPERADORES (Fase 1: Padding inferior ajustado para centrar con input) --- */
+        .operator-plus {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #0f172a;
+            margin: 0 4px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 8px; /* Ajustado para alinear con el centro visual de la caja */
+        }
+
+        .operator-arrow {
+            margin: 0 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 8px; /* Ajustado para alinear con el centro visual de la caja */
+        }
+        
+        .arrow-svg {
+            width: 35px;
+            height: 20px;
+            stroke: #0f172a;
+            stroke-width: 4px;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        /* --- FASE 2: AJUSTE --- */
+        .balance-section {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            border-top: 2px dashed #e2e8f0;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            width: 100%;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* En la fase 2 usamos align-items: center porque no hay nombres encima */
+        .balance-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            background-color: transparent;
+            border: none;
+            padding: 0;
+            box-shadow: none;
+        }
+
+        /* En Fase 2 los operadores no necesitan el padding extra inferior porque align-items es center */
+        .balance-row .operator-plus, 
+        .balance-row .operator-arrow {
+            padding-bottom: 0;
+        }
+
+        .compound-display {
+            font-family: 'Noto Serif', serif;
+            font-size: 1.5rem;
+            color: #334155;
+            font-weight: 500;
+            margin-left: 2px;
+        }
+
+        /* Botones */
+        .actions {
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .btn {
+            background: linear-gradient(to bottom, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3), 0 2px 4px -1px rgba(37, 99, 235, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-next {
+            background: linear-gradient(to bottom, #16a34a, #15803d);
+            box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.3);
+        }
+
+        .feedback-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .feedback-msg {
+            text-align: center;
+            font-weight: 600;
+            padding: 10px 15px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 600px;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .hint-box {
+            background-color: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-left: 5px solid #f59e0b;
+            color: #92400e;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: none;
+            text-align: left;
+            font-weight: 500;
+            animation: fadeIn 0.3s;
+            max-width: 600px;
+            font-size: 0.9rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .feedback-success { color: #14532d; background: #dcfce7; border: 1px solid #86efac; }
+        .feedback-error { color: #7f1d1d; background: #fee2e2; border: 1px solid #fca5a5; }
+        .feedback-info { color: #1e3a8a; background: #dbeafe; border: 1px solid #93c5fd; }
+
+        /* Footer */
+        .footer-credits {
+            position: absolute;
+            bottom: 1rem;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #64748b;
+            padding: 0 1rem;
+            font-weight: 500;
+        }
+        .credits-name {
+            font-weight: 700;
+            color: inherit;
+        }
+
+        /* Modal para fin del juego y alertas */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px; 
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid #e2e8f0;
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 1.3rem; margin-bottom: 1rem; }
+            .header-stats { padding: 0.6rem 1rem; }
+            .stat-value { font-size: 1.5rem; }
+            .exercise-card { padding: 1.2rem; }
+            input[type="text"] { width: 95px; font-size: 1.1rem; }
+            input[type="number"] { width: 45px; font-size: 1.3rem; }
+            .compound-display { font-size: 1.3rem; }
+            .operator-plus { font-size: 1.5rem; margin: 0 2px; padding-bottom: 6px;} /* Ajuste móvil */
+            .operator-arrow { margin: 0 5px; padding-bottom: 6px; }
+            .arrow-svg { width: 25px; height: 18px; stroke-width: 3px; }
+            .btn { width: 100%; justify-content: center; } 
+            .row-wrapper { gap: 10px; justify-content: center; }
+        }
+
     </style>
 </head>
-<body class="bg-slate-900 overflow-x-hidden fixed inset-0">
-    <div id="root" class="h-full overflow-y-auto custom-scrollbar"></div>
+<body>
 
-    <script type="text/babel">
-        const { useState, useMemo, useEffect } = React;
+<!-- PANTALLA INICIAL (LANDING) -->
+<div id="landing-screen">
+    <div class="landing-content">
+        <div class="landing-title">Laboratorio de Estequiometría</div>
+        <div class="landing-text">
+            Bienvenido al entrenador virtual de química. En este módulo aprenderás a formular compuestos y ajustar ecuaciones químicas de forma interactiva.
+        </div>
 
-        // --- ICONOS (SVG Components) ---
-        const Icon = ({ path, className }) => (
-            <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="24" 
-                height="24" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className={className}
-            >
-                {path}
-            </svg>
-        );
+        <div class="rotate-hint-container">
+            <div class="phone-icon"></div>
+            <div class="rotate-text">Gira tu móvil a horizontal</div>
+            <div style="font-size: 0.85rem; color: #64748b; margin-top:5px;">(Mejor experiencia en apaisado)</div>
+        </div>
 
-        const BookOpen = (props) => <Icon {...props} path={<><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></>} />;
-        const CheckCircle = (props) => <Icon {...props} path={<><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>} />;
-        const Play = (props) => <Icon {...props} path={<polygon points="5 3 19 12 5 21 5 3"/>} />;
-        const RefreshCw = (props) => <Icon {...props} path={<><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></>} />;
-        const Eye = (props) => <Icon {...props} path={<><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>} />;
-        const Award = (props) => <Icon {...props} path={<><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></>} />;
-        const Zap = (props) => <Icon {...props} path={<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>} />;
-        const AlertTriangle = (props) => <Icon {...props} path={<><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>} />;
-        const Atom = (props) => <Icon {...props} path={<><circle cx="12" cy="12" r="1"/><path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5z"/><path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5z"/></>} />;
+        <button class="btn-start" onclick="startApp()">Entrar al Laboratorio</button>
+    </div>
 
-        // --- CONFIGURACIÓN ---
-        const FAILURE_PHRASES = [
-            "Madre mía... 🤦‍♂️",
-            "No mereces el agua que bebes 🚰",
-            "La vida... 😮‍💨",
-            "Porque tú lo digas... 🙄",
-            "¡Ay, mis ojos! 🙈",
-            "¿En serio? 🤨"
-        ];
+    <!-- Créditos Footer en Landing -->
+    <div class="footer-credits">
+        Realizado por <span class="credits-name">Javier Gijón</span>. Prof. del IES María Moliner (Segovia).
+    </div>
+</div>
 
-        // --- BASE DE DATOS ---
-        const rawData = [
-            // --- Óxidos Básicos ---
-            { formula: "Li2O", name: "Óxido de litio", type: "Óxidos" },
-            { formula: "Na2O", name: "Óxido de sodio", type: "Óxidos" },
-            { formula: "K2O", name: "Óxido de potasio", type: "Óxidos" },
-            { formula: "MgO", name: "Óxido de magnesio", type: "Óxidos" },
-            { formula: "CaO", name: "Óxido de calcio", type: "Óxidos" },
-            { formula: "SrO", name: "Óxido de estroncio", type: "Óxidos" },
-            { formula: "BaO", name: "Óxido de bario", type: "Óxidos" },
-            { formula: "FeO", name: "Óxido de hierro (II)", type: "Óxidos" },
-            { formula: "Fe2O3", name: "Óxido de hierro (III)", type: "Óxidos" },
-            { formula: "Cu2O", name: "Óxido de cobre (I)", type: "Óxidos" },
-            { formula: "CuO", name: "Óxido de cobre (II)", type: "Óxidos" },
-            { formula: "Hg2O", name: "Óxido de mercurio (I)", type: "Óxidos" },
-            { formula: "HgO", name: "Óxido de mercurio (II)", type: "Óxidos" },
-            { formula: "Au2O", name: "Óxido de oro (I)", type: "Óxidos" },
-            { formula: "Au2O3", name: "Óxido de oro (III)", type: "Óxidos" },
-            { formula: "Al2O3", name: "Óxido de aluminio", type: "Óxidos" },
-            { formula: "PbO", name: "Óxido de plomo (II)", type: "Óxidos" },
-            { formula: "PbO2", name: "Óxido de plomo (IV)", type: "Óxidos" },
-            { formula: "SnO", name: "Óxido de estaño (II)", type: "Óxidos" },
-            { formula: "SnO2", name: "Óxido de estaño (IV)", type: "Óxidos" },
-            { formula: "CrO", name: "Óxido de cromo (II)", type: "Óxidos" },
-            { formula: "Cr2O3", name: "Óxido de cromo (III)", type: "Óxidos" },
-            { formula: "CrO3", name: "Óxido de cromo (VI)", type: "Óxidos" },
-            { formula: "MnO", name: "Óxido de manganeso (II)", type: "Óxidos" },
-            { formula: "Mn2O3", name: "Óxido de manganeso (III)", type: "Óxidos" },
-            { formula: "MnO2", name: "Óxido de manganeso (IV)", type: "Óxidos" },
-            { formula: "Mn2O7", name: "Óxido de manganeso (VII)", type: "Óxidos" },
-            
-            // --- Óxidos de No Metales ---
-            { formula: "CO", name: "Monóxido de carbono", type: "Óxidos" },
-            { formula: "CO2", name: "Dióxido de carbono", type: "Óxidos" },
-            { formula: "SO2", name: "Dióxido de azufre", type: "Óxidos" },
-            { formula: "SO3", name: "Trióxido de azufre", type: "Óxidos" },
-            { formula: "N2O", name: "Óxido de dinitrógeno", type: "Óxidos" },
-            { formula: "NO", name: "Monóxido de nitrógeno", type: "Óxidos" },
-            { formula: "NO2", name: "Dióxido de nitrógeno", type: "Óxidos" },
-            { formula: "N2O5", name: "Pentóxido de dinitrógeno", type: "Óxidos" },
-            { formula: "P2O3", name: "Trióxido de difósforo", type: "Óxidos" },
-            { formula: "P2O5", name: "Pentóxido de difósforo", type: "Óxidos" },
-            
-            // --- HALÓGENOS (Nomenclatura Recomendada IUPAC 2005: Halogenuros de oxígeno) ---
-            { formula: "OCl2", name: "Dicloruro de oxígeno", type: "Halogenuros de Oxígeno" },
-            { formula: "O3Cl2", name: "Dicloruro de trioxígeno", type: "Halogenuros de Oxígeno" },
-            { formula: "O5Cl2", name: "Dicloruro de pentaoxígeno", type: "Halogenuros de Oxígeno" },
-            { formula: "O7Cl2", name: "Dicloruro de heptaoxígeno", type: "Halogenuros de Oxígeno" },
-            
-            { formula: "OBr2", name: "Dibromuro de oxígeno", type: "Halogenuros de Oxígeno" },
-            { formula: "O3Br2", name: "Dibromuro de trioxígeno", type: "Halogenuros de Oxígeno" },
-            { formula: "O5Br2", name: "Dibromuro de pentaoxígeno", type: "Halogenuros de Oxígeno" },
-            
-            { formula: "OI2", name: "Diyoduro de oxígeno", type: "Halogenuros de Oxígeno" },
-            { formula: "O5I2", name: "Diyoduro de pentaoxígeno", type: "Halogenuros de Oxígeno" },
-            { formula: "O7I2", name: "Diyoduro de heptaoxígeno", type: "Halogenuros de Oxígeno" },
+<!-- PANTALLA DE NIVEL (RESULTADOS) -->
+<div id="level-screen">
+    <div class="level-card">
+        <div id="medal-display" class="medal-icon">🥇</div>
+        <div id="level-title" class="level-title">Nivel: Maestro</div>
+        <div id="level-subtitle" class="level-subtitle">¡Impresionante desempeño!</div>
+        
+        <div class="level-stats">
+            <div class="stat-row">
+                <span>Reacciones completadas:</span>
+                <strong id="final-stats-count">0</strong>
+            </div>
+            <div class="stat-row">
+                <span>Puntuación de precisión:</span>
+                <strong id="final-stats-percent">0%</strong>
+            </div>
+        </div>
 
-            // --- Peróxidos ---
-            { formula: "H2O2", name: "Peróxido de hidrógeno", type: "Peróxidos" },
-            { formula: "Li2O2", name: "Peróxido de litio", type: "Peróxidos" },
-            { formula: "Na2O2", name: "Peróxido de sodio", type: "Peróxidos" },
-            { formula: "K2O2", name: "Peróxido de potasio", type: "Peróxidos" },
-            { formula: "MgO2", name: "Peróxido de magnesio", type: "Peróxidos" },
-            { formula: "CaO2", name: "Peróxido de calcio", type: "Peróxidos" },
-            { formula: "SrO2", name: "Peróxido de estroncio", type: "Peróxidos" },
-            { formula: "BaO2", name: "Peróxido de bario", type: "Peróxidos" },
-            { formula: "ZnO2", name: "Peróxido de cinc", type: "Peróxidos" },
-            { formula: "CdO2", name: "Peróxido de cadmio", type: "Peróxidos" },
+        <button class="btn-start" onclick="resetGame()">Volver al Inicio</button>
+    </div>
+    
+    <!-- Créditos Footer en Nivel -->
+    <div class="footer-credits">
+        Realizado por <span class="credits-name">Javier Gijón</span>. Prof. del IES María Moliner (Segovia).
+    </div>
+</div>
 
-            // --- Hidróxidos ---
-            { formula: "LiOH", name: "Hidróxido de litio", type: "Hidróxidos" },
-            { formula: "NaOH", name: "Hidróxido de sodio", type: "Hidróxidos" },
-            { formula: "KOH", name: "Hidróxido de potasio", type: "Hidróxidos" },
-            { formula: "Mg(OH)2", name: "Hidróxido de magnesio", type: "Hidróxidos" },
-            { formula: "Ca(OH)2", name: "Hidróxido de calcio", type: "Hidróxidos" },
-            { formula: "Sr(OH)2", name: "Hidróxido de estroncio", type: "Hidróxidos" },
-            { formula: "Ba(OH)2", name: "Hidróxido de bario", type: "Hidróxidos" },
-            { formula: "Fe(OH)2", name: "Hidróxido de hierro (II)", type: "Hidróxidos" },
-            { formula: "Fe(OH)3", name: "Hidróxido de hierro (III)", type: "Hidróxidos" },
-            { formula: "Co(OH)2", name: "Hidróxido de cobalto (II)", type: "Hidróxidos" },
-            { formula: "Co(OH)3", name: "Hidróxido de cobalto (III)", type: "Hidróxidos" },
-            { formula: "Ni(OH)2", name: "Hidróxido de níquel (II)", type: "Hidróxidos" },
-            { formula: "Ni(OH)3", name: "Hidróxido de níquel (III)", type: "Hidróxidos" },
-            { formula: "CuOH", name: "Hidróxido de cobre (I)", type: "Hidróxidos" },
-            { formula: "Cu(OH)2", name: "Hidróxido de cobre (II)", type: "Hidróxidos" },
-            { formula: "AgOH", name: "Hidróxido de plata", type: "Hidróxidos" },
-            { formula: "Au(OH)3", name: "Hidróxido de oro (III)", type: "Hidróxidos" },
-            { formula: "Zn(OH)2", name: "Hidróxido de cinc", type: "Hidróxidos" },
-            { formula: "Cd(OH)2", name: "Hidróxido de cadmio", type: "Hidróxidos" },
-            { formula: "Hg(OH)2", name: "Hidróxido de mercurio (II)", type: "Hidróxidos" },
-            { formula: "Al(OH)3", name: "Hidróxido de aluminio", type: "Hidróxidos" },
-            { formula: "Pb(OH)2", name: "Hidróxido de plomo (II)", type: "Hidróxidos" },
-            { formula: "Pb(OH)4", name: "Hidróxido de plomo (IV)", type: "Hidróxidos" },
-            { formula: "Sn(OH)2", name: "Hidróxido de estaño (II)", type: "Hidróxidos" },
-            { formula: "Sn(OH)4", name: "Hidróxido de estaño (IV)", type: "Hidróxidos" },
+<!-- APLICACIÓN PRINCIPAL -->
+<div id="app-container" class="container">
+    <h1>Laboratorio de Estequiometría</h1>
+    
+    <div class="header-stats">
+        <div class="stat-box">
+            <span class="stat-label">Progreso</span>
+            <span class="stat-value"><span id="current-ex">1</span>/40</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">Aciertos</span>
+            <span class="stat-value" id="score">0</span>
+        </div>
+    </div>
 
-            // --- Hidruros ---
-            { formula: "LiH", name: "Hidruro de litio", type: "Hidruros" },
-            { formula: "NaH", name: "Hidruro de sodio", type: "Hidruros" },
-            { formula: "KH", name: "Hidruro de potasio", type: "Hidruros" },
-            { formula: "CaH2", name: "Hidruro de calcio", type: "Hidruros" },
-            { formula: "BaH2", name: "Hidruro de bario", type: "Hidruros" },
-            { formula: "AlH3", name: "Hidruro de aluminio", type: "Hidruros" },
-            { formula: "FeH2", name: "Hidruro de hierro (II)", type: "Hidruros" },
-            { formula: "FeH3", name: "Hidruro de hierro (III)", type: "Hidruros" },
-            { formula: "CH4", name: "Metano", type: "Hidruros" },
-            { formula: "SiH4", name: "Silano", type: "Hidruros" },
-            { formula: "NH3", name: "Amoniaco", type: "Hidruros" },
-            { formula: "PH3", name: "Fosfano", type: "Hidruros" },
-            { formula: "AsH3", name: "Arsano", type: "Hidruros" },
-            { formula: "SbH3", name: "Estibano", type: "Hidruros" },
-            { formula: "H2O", name: "Agua", type: "Hidruros" },
-            { formula: "H2S", name: "Sulfuro de hidrógeno", type: "Hidruros" },
-            { formula: "H2Se", name: "Seleniuro de hidrógeno", type: "Hidruros" },
-            { formula: "H2Te", name: "Telururo de hidrógeno", type: "Hidruros" },
-            { formula: "HF", name: "Fluoruro de hidrógeno", type: "Hidruros" },
-            { formula: "HCl", name: "Cloruro de hidrógeno", type: "Hidruros" },
-            { formula: "HBr", name: "Bromuro de hidrógeno", type: "Hidruros" },
-            { formula: "HI", name: "Yoduro de hidrógeno", type: "Hidruros" },
+    <div class="exercise-card">
+        <div style="text-align: center;">
+            <span id="reaction-type" class="tag-type">Cargando...</span>
+        </div>
 
-            // --- Sales Binarias ---
-            { formula: "LiF", name: "Fluoruro de litio", type: "Sales Binarias" },
-            { formula: "NaCl", name: "Cloruro de sodio", type: "Sales Binarias" },
-            { formula: "KBr", name: "Bromuro de potasio", type: "Sales Binarias" },
-            { formula: "KI", name: "Yoduro de potasio", type: "Sales Binarias" },
-            { formula: "CaF2", name: "Fluoruro de calcio", type: "Sales Binarias" },
-            { formula: "MgCl2", name: "Cloruro de magnesio", type: "Sales Binarias" },
-            { formula: "CaBr2", name: "Bromuro de calcio", type: "Sales Binarias" },
-            { formula: "AlCl3", name: "Cloruro de aluminio", type: "Sales Binarias" },
-            { formula: "FeCl2", name: "Cloruro de hierro (II)", type: "Sales Binarias" },
-            { formula: "FeCl3", name: "Cloruro de hierro (III)", type: "Sales Binarias" },
-            { formula: "CuBr", name: "Bromuro de cobre (I)", type: "Sales Binarias" },
-            { formula: "CuBr2", name: "Bromuro de cobre (II)", type: "Sales Binarias" },
-            { formula: "AgCl", name: "Cloruro de plata", type: "Sales Binarias" },
-            { formula: "AgI", name: "Yoduro de plata", type: "Sales Binarias" },
-            { formula: "ZnS", name: "Sulfuro de cinc", type: "Sales Binarias" },
-            { formula: "PbS", name: "Sulfuro de plomo (II)", type: "Sales Binarias" },
-            { formula: "MnS", name: "Sulfuro de manganeso (II)", type: "Sales Binarias" },
-            { formula: "NiCl2", name: "Cloruro de níquel (II)", type: "Sales Binarias" },
-            { formula: "CCl4", name: "Tetracloruro de carbono", type: "Sales Binarias" },
-            { formula: "CS2", name: "Disulfuro de carbono", type: "Sales Binarias" },
-            { formula: "SF6", name: "Hexafluoruro de azufre", type: "Sales Binarias" },
-            { formula: "PCl3", name: "Tricloruro de fósforo", type: "Sales Binarias" },
-            { formula: "PCl5", name: "Pentacloruro de fósforo", type: "Sales Binarias" },
+        <!-- PASO 1: FORMULACIÓN -->
+        <div>
+            <p class="step-instruction">
+                <span class="step-number">1</span> Escribe la fórmula química (los números se convierten en subíndices):
+            </p>
 
-            // --- Oxoácidos ---
-            { formula: "HClO", name: "Ácido hipocloroso", type: "Oxoácidos" },
-            { formula: "HClO2", name: "Ácido cloroso", type: "Oxoácidos" },
-            { formula: "HClO3", name: "Ácido clórico", type: "Oxoácidos" },
-            { formula: "HClO4", name: "Ácido perclórico", type: "Oxoácidos" },
-            { formula: "HBrO", name: "Ácido hipobromoso", type: "Oxoácidos" },
-            { formula: "HBrO2", name: "Ácido bromoso", type: "Oxoácidos" },
-            { formula: "HBrO3", name: "Ácido brómico", type: "Oxoácidos" },
-            { formula: "HBrO4", name: "Ácido perbrómico", type: "Oxoácidos" },
-            { formula: "HIO", name: "Ácido hipoyodoso", type: "Oxoácidos" },
-            { formula: "HIO3", name: "Ácido yódico", type: "Oxoácidos" },
-            { formula: "HIO4", name: "Ácido peryódico", type: "Oxoácidos" },
-            { formula: "H2SO3", name: "Ácido sulfuroso", type: "Oxoácidos" },
-            { formula: "H2SO4", name: "Ácido sulfúrico", type: "Oxoácidos" },
-            { formula: "H2SeO3", name: "Ácido selenioso", type: "Oxoácidos" },
-            { formula: "H2SeO4", name: "Ácido selénico", type: "Oxoácidos" },
-            { formula: "H2TeO3", name: "Ácido teluroso", type: "Oxoácidos" },
-            { formula: "H2TeO4", name: "Ácido telúrico", type: "Oxoácidos" },
-            { formula: "HNO2", name: "Ácido nitroso", type: "Oxoácidos" },
-            { formula: "HNO3", name: "Ácido nítrico", type: "Oxoácidos" },
-            { formula: "H3PO3", name: "Ácido fosforoso", type: "Oxoácidos" },
-            { formula: "H3PO4", name: "Ácido fosfórico", type: "Oxoácidos" },
-            { formula: "H3AsO3", name: "Ácido arsenioso", type: "Oxoácidos" },
-            { formula: "H3AsO4", name: "Ácido arsénico", type: "Oxoácidos" },
-            { formula: "H2CO3", name: "Ácido carbónico", type: "Oxoácidos" },
-            { formula: "H2SiO3", name: "Ácido metasilícico", type: "Oxoácidos" },
-            { formula: "H3BO3", name: "Ácido bórico", type: "Oxoácidos" },
-            { formula: "HMnO4", name: "Ácido permangánico", type: "Oxoácidos" },
-            { formula: "H2CrO4", name: "Ácido crómico", type: "Oxoácidos" },
-            { formula: "H2Cr2O7", name: "Ácido dicrómico", type: "Oxoácidos" },
-
-            // --- Oxisales (Incluyendo Dicromatos Extra) ---
-            { formula: "NaClO", name: "Hipoclorito de sodio", type: "Oxisales" },
-            { formula: "NaClO2", name: "Clorito de sodio", type: "Oxisales" },
-            { formula: "NaClO3", name: "Clorato de sodio", type: "Oxisales" },
-            { formula: "NaClO4", name: "Perclorato de sodio", type: "Oxisales" },
-            { formula: "KClO3", name: "Clorato de potasio", type: "Oxisales" },
-            { formula: "Ca(ClO)2", name: "Hipoclorito de calcio", type: "Oxisales" },
-            { formula: "NaNO2", name: "Nitrito de sodio", type: "Oxisales" },
-            { formula: "NaNO3", name: "Nitrato de sodio", type: "Oxisales" },
-            { formula: "KNO3", name: "Nitrato de potasio", type: "Oxisales" },
-            { formula: "AgNO3", name: "Nitrato de plata", type: "Oxisales" },
-            { formula: "Ca(NO3)2", name: "Nitrato de calcio", type: "Oxisales" },
-            { formula: "Cu(NO3)2", name: "Nitrato de cobre (II)", type: "Oxisales" },
-            { formula: "Pb(NO3)2", name: "Nitrato de plomo (II)", type: "Oxisales" },
-            { formula: "Na2SO3", name: "Sulfito de sodio", type: "Oxisales" },
-            { formula: "Na2SO4", name: "Sulfato de sodio", type: "Oxisales" },
-            { formula: "CaSO4", name: "Sulfato de calcio", type: "Oxisales" },
-            { formula: "MgSO4", name: "Sulfato de magnesio", type: "Oxisales" },
-            { formula: "BaSO4", name: "Sulfato de bario", type: "Oxisales" },
-            { formula: "CuSO4", name: "Sulfato de cobre (II)", type: "Oxisales" },
-            { formula: "FeSO4", name: "Sulfato de hierro (II)", type: "Oxisales" },
-            { formula: "Fe2(SO4)3", name: "Sulfato de hierro (III)", type: "Oxisales" },
-            { formula: "Al2(SO4)3", name: "Sulfato de aluminio", type: "Oxisales" },
-            { formula: "Na2CO3", name: "Carbonato de sodio", type: "Oxisales" },
-            { formula: "K2CO3", name: "Carbonato de potasio", type: "Oxisales" },
-            { formula: "CaCO3", name: "Carbonato de calcio", type: "Oxisales" },
-            { formula: "MgCO3", name: "Carbonato de magnesio", type: "Oxisales" },
-            { formula: "Na3PO4", name: "Fosfato de sodio", type: "Oxisales" },
-            { formula: "Ca3(PO4)2", name: "Fosfato de calcio", type: "Oxisales" },
-            { formula: "AlPO4", name: "Fosfato de aluminio", type: "Oxisales" },
-            { formula: "K2CrO4", name: "Cromato de potasio", type: "Oxisales" },
-            { formula: "K2Cr2O7", name: "Dicromato de potasio", type: "Oxisales" },
-            { formula: "Na2Cr2O7", name: "Dicromato de sodio", type: "Oxisales" },
-            { formula: "Li2Cr2O7", name: "Dicromato de litio", type: "Oxisales" },
-            { formula: "CaCr2O7", name: "Dicromato de calcio", type: "Oxisales" },
-            { formula: "MgCr2O7", name: "Dicromato de magnesio", type: "Oxisales" },
-            { formula: "ZnCr2O7", name: "Dicromato de cinc", type: "Oxisales" },
-            { formula: "Ag2Cr2O7", name: "Dicromato de plata", type: "Oxisales" },
-            { formula: "(NH4)2Cr2O7", name: "Dicromato de amonio", type: "Oxisales" },
-            { formula: "KMnO4", name: "Permanganato de potasio", type: "Oxisales" },
-
-            // --- Sales Ácidas ---
-            { formula: "NaHCO3", name: "Hidrogenocarbonato de sodio", type: "Sales Ácidas" },
-            { formula: "KHCO3", name: "Hidrogenocarbonato de potasio", type: "Sales Ácidas" },
-            { formula: "Ca(HCO3)2", name: "Hidrogenocarbonato de calcio", type: "Sales Ácidas" },
-            { formula: "NaHSO4", name: "Hidrogenosulfato de sodio", type: "Sales Ácidas" },
-            { formula: "KHSO4", name: "Hidrogenosulfato de potasio", type: "Sales Ácidas" },
-            { formula: "Ca(HSO4)2", name: "Hidrogenosulfato de calcio", type: "Sales Ácidas" },
-            { formula: "NaHSO3", name: "Hidrogenosulfito de sodio", type: "Sales Ácidas" },
-            { formula: "KH2PO4", name: "Dihidrogenofosfato de potasio", type: "Sales Ácidas" },
-            { formula: "K2HPO4", name: "Hidrogenofosfato de potasio", type: "Sales Ácidas" },
-            { formula: "NaH2PO4", name: "Dihidrogenofosfato de sodio", type: "Sales Ácidas" },
-            { formula: "Na2HPO4", name: "Hidrogenofosfato de sodio", type: "Sales Ácidas" },
-            { formula: "Ca(H2PO4)2", name: "Dihidrogenofosfato de calcio", type: "Sales Ácidas" },
-            { formula: "CaHPO4", name: "Hidrogenofosfato de calcio", type: "Sales Ácidas" },
-        ];
-
-        const generateSmartDistractors = (correct, allItems, mode) => {
-            const distractors = new Set();
-            const targetType = mode === 'formula' ? 'formula' : 'name';
-            
-            // --- DETECCIÓN DEL ELEMENTO PRINCIPAL Y TIPO ---
-            let mainHalogen = null;
-            if (correct.includes("Cl") || correct.toLowerCase().includes("cloro")) mainHalogen = { sym: "Cl", name: "cloro" };
-            else if (correct.includes("Br") || correct.toLowerCase().includes("bromo")) mainHalogen = { sym: "Br", name: "bromo" };
-            else if (correct.includes("I") && !correct.includes("Li") || correct.toLowerCase().includes("yodo")) mainHalogen = { sym: "I", name: "yodo" };
-
-            const isHalogenOxide = mainHalogen && (correct.startsWith("O") || correct.toLowerCase().includes("oxígeno"));
-            const itemType = allItems.find(i => i[targetType] === correct)?.type;
-            const isOxoCompound = itemType === "Oxoácidos" || itemType === "Oxisales" || itemType === "Sales Ácidas";
-
-            // Función mejorada para mutar fórmulas preservando los elementos
-            const mutateFormula = (str) => {
-                if (isHalogenOxide) {
-                    if (/\d/.test(str)) {
-                        return str.replace(/(\d)/g, (m) => {
-                            const val = parseInt(m);
-                            const options = [1, 2, 3, 5, 7].filter(n => n !== val);
-                            return options[Math.floor(Math.random() * options.length)];
-                        });
-                    } else {
-                        return str.replace(mainHalogen.sym, mainHalogen.sym + "2").replace("O", "O" + (Math.random() > 0.5 ? "3" : "5"));
-                    }
-                }
-
-                if (isOxoCompound) {
-                    const parts = str.split(/([A-Z][a-z]?|\(|\)|\[|\])(\d*)/).filter(Boolean);
-                    let mutated = "";
-                    let changed = false;
-                    
-                    for (let i = 0; i < parts.length; i++) {
-                        const part = parts[i];
-                        if (/^\d+$/.test(part)) {
-                            const val = parseInt(part);
-                            const options = [val-1, val+1, val+2, 2, 3, 4].filter(n => n > 0 && n !== val);
-                            mutated += options[Math.floor(Math.random() * options.length)];
-                            changed = true;
-                        } 
-                        else if (!/^\d+$/.test(part) && (i + 1 >= parts.length || !/^\d+$/.test(parts[i+1]))) {
-                            mutated += part;
-                            if ((part === 'O' || part === 'H' || part === ')') && Math.random() > 0.6) {
-                                mutated += (Math.random() > 0.5 ? "2" : "3");
-                                changed = true;
-                            }
-                        }
-                        else if (!/^\d+$/.test(part)) {
-                            mutated += part;
-                        }
-                    }
-                    if (!changed) return mutated + "2";
-                    return mutated;
-                }
-
-                if (str.match(/[A-Z][a-z]?\d*/g)) {
-                    let mutated = str.replace(/(\d+)/g, (match) => {
-                        const val = parseInt(match);
-                        const options = [2, 3, 4, 5, 7].filter(n => n !== val);
-                        return options[Math.floor(Math.random() * options.length)];
-                    });
-                    if (mutated === str) {
-                         mutated = str.replace(/([A-Z][a-z]?)(?![a-z])(?!.*\d)/, "$12"); 
-                         if (mutated === str) mutated = str + "2"; 
-                    }
-                    return mutated;
-                }
-                return str + "2"; 
-            };
-
-            // Función mejorada para mutar nombres preservando el elemento central
-            const mutateName = (str) => {
-                let options = [];
-                
-                // 1. Estrategia para Óxidos y Halogenuros (Sistemática)
-                if (str.match(/\b(Mon|Di|Tri|Tetra|Penta|Hexa|Hepta)/)) {
-                    const prefixes = ["Mon", "Di", "Tri", "Tetra", "Penta", "Hepta"];
-                    prefixes.forEach(p => {
-                        // Reemplazar prefijo en "óxido" o en el elemento
-                        let newVal = str.replace(/\b(Mon|Di|Tri|Tetra|Penta|Hexa|Hepta)óxido/g, p + "óxido")
-                                          .replace(/\b(mon|di|tri|tetra|penta|hexa|hepta)óxido/g, p.toLowerCase() + "óxido")
-                                          .replace(/\b(Mon|Di|Tri|Tetra|Penta|Hexa|Hepta)(clor|brom|yod)/g, p + "$2") 
-                                          .replace(/\b(mon|di|tri|tetra|penta|hexa|hepta)(clor|brom|yod)/g, p.toLowerCase() + "$2");
-                        
-                        // Si no hubo reemplazo por regex (ej: Dicloruro de...), intentar forzar
-                        if (newVal === str && !str.includes("óxido")) {
-                             const words = str.split(" ");
-                             if (words[0].match(/^(Mon|Di|Tri|Tetra|Penta|Hexa|Hepta)/)) {
-                                 // Reemplazar el prefijo de la primera palabra
-                                 words[0] = words[0].replace(/^(Mon|Di|Tri|Tetra|Penta|Hexa|Hepta)/, p);
-                                 newVal = words.join(" ");
-                             } else {
-                                 // Añadir prefijo
-                                 newVal = p + words[0].toLowerCase() + " " + words.slice(1).join(" ");
-                             }
-                        }
-
-                        if (newVal !== str) options.push(newVal);
-                    });
-                }
-
-                // 2. Estrategia para Ácidos y Sales (Tradicional)
-                let suffix = "";
-                let prefix = "";
-                
-                if (str.includes("ico")) suffix = "ico";
-                else if (str.includes("oso")) suffix = "oso";
-                else if (str.includes("ato")) suffix = "ato";
-                else if (str.includes("ito")) suffix = "ito";
-                
-                if (str.includes("Hipo")) prefix = "Hipo";
-                else if (str.includes("Per")) prefix = "Per";
-                else if (str.includes("Meta")) prefix = "Meta";
-                else if (str.includes("Orto")) prefix = "Orto";
-
-                if (suffix) {
-                    const suffixes = ["ico", "oso"]; 
-                    const saltSuffixes = ["ato", "ito"]; 
-                    const targetSuffixes = (suffix === "ato" || suffix === "ito") ? saltSuffixes : suffixes;
-                    const possiblePrefixes = ["", "Hipo", "Per", "Meta", "Orto"];
-
-                    targetSuffixes.forEach(s => {
-                        possiblePrefixes.forEach(p => {
-                            let newName = str;
-                            // Reemplazar sufijo
-                            newName = newName.replace(suffix, s);
-                            
-                            // Manejar prefijo
-                            if (prefix) {
-                                if (p === "") newName = newName.replace(prefix, ""); 
-                                else newName = newName.replace(prefix, p); 
-                            } else {
-                                if (p !== "") {
-                                    if (newName.startsWith("Ácido ")) {
-                                        newName = newName.replace("Ácido ", "Ácido " + p.toLowerCase());
-                                    } else {
-                                        newName = p + newName.charAt(0).toLowerCase() + newName.slice(1);
-                                    }
-                                }
-                            }
-                            
-                            newName = newName.replace("  ", " ").trim();
-                            newName = newName.charAt(0).toUpperCase() + newName.slice(1);
-                            
-                            if (newName !== str) options.push(newName);
-                        });
-                    });
-                }
-
-                // 3. Estrategia Números Romanos
-                if (str.includes("(")) {
-                    const romans = ['(I)', '(II)', '(III)', '(IV)', '(V)', '(VI)', '(VII)'];
-                    romans.forEach(r => {
-                        const newVal = str.replace(/\((I|II|III|IV|V|VI|VII)\)/, r);
-                        if (newVal !== str) options.push(newVal);
-                    });
-                } else if (!str.match(/\b(Mon|Di|Tri)/) && !str.includes("Ácido")) {
-                    // Si no es ácido ni sistemática, añadir valencia inventada
-                    options.push(str + " (II)");
-                    options.push(str + " (III)");
-                    options.push(str + " (IV)");
-                }
-
-                // 4. Estrategia sales ácidas
-                if (str.includes("Hidrogeno") || str.includes("hidrogeno")) {
-                     const variants = ["Hidrogeno", "Dihidrogeno"];
-                     variants.forEach(v => {
-                         let newVal = str;
-                         if (str.includes("Dihidrogeno")) newVal = str.replace("Dihidrogeno", v);
-                         else if (str.includes("Trihidrogeno")) newVal = str.replace("Trihidrogeno", v);
-                         else newVal = str.replace("Hidrogeno", v);
-                         
-                         if (newVal !== str) options.push(newVal);
-                     });
-                }
-
-                if (options.length > 0) {
-                    return options[Math.floor(Math.random() * options.length)];
-                }
-                
-                return "Di" + str.toLowerCase();
-            };
-
-            let attempts = 0;
-            while (distractors.size < 5 && attempts < 50) {
-                attempts++;
-                let fake = targetType === 'formula' ? mutateFormula(correct) : mutateName(correct);
-                
-                if (fake && fake !== correct && fake !== "undefined") {
-                    distractors.add(fake);
-                }
-            }
-            
-            // Fallback: Buscar en la BD elementos que compartan la RAÍZ del nombre
-            if (distractors.size < 5) {
-                const currentItemType = allItems.find(i => i[targetType] === correct)?.type;
-                const sameType = allItems.filter(i => i.type === currentItemType && i[targetType] !== correct);
-                
-                // Extraer raíces simples (palabras de >3 letras) del nombre correcto
-                const correctNameLower = correct.toLowerCase();
-                // Ignorar palabras comunes
-                const stopWords = ["ácido", "de", "oxido", "peroxido", "hidroxido", "hidruro", "sal", "mono", "di", "tri"];
-                const roots = correctNameLower.split(/[\s\(\)]+/)
-                                              .filter(w => w.length > 3 && !stopWords.includes(w))
-                                              .map(w => w.replace(/ato$|ito$|ico$|oso$|uro$/, "")); // Quitar sufijos para obtener raíz pura
-
-                while (distractors.size < 5 && sameType.length > 0) {
-                     // Elegir uno random
-                     const randIndex = Math.floor(Math.random() * sameType.length);
-                     const randomItem = sameType[randIndex];
-                     sameType.splice(randIndex, 1); // Quitar para no repetir
-                     
-                     let valid = false;
-                     // Filtro estricto: Debe compartir alguna raíz
-                     if (roots.length > 0) {
-                         const candidateName = randomItem[targetType].toLowerCase();
-                         if (roots.some(r => candidateName.includes(r))) {
-                             valid = true;
-                         }
-                     } else {
-                         // Si no pudimos sacar raíces (ej. nombres muy cortos), aceptamos del mismo tipo
-                         valid = true; 
-                     }
-
-                     // Filtro extra para halogenuros
-                     if (isHalogenOxide) {
-                        if (!randomItem[targetType].includes(mainHalogen.sym) && !randomItem[targetType].toLowerCase().includes(mainHalogen.name)) valid = false;
-                     }
-
-                     if (valid) distractors.add(randomItem[targetType]);
-                }
-            }
-
-            return Array.from(distractors).slice(0, 5).sort(() => 0.5 - Math.random());
-        };
-
-        // --- COMPONENTE EXPLOSIÓN ERROR ---
-        const ErrorExplosion = () => {
-            // Partículas rojas/naranjas con movimiento caótico hacia afuera
-            const particles = Array.from({ length: 20 }).map((_, i) => {
-                const angle = (i / 20) * 360;
-                const distance = 60 + Math.random() * 40;
-                const delay = Math.random() * 0.1;
-                
-                // Color rojo intenso y naranja
-                const color = ['#ef4444', '#dc2626', '#f87171', '#fb923c'][Math.floor(Math.random() * 4)];
-                
-                const tx = Math.cos(angle * Math.PI / 180) * distance;
-                const ty = Math.sin(angle * Math.PI / 180) * distance;
-
-                return (
-                    <div
-                        key={i}
-                        className="absolute w-3 h-3 rounded-sm opacity-0" // Cuadrados pequeños para diferenciar
-                        style={{
-                            backgroundColor: color,
-                            top: '50%',
-                            left: '50%',
-                            animation: `explode 0.6s ease-out forwards ${delay}s`,
-                            '--tx': `${tx}px`,
-                            '--ty': `${ty}px`,
-                        }}
-                    />
-                );
-            });
-
-            return (
-                <div className="absolute top-1/2 left-1/2 w-0 h-0 overflow-visible pointer-events-none z-50 flex items-center justify-center">
-                    {particles}
+            <!-- LAYOUT EN FILA (REACCIÓN + BOTÓN) -->
+            <div class="row-wrapper">
+                <div id="formula-area" class="reaction-container">
+                    <!-- Se llena dinámicamente con JS -->
                 </div>
-            );
-        };
-
-        const SubscriptText = ({ text }) => {
-            if (!text) return null;
-            const parts = text.split(/(\d+)/g);
-            return (
-                <span className="font-mono tracking-wider break-words">
-                    {parts.map((part, i) => 
-                        /\d+/.test(part) ? <sub key={i} className="text-[0.7em] align-baseline relative top-[0.3em] font-bold opacity-90">{part}</sub> : part
-                    )}
-                </span>
-            );
-        };
-
-        const FireworkExplosion = () => {
-            const particles = Array.from({ length: 30 }).map((_, i) => {
-                const angle = (i / 30) * 360;
-                const distance = 150 + Math.random() * 100;
-                const delay = Math.random() * 0.2;
-                const color = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#ec4899', '#8b5cf6'][Math.floor(Math.random() * 6)];
                 
-                const tx = Math.cos(angle * Math.PI / 180) * distance;
-                const ty = Math.sin(angle * Math.PI / 180) * distance;
+                <!-- Botón Verificar -->
+                <button id="btn-check-formula" class="btn" onclick="checkFormulas()">
+                    Verificar
+                </button>
+            </div>
 
-                return (
-                    <div
-                        key={i}
-                        className="absolute w-2 h-2 rounded-full opacity-0"
-                        style={{
-                            backgroundColor: color,
-                            top: '50%',
-                            left: '50%',
-                            animation: `explode 0.8s ease-out forwards ${delay}s`,
-                            '--tx': `${tx}px`,
-                            '--ty': `${ty}px`,
-                        }}
-                    />
-                );
-            });
+            <!-- Feedback debajo -->
+            <div class="feedback-wrapper">
+                <div id="hint-formula" class="hint-box"></div>
+                <div id="feedback-formula" class="feedback-msg" style="display:none;"></div>
+            </div>
+        </div>
 
-            return (
-                <div className="absolute top-1/2 left-1/2 w-0 h-0 overflow-visible pointer-events-none z-50 flex items-center justify-center">
-                    {particles}
+        <!-- PASO 2: AJUSTE (Oculto al inicio) -->
+        <div id="balance-container" class="balance-section">
+            <p class="step-instruction">
+                <span class="step-number">2</span> Ajusta la reacción (usa 1 si no es necesario coeficiente):
+            </p>
+            
+            <!-- LAYOUT EN FILA (AJUSTE + BOTÓN) -->
+            <div class="row-wrapper">
+                <div id="balance-area" class="balance-row">
+                    <!-- Se llena dinámicamente -->
                 </div>
-            );
-        };
-
-        // --- APP PRINCIPAL ---
-        function FormulacionApp() {
-            const [gameState, setGameState] = useState('setup');
-            const [selectedTypes, setSelectedTypes] = useState(['Todos']);
-            const [questionCount, setQuestionCount] = useState(15);
-            const [questions, setQuestions] = useState([]);
-            const [currentIndex, setCurrentIndex] = useState(0);
-            const [showOptions, setShowOptions] = useState(false);
-            const [correctCount, setCorrectCount] = useState(0);
-            const [incorrectCount, setIncorrectCount] = useState(0);
-            const [feedback, setFeedback] = useState(null);
-            const [history, setHistory] = useState([]);
-            const [failurePhrase, setFailurePhrase] = useState(null);
-            const [selectedOption, setSelectedOption] = useState(null); // Nuevo estado para saber qué botón se pulsó
-
-            const allTypes = useMemo(() => ['Todos', ...new Set(rawData.map(i => i.type))], []);
-
-            const toggleType = (type) => {
-                if (type === 'Todos') {
-                    setSelectedTypes(['Todos']);
-                    return;
-                }
-                let newTypes = selectedTypes.filter(t => t !== 'Todos');
-                if (selectedTypes.includes(type)) {
-                    newTypes = newTypes.filter(t => t !== type);
-                } else {
-                    newTypes = [...newTypes, type];
-                }
-                if (newTypes.length === 0) newTypes = ['Todos'];
-                setSelectedTypes(newTypes);
-            };
-
-            const startGame = () => {
-                // 1. Determinar tipos seleccionados
-                let typesToUse = [];
-                if (selectedTypes.includes('Todos')) {
-                    // Obtener todos los tipos únicos de rawData
-                    typesToUse = [...new Set(rawData.map(i => i.type))];
-                } else {
-                    typesToUse = [...selectedTypes];
-                }
-
-                // 2. Seleccionar preguntas equitativamente entre los tipos
-                let selectedItems = [];
-                // Barajamos los tipos para que el reparto del "resto" sea aleatorio
-                typesToUse.sort(() => 0.5 - Math.random());
                 
-                const baseCountPerType = Math.floor(questionCount / typesToUse.length);
-                let remainder = questionCount % typesToUse.length;
+                <!-- Botones integrados -->
+                <button id="btn-check-balance" class="btn" onclick="checkBalance()">Verificar</button>
+                <button id="btn-next" class="btn btn-next" style="display:none;" onclick="nextExercise()">Siguiente</button>
+            </div>
 
-                typesToUse.forEach(type => {
-                    // Filtrar items de este tipo
-                    const itemsOfType = rawData.filter(i => i.type === type);
-                    // Determinar cuántos coger: base + 1 si hay resto disponible
-                    let countToTake = baseCountPerType;
-                    if (remainder > 0) {
-                        countToTake++;
-                        remainder--;
-                    }
-                    
-                    // Coger aleatoriamente
-                    const itemsTaken = itemsOfType.sort(() => 0.5 - Math.random()).slice(0, countToTake);
-                    selectedItems = [...selectedItems, ...itemsTaken];
-                });
+            <div class="feedback-wrapper">
+                <div id="feedback-balance" class="feedback-msg" style="display:none;"></div>
+            </div>
+        </div>
 
-                // Barajar las preguntas seleccionadas para que no salgan por bloques de tipos
-                selectedItems.sort(() => 0.5 - Math.random());
+        <!-- Botón de Abandono -->
+        <button class="btn-abandon" onclick="showLevelScreen()">
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            Abandonar y Ver Nivel
+        </button>
+    </div>
 
-                // 3. Preparar distribución 50/50 de Fórmula/Nombre
-                // Crear array con mitad true, mitad false
-                const halfCount = Math.floor(selectedItems.length / 2);
-                let modes = Array(selectedItems.length).fill(false); // Llenar todo con false (Nombre -> Fórmula)
-                for (let i = 0; i < halfCount; i++) modes[i] = true; // Poner la mitad a true (Fórmula -> Nombre)
-                
-                // Barajar los modos
-                modes.sort(() => 0.5 - Math.random());
-                
-                const preparedQuestions = selectedItems.map((item, index) => {
-                    const isFormulaToName = modes[index]; // Usar el modo pre-calculado
-                    
-                    const target = isFormulaToName ? item.name : item.formula;
-                    const prompt = isFormulaToName ? item.formula : item.name;
-                    const mode = isFormulaToName ? 'name' : 'formula'; 
+    <!-- Créditos Footer en App -->
+    <div class="footer-credits">
+        Realizado por <span class="credits-name">Javier Gijón</span>. Prof. del IES María Moliner (Segovia).
+    </div>
+</div>
 
-                    const distractors = generateSmartDistractors(target, rawData, mode);
-                    const options = [target, ...distractors].sort(() => 0.5 - Math.random());
+<!-- Modal de Advertencia (Abandono prematuro) -->
+<div id="warning-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h2 style="color: #f59e0b; font-size: 1.5rem; margin-bottom: 1rem;">⚠️ Atención</h2>
+        <p style="color: #334155; font-size: 1rem; margin-bottom: 1.5rem;">
+            Necesitas completar al menos <strong>3 reacciones</strong> correctamente para calcular tu nivel con precisión.
+        </p>
+        <p style="color: #64748b; margin-bottom: 1.5rem; font-size: 0.95rem;">
+            Llevas: <strong id="warning-score" style="color: #2563eb;">0</strong> / 3
+        </p>
+        <button class="btn" style="width:100%" onclick="closeWarningModal()">Seguir Practicando</button>
+    </div>
+</div>
 
-                    return { item, mode, prompt, correct: target, options, isFormulaToName };
-                });
+<!-- Modal de Finalización -->
+<div id="completion-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h2 style="color: var(--primary); font-size: 1.8rem; margin-bottom: 1rem;">¡Enhorabuena!</h2>
+        <p style="color: #64748b; font-size: 1rem; margin-bottom: 1.5rem;">Has completado el ciclo de reacciones químicas.</p>
+        <p style="margin-bottom: 1.5rem;">Tu puntuación final es: <strong id="final-score" style="font-size:1.8rem; color: #0f172a;"></strong></p>
+        <button class="btn" style="width:100%" onclick="showLevelScreen()">Ver Nivel</button>
+    </div>
+</div>
 
-                setQuestions(preparedQuestions);
-                setCurrentIndex(0);
-                setCorrectCount(0);
-                setIncorrectCount(0);
-                setHistory([]);
-                setFeedback(null);
-                setSelectedOption(null);
-                setShowOptions(false);
-                setGameState('playing');
-            };
+<script>
+    // --- FUNCIÓN PARA INICIAR LA APP ---
+    function startApp() {
+        const landing = document.getElementById('landing-screen');
+        const app = document.getElementById('app-container');
+        
+        landing.style.opacity = '0';
+        
+        setTimeout(() => {
+            landing.style.display = 'none';
+            app.style.display = 'block';
+        }, 500);
+    }
 
-            const handleAnswer = (answer) => {
-                const currentQ = questions[currentIndex];
-                const isCorrect = answer === currentQ.correct;
-                
-                setSelectedOption(answer); // Guardamos la opción elegida
+    // --- MAPA DE SUBÍNDICES PARA FORMULACIÓN DIRECTA ---
+    const SUB_MAP = {
+        '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
+        '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉'
+    };
+    
+    // Mapa inverso para validación (convertir ₂ -> 2)
+    const NORM_MAP = Object.fromEntries(Object.entries(SUB_MAP).map(a => a.reverse()));
 
-                if (isCorrect) {
-                    setCorrectCount(c => c + 1);
-                    setFeedback('correct');
-                    setFailurePhrase(null);
-                } else {
-                    setIncorrectCount(c => c + 1);
-                    setFeedback('incorrect');
-                    setFailurePhrase(FAILURE_PHRASES[Math.floor(Math.random() * FAILURE_PHRASES.length)]);
-                }
-                
-                setHistory([...history, { ...currentQ, userAnswer: answer, isCorrect }]);
+    // --- BASE DE DATOS DE REACCIONES (40) ---
+    // hint: Pista específica que se usará como base para el primer intento o fallback.
+    const database = [
+        // SÍNTESIS
+        { type: "Síntesis", r_names: ["Hidrógeno", "Oxígeno"], p_names: ["Agua"], r_forms: ["H2", "O2"], p_forms: ["H2O"], r_coef: [2, 1], p_coef: [2], hint: "El agua está formada por hidrógeno y oxígeno." },
+        { type: "Síntesis", r_names: ["Nitrógeno", "Hidrógeno"], p_names: ["Amoníaco"], r_forms: ["N2", "H2"], p_forms: ["NH3"], r_coef: [1, 3], p_coef: [2], hint: "El nitrógeno actúa con valencia 3 y el hidrógeno con 1." },
+        { type: "Síntesis", r_names: ["Sodio", "Cloro"], p_names: ["Cloruro de sodio"], r_forms: ["Na", "Cl2"], p_forms: ["NaCl"], r_coef: [2, 1], p_coef: [2], hint: "Es la sal común. Sodio (valencia 1) y Cloro (valencia 1)." },
+        { type: "Síntesis", r_names: ["Hierro", "Oxígeno"], p_names: ["Óxido de hierro(III)"], r_forms: ["Fe", "O2"], p_forms: ["Fe2O3"], r_coef: [4, 3], p_coef: [2], hint: "El hierro actúa con valencia 3 y el oxígeno con 2." },
+        { type: "Síntesis", r_names: ["Óxido de calcio", "Agua"], p_names: ["Hidróxido de calcio"], r_forms: ["CaO", "H2O"], p_forms: ["Ca(OH)2"], r_coef: [1, 1], p_coef: [1], hint: "El calcio tiene valencia 2." },
+        { type: "Síntesis", r_names: ["Trióxido de azufre", "Agua"], p_names: ["Ácido sulfúrico"], r_forms: ["SO3", "H2O"], p_forms: ["H2SO4"], r_coef: [1, 1], p_coef: [1], hint: "Suma todos los átomos de los reactivos." },
 
-                setTimeout(() => {
-                    if (currentIndex < questions.length - 1) {
-                        setCurrentIndex(c => c + 1);
-                        setShowOptions(false);
-                        setFeedback(null);
-                        setFailurePhrase(null);
-                        setSelectedOption(null);
-                    } else {
-                        setGameState('finished');
-                    }
-                }, 3000);
-            };
+        // DESCOMOSICIÓN
+        { type: "Descomposición", r_names: ["Carbonato de calcio"], p_names: ["Óxido de calcio", "Dióxido de carbono"], r_forms: ["CaCO3"], p_forms: ["CaO", "CO2"], r_coef: [1], p_coef: [1, 1], hint: "El ion carbonato es CO₃." },
+        { type: "Descomposición", r_names: ["Clorato de potasio"], p_names: ["Cloruro de potasio", "Oxígeno"], r_forms: ["KClO3"], p_forms: ["KCl", "O2"], r_coef: [2], p_coef: [2, 3], hint: "El potasio es K, el cloro Cl y el oxígeno O." },
+        { type: "Descomposición", r_names: ["Peróxido de hidrógeno"], p_names: ["Agua", "Oxígeno"], r_forms: ["H2O2"], p_forms: ["H2O", "O2"], r_coef: [2], p_coef: [2, 1], hint: "El agua oxigenada tiene un oxígeno más que el agua normal." },
+        { type: "Descomposición Térmica", r_names: ["Óxido de mercurio(II)"], p_names: ["Mercurio", "Oxígeno"], r_forms: ["HgO"], p_forms: ["Hg", "O2"], r_coef: [2], p_coef: [2, 1], hint: "Mercurio(II) significa valencia 2." },
 
-            const bgStyle = "bg-slate-900 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-black min-h-screen text-white font-sans selection:bg-indigo-500 selection:text-white";
+        // COMBUSTIÓN
+        { type: "Combustión", r_names: ["Metano", "Oxígeno"], p_names: ["Dióxido de carbono", "Agua"], r_forms: ["CH4", "O2"], p_forms: ["CO2", "H2O"], r_coef: [1, 2], p_coef: [1, 2], hint: "Metano: 1 carbono y 4 hidrógenos." },
+        { type: "Combustión", r_names: ["Propano", "Oxígeno"], p_names: ["Dióxido de carbono", "Agua"], r_forms: ["C3H8", "O2"], p_forms: ["CO2", "H2O"], r_coef: [1, 5], p_coef: [3, 4], hint: "Propano: prefijo prop- significa 3 carbonos." },
+        { type: "Combustión", r_names: ["Butano", "Oxígeno"], p_names: ["Dióxido de carbono", "Agua"], r_forms: ["C4H10", "O2"], p_forms: ["CO2", "H2O"], r_coef: [2, 13], p_coef: [8, 10], hint: "Butano: prefijo but- significa 4 carbonos." },
+        { type: "Combustión", r_names: ["Etanol", "Oxígeno"], p_names: ["Dióxido de carbono", "Agua"], r_forms: ["C2H5OH", "O2"], p_forms: ["CO2", "H2O"], r_coef: [1, 3], p_coef: [2, 3], hint: "El alcohol etílico tiene 2 carbonos." },
+        { type: "Combustión", r_names: ["Carbono", "Oxígeno"], p_names: ["Dióxido de carbono"], r_forms: ["C", "O2"], p_forms: ["CO2"], r_coef: [1, 1], p_coef: [1], hint: "Un átomo de carbono y dos de oxígeno." },
+        { type: "Combustión (Azufre)", r_names: ["Sulfuro de zinc", "Oxígeno"], p_names: ["Óxido de zinc", "Dióxido de azufre"], r_forms: ["ZnS", "O2"], p_forms: ["ZnO", "SO2"], r_coef: [2, 3], p_coef: [2, 2], hint: "El zinc siempre actúa con valencia 2." },
 
-            if (gameState === 'setup') {
-                return (
-                    <div className={bgStyle + " flex items-center justify-center p-4 min-h-screen"}>
-                        <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-6 md:p-8 w-full max-w-2xl shadow-2xl relative overflow-hidden">
-                            <div className="absolute -top-20 -right-20 w-60 h-60 bg-indigo-600/30 rounded-full blur-3xl pointer-events-none"></div>
-                            <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-pink-600/30 rounded-full blur-3xl pointer-events-none"></div>
+        // ÁCIDO-BASE / NEUTRALIZACIÓN
+        { type: "Neutralización", r_names: ["Ácido clorhídrico", "Hidróxido de sodio"], p_names: ["Cloruro de sodio", "Agua"], r_forms: ["HCl", "NaOH"], p_forms: ["NaCl", "H2O"], r_coef: [1, 1], p_coef: [1, 1], hint: "Ácido clorhídrico es HCl." },
+        { type: "Neutralización", r_names: ["Ácido sulfúrico", "Hidróxido de potasio"], p_names: ["Sulfato de potasio", "Agua"], r_forms: ["H2SO4", "KOH"], p_forms: ["K2SO4", "H2O"], r_coef: [1, 2], p_coef: [1, 2], hint: "El potasio tiene valencia 1 y el sulfato carga -2." },
+        { type: "Neutralización", r_names: ["Ácido nítrico", "Hidróxido de calcio"], p_names: ["Nitrato de calcio", "Agua"], r_forms: ["HNO3", "Ca(OH)2"], p_forms: ["Ca(NO3)2", "H2O"], r_coef: [2, 1], p_coef: [1, 2], hint: "El nitrato tiene carga -1 y el calcio valencia +2." },
+        { type: "Neutralización", r_names: ["Ácido fosfórico", "Hidróxido de sodio"], p_names: ["Fosfato de sodio", "Agua"], r_forms: ["H3PO4", "NaOH"], p_forms: ["Na3PO4", "H2O"], r_coef: [1, 3], p_coef: [1, 3], hint: "El fósforo en ácido fosfórico actúa con valencia 5." },
 
-                            <div className="relative z-10">
-                                <div className="text-center mb-6">
-                                    <div className="inline-flex items-center justify-center p-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg mb-4 transform hover:rotate-6 transition-transform">
-                                        <Atom className="w-10 h-10 text-white" />
-                                    </div>
-                                    <h1 className="text-3xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 mb-2">Formulación Pro</h1>
-                                    <p className="text-slate-300 text-sm md:text-lg font-medium mb-4">Entrenador de Alto Rendimiento</p>
-                                    <div className="inline-block px-4 py-1 rounded-full bg-white/10 border border-white/20 text-indigo-300 text-xs md:text-sm font-bold tracking-wide">
-                                        Realizado por Javier Gijón. Profesor del IES Maria Moliner de Segovia
-                                    </div>
-                                </div>
+        // DESPLAZAMIENTO SIMPLE
+        { type: "Desplazamiento Simple", r_names: ["Zinc", "Ácido clorhídrico"], p_names: ["Cloruro de zinc", "Hidrógeno"], r_forms: ["Zn", "HCl"], p_forms: ["ZnCl2", "H2"], r_coef: [1, 2], p_coef: [1, 1], hint: "El zinc desplaza al hidrógeno del ácido." },
+        { type: "Desplazamiento Simple", r_names: ["Hierro", "Sulfato de cobre(II)"], p_names: ["Sulfato de hierro(II)", "Cobre"], r_forms: ["Fe", "CuSO4"], p_forms: ["FeSO4", "Cu"], r_coef: [1, 1], p_coef: [1, 1], hint: "El hierro actúa con valencia 2 en este caso." },
+        { type: "Desplazamiento Simple", r_names: ["Aluminio", "Ácido clorhídrico"], p_names: ["Cloruro de aluminio", "Hidrógeno"], r_forms: ["Al", "HCl"], p_forms: ["AlCl3", "H2"], r_coef: [2, 6], p_coef: [2, 3], hint: "El aluminio tiene valencia 3." },
+        { type: "Desplazamiento Simple", r_names: ["Cloro", "Bromuro de potasio"], p_names: ["Cloruro de potasio", "Bromo"], r_forms: ["Cl2", "KBr"], p_forms: ["KCl", "Br2"], r_coef: [1, 2], p_coef: [2, 1], hint: "El cloro es más reactivo que el bromo." },
 
-                                <div className="space-y-6">
-                                    <div>
-                                        <label className="flex items-center gap-2 text-xs font-bold text-indigo-300 mb-3 uppercase tracking-[0.2em]">
-                                            <BookOpen className="w-4 h-4" /> Configuración de Temas
-                                        </label>
-                                        <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                                            {allTypes.map(type => (
-                                                <button
-                                                    key={type}
-                                                    onClick={() => toggleType(type)}
-                                                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 border backdrop-blur-md flex-grow md:flex-grow-0 touch-manipulation ${
-                                                        selectedTypes.includes(type)
-                                                            ? 'bg-indigo-600/80 border-indigo-400 text-white shadow-[0_0_15px_rgba(99,102,241,0.5)] transform scale-105'
-                                                            : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:border-white/30'
-                                                    }`}
-                                                >
-                                                    {type}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
+        // DOBLE DESPLAZAMIENTO / PRECIPITACIÓN
+        { type: "Precipitación", r_names: ["Nitrato de plata", "Cloruro de sodio"], p_names: ["Cloruro de plata", "Nitrato de sodio"], r_forms: ["AgNO3", "NaCl"], p_forms: ["AgCl", "NaNO3"], r_coef: [1, 1], p_coef: [1, 1], hint: "La plata actúa con valencia 1." },
+        { type: "Precipitación", r_names: ["Cloruro de bario", "Sulfato de sodio"], p_names: ["Sulfato de bario", "Cloruro de sodio"], r_forms: ["BaCl2", "Na2SO4"], p_forms: ["BaSO4", "NaCl"], r_coef: [1, 1], p_coef: [1, 2], hint: "El bario tiene valencia 2." },
+        { type: "Doble Desplazamiento", r_names: ["Sulfuro de hierro(II)", "Ácido clorhídrico"], p_names: ["Cloruro de hierro(II)", "Ácido sulfhídrico"], r_forms: ["FeS", "HCl"], p_forms: ["FeCl2", "H2S"], r_coef: [1, 2], p_coef: [1, 1], hint: "El azufre actúa con valencia -2." },
+        { type: "Doble Desplazamiento", r_names: ["Carbonato de sodio", "Ácido clorhídrico"], p_names: ["Cloruro de sodio", "Dióxido de carbono", "Agua"], r_forms: ["Na2CO3", "HCl"], p_forms: ["NaCl", "CO2", "H2O"], r_coef: [1, 2], p_coef: [2, 1, 1], hint: "El sodio tiene valencia 1." },
+        
+        // REDOX SIMPLE
+        { type: "Redox Simple", r_names: ["Monóxido de carbono", "Óxido de hierro(III)"], p_names: ["Hierro", "Dióxido de carbono"], r_forms: ["CO", "Fe2O3"], p_forms: ["Fe", "CO2"], r_coef: [3, 1], p_coef: [2, 3], hint: "Monóxido es CO, Dióxido es CO₂." },
+        { type: "Síntesis / Redox", r_names: ["Cobre", "Oxígeno"], p_names: ["Óxido de cobre(II)"], r_forms: ["Cu", "O2"], p_forms: ["CuO"], r_coef: [2, 1], p_coef: [2], hint: "Cobre valencia 2, Oxígeno valencia 2. Se simplifican." },
 
-                                    <div>
-                                        <label className="flex items-center gap-2 text-xs font-bold text-pink-300 mb-2 uppercase tracking-[0.2em]">
-                                            <Zap className="w-4 h-4" /> Intensidad ({questionCount} Preguntas)
-                                        </label>
-                                        <input 
-                                            type="range" 
-                                            min="5" 
-                                            max="50" 
-                                            step="5"
-                                            value={questionCount}
-                                            onChange={(e) => setQuestionCount(parseInt(e.target.value))}
-                                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-pink-500 hover:accent-pink-400 touch-manipulation"
-                                        />
-                                    </div>
+        // --- NUEVAS REACCIONES (HCl, NaOH, Oxidación) ---
+        { type: "Desplazamiento Simple", r_names: ["Magnesio", "Ácido clorhídrico"], p_names: ["Cloruro de magnesio", "Hidrógeno"], r_forms: ["Mg", "HCl"], p_forms: ["MgCl2", "H2"], r_coef: [1, 2], p_coef: [1, 1], hint: "El magnesio tiene valencia 2." },
+        { type: "Desplazamiento Simple", r_names: ["Aluminio", "Ácido clorhídrico"], p_names: ["Cloruro de aluminio", "Hidrógeno"], r_forms: ["Al", "HCl"], p_forms: ["AlCl3", "H2"], r_coef: [2, 6], p_coef: [2, 3], hint: "El aluminio tiene valencia 3." },
+        { type: "Neutralización", r_names: ["Óxido de zinc", "Ácido clorhídrico"], p_names: ["Cloruro de zinc", "Agua"], r_forms: ["ZnO", "HCl"], p_forms: ["ZnCl2", "H2O"], r_coef: [1, 2], p_coef: [1, 1], hint: "El zinc tiene valencia 2." },
+        { type: "Descomposición Ácida", r_names: ["Carbonato de calcio", "Ácido clorhídrico"], p_names: ["Cloruro de calcio", "Dióxido de carbono", "Agua"], r_forms: ["CaCO3", "HCl"], p_forms: ["CaCl2", "CO2", "H2O"], r_coef: [1, 2], p_coef: [1, 1, 1], hint: "Calcio tiene valencia 2." },
+        { type: "Precipitación", r_names: ["Cloruro de hierro(III)", "Hidróxido de sodio"], p_names: ["Hidróxido de hierro(III)", "Cloruro de sodio"], r_forms: ["FeCl3", "NaOH"], p_forms: ["Fe(OH)3", "NaCl"], r_coef: [1, 3], p_coef: [1, 3], hint: "El hierro(III) usa valencia 3." },
+        { type: "Precipitación", r_names: ["Sulfato de cobre(II)", "Hidróxido de sodio"], p_names: ["Hidróxido de cobre(II)", "Sulfato de sodio"], r_forms: ["CuSO4", "NaOH"], p_forms: ["Cu(OH)2", "Na2SO4"], r_coef: [1, 2], p_coef: [1, 1], hint: "El cobre(II) usa valencia 2." },
+        { type: "Desplazamiento", r_names: ["Cloruro de amonio", "Hidróxido de sodio"], p_names: ["Cloruro de sodio", "Amoníaco", "Agua"], r_forms: ["NH4Cl", "NaOH"], p_forms: ["NaCl", "NH3", "H2O"], r_coef: [1, 1], p_coef: [1, 1, 1], hint: "El amonio es NH₄⁺." },
+        { type: "Oxidación", r_names: ["Aluminio", "Oxígeno"], p_names: ["Óxido de aluminio"], r_forms: ["Al", "O2"], p_forms: ["Al2O3"], r_coef: [4, 3], p_coef: [2], hint: "Aluminio (valencia 3) y Oxígeno (valencia 2)." },
+        { type: "Oxidación", r_names: ["Magnesio", "Oxígeno"], p_names: ["Óxido de magnesio"], r_forms: ["Mg", "O2"], p_forms: ["MgO"], r_coef: [2, 1], p_coef: [2], hint: "Magnesio (valencia 2) y Oxígeno (valencia 2)." },
+        { type: "Oxidación", r_names: ["Litio", "Oxígeno"], p_names: ["Óxido de litio"], r_forms: ["Li", "O2"], p_forms: ["Li2O"], r_coef: [4, 1], p_coef: [2], hint: "El litio tiene valencia 1." }
+    ];
 
-                                    <button
-                                        onClick={startGame}
-                                        className="group w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-2xl font-bold text-xl shadow-lg hover:shadow-indigo-500/30 transform hover:-translate-y-1 transition-all flex items-center justify-center gap-3 relative overflow-hidden active:scale-95 touch-manipulation"
-                                    >
-                                        <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out skew-y-12"></div>
-                                        <Play className="w-6 h-6 fill-current relative z-10" />
-                                        <span className="relative z-10">EMPEZAR PARTIDA</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                );
+    let currentIdx = 0;
+    let currentData = {};
+    let score = 0;
+    let mistakes = 0; // New tracking for level
+    let currentAttempts = 0; // Contador de intentos fallidos por ejercicio
+    let exerciseOrder = [];
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', () => {
+        generateRandomOrder();
+        loadExercise(0);
+    });
+    
+    function generateRandomOrder() {
+        exerciseOrder = Array.from({length: database.length}, (_, i) => i);
+        for (let i = exerciseOrder.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [exerciseOrder[i], exerciseOrder[j]] = [exerciseOrder[j], exerciseOrder[i]];
+        }
+    }
+
+    function loadExercise(index) {
+        currentIdx = index;
+        const dbIndex = exerciseOrder[index];
+        currentData = database[dbIndex];
+        
+        // Resetear variables de estado
+        currentAttempts = 0;
+        
+        // Resetear UI
+        document.getElementById('current-ex').innerText = index + 1;
+        document.getElementById('reaction-type').innerText = currentData.type;
+        document.getElementById('formula-area').innerHTML = '';
+        
+        document.getElementById('balance-container').style.display = 'none';
+        
+        // Mostrar botón de verificar fórmula y ocultar el de balance al inicio
+        document.getElementById('btn-check-formula').style.display = 'inline-flex';
+        document.getElementById('btn-check-formula').parentElement.style.display = 'inline-flex'; // Asegurar que wrapper es visible
+        
+        // Resetear mensajes
+        hideFeedback('feedback-formula');
+        hideFeedback('feedback-balance');
+        document.getElementById('hint-formula').style.display = 'none';
+        document.getElementById('hint-formula').innerText = '';
+
+        // Construir Inputs de Fórmulas
+        const container = document.getElementById('formula-area');
+        
+        currentData.r_names.forEach((name, i) => {
+            if(i > 0) addOperator(container, '+');
+            addFormulaInput(container, name, 'reactant', i);
+        });
+
+        addOperator(container, '→');
+
+        currentData.p_names.forEach((name, i) => {
+            if(i > 0) addOperator(container, '+');
+            addFormulaInput(container, name, 'product', i);
+        });
+    }
+
+    function addFormulaInput(container, name, type, index) {
+        const group = document.createElement('div');
+        group.className = 'compound-group';
+
+        const label = document.createElement('div');
+        label.className = 'compound-name';
+        label.innerText = name;
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.dataset.type = type;
+        input.dataset.index = index;
+        input.placeholder = "Fórmula";
+        input.autocomplete = "off";
+        
+        input.addEventListener('input', function() {
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            const oldVal = this.value;
+            const newVal = oldVal.replace(/[0-9]/g, match => SUB_MAP[match] || match);
+            
+            if (oldVal !== newVal) {
+                this.value = newVal;
+                this.setSelectionRange(start, end); 
             }
+            
+            this.classList.remove('incorrect', 'correct');
+        });
 
-            if (gameState === 'finished') {
-                const percentage = Math.round((correctCount / questions.length) * 100);
-                return (
-                    <div className={bgStyle + " flex items-center justify-center p-2 md:p-4 min-h-screen"}>
-                        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-4 md:p-8 w-full max-w-4xl shadow-2xl h-[95vh] md:max-h-[90vh] flex flex-col">
-                            <div className="text-center mb-4 md:mb-8 border-b border-white/10 pb-4 md:pb-6 flex-shrink-0">
-                                <div className="inline-block p-3 md:p-4 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 mb-2 md:mb-4 shadow-lg shadow-orange-500/30">
-                                    <Award className="w-8 h-8 md:w-12 md:h-12 text-white" />
-                                </div>
-                                <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">Resultados</h2>
-                                
-                                <div className="grid grid-cols-3 gap-2 md:gap-4 max-w-lg mx-auto">
-                                    <div className="bg-green-500/20 p-2 md:p-4 rounded-xl md:rounded-2xl border border-green-500/30 backdrop-blur-sm">
-                                        <div className="text-2xl md:text-3xl font-black text-green-400">{correctCount}</div>
-                                        <div className="text-[8px] md:text-[10px] uppercase font-bold text-green-200/60 tracking-widest mt-1">Aciertos</div>
-                                    </div>
-                                    <div className="bg-red-500/20 p-2 md:p-4 rounded-xl md:rounded-2xl border border-red-500/30 backdrop-blur-sm">
-                                        <div className="text-2xl md:text-3xl font-black text-red-400">{incorrectCount}</div>
-                                        <div className="text-[8px] md:text-[10px] uppercase font-bold text-red-200/60 tracking-widest mt-1">Fallos</div>
-                                    </div>
-                                    <div className="bg-blue-500/20 p-2 md:p-4 rounded-xl md:rounded-2xl border border-blue-500/30 backdrop-blur-sm">
-                                        <div className="text-2xl md:text-3xl font-black text-blue-400">{percentage}%</div>
-                                        <div className="text-[8px] md:text-[10px] uppercase font-bold text-blue-200/60 tracking-widest mt-1">Precisión</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar">
-                                <table className="w-full text-left border-collapse">
-                                    <thead className="sticky top-0 bg-slate-900/90 backdrop-blur-md z-10">
-                                        <tr>
-                                            <th className="py-2 px-2 md:py-3 md:px-4 text-slate-400 font-bold text-[10px] md:text-xs uppercase tracking-wider rounded-l-lg">Pregunta</th>
-                                            <th className="py-2 px-2 md:py-3 md:px-4 text-slate-400 font-bold text-[10px] md:text-xs uppercase tracking-wider">Tu Respuesta</th>
-                                            <th className="py-2 px-2 md:py-3 md:px-4 text-slate-400 font-bold text-[10px] md:text-xs uppercase tracking-wider text-right rounded-r-lg">Correcta</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-white/5">
-                                        {history.map((h, i) => (
-                                            <tr key={i} className="hover:bg-white/5 transition-colors group">
-                                                <td className="py-2 px-2 md:py-4 md:px-4 font-medium text-white text-xs md:text-base">
-                                                    <div className="flex flex-col">
-                                                        <span>{h.isFormulaToName ? <SubscriptText text={h.prompt} /> : h.prompt}</span>
-                                                        <span className="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase">{h.item.type}</span>
-                                                    </div>
-                                                </td>
-                                                <td className={`py-2 px-2 md:py-4 md:px-4 font-medium text-xs md:text-base ${h.isCorrect ? 'text-green-400' : 'text-red-400 line-through decoration-red-500/50'}`}>
-                                                    {!h.isFormulaToName ? <SubscriptText text={h.userAnswer} /> : h.userAnswer}
-                                                </td>
-                                                <td className="py-2 px-2 md:py-4 md:px-4 text-right text-indigo-300 font-medium text-xs md:text-base">
-                                                    {!h.isFormulaToName ? <SubscriptText text={h.correct} /> : h.correct}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div className="mt-4 md:mt-6 flex-shrink-0">
-                                <button
-                                    onClick={() => setGameState('setup')}
-                                    className="w-full py-3 md:py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold text-base md:text-lg shadow-lg border border-white/10 transition-all flex items-center justify-center gap-2 active:scale-95 touch-manipulation"
-                                >
-                                    <RefreshCw className="w-5 h-5" />
-                                    NUEVA SESIÓN
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                );
+        input.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                checkFormulas();
             }
+        });
+        
+        group.appendChild(label);
+        group.appendChild(input);
+        container.appendChild(group);
+    }
 
-            const currentQ = questions[currentIndex];
+    function addOperator(container, symbol) {
+        const op = document.createElement('div');
+        if (symbol === '→') {
+            op.className = 'operator-arrow';
+            // SVG de la flecha con grosor ajustable
+            op.innerHTML = `<svg class="arrow-svg" viewBox="0 0 50 30">
+                <line x1="2" y1="15" x2="45" y2="15"></line>
+                <polyline points="35 5 45 15 35 25"></polyline>
+            </svg>`;
+        } else {
+            op.className = 'operator-plus';
+            op.innerText = symbol;
+        }
+        container.appendChild(op);
+    }
 
-            return (
-                <div className={bgStyle + " flex flex-col items-center pt-4 md:pt-8 px-2 md:px-4 pb-4 min-h-screen"}>
-                    
-                    {/* HUD SUPERIOR */}
-                    <div className="w-full max-w-4xl bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-2 md:p-4 mb-4 md:mb-8 flex justify-between items-center shadow-lg">
-                        <div className="flex gap-4 md:gap-8">
-                            <div className="flex flex-col items-center px-2">
-                                <span className="text-xl md:text-2xl font-black text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.5)]">{correctCount}</span>
-                                <span className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bien</span>
-                            </div>
-                            <div className="flex flex-col items-center px-2 border-l border-white/10 pl-4 md:pl-8">
-                                <span className="text-xl md:text-2xl font-black text-red-400 drop-shadow-[0_0_10px_rgba(248,113,113,0.5)]">{incorrectCount}</span>
-                                <span className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mal</span>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <div className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Pregunta</div>
-                            <div className="text-base md:text-xl font-bold text-white tracking-wider">
-                                {currentIndex + 1} <span className="text-slate-500 text-xs md:text-base">/ {questions.length}</span>
-                            </div>
-                        </div>
-                    </div>
+    // --- NUEVA LÓGICA DE PISTAS ESPECÍFICAS ---
+    function getErrorHint(userVal, correctVal, attempt, dbHint) {
+        const u = userVal;
+        const c = correctVal;
 
-                    {/* TARJETA DE JUEGO */}
-                    <div className="w-full max-w-4xl bg-slate-800/50 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/10 min-h-[60vh] md:min-h-[550px] flex flex-col relative transition-all duration-500">
-                        
-                        {/* Barra de Progreso */}
-                        <div className="h-1 bg-slate-700 w-full">
-                            <div 
-                                className="h-full bg-gradient-to-r from-indigo-500 to-pink-500 transition-all duration-700 ease-out shadow-[0_0_10px_rgba(236,72,153,0.5)]"
-                                style={{ width: `${((currentIndex) / questions.length) * 100}%` }}
-                            />
-                        </div>
-
-                        {/* Zona de Pregunta */}
-                        <div className="p-6 md:p-12 flex flex-col items-center justify-center border-b border-white/5 flex-grow relative bg-white/[0.02]">
-                            <span className="absolute top-4 left-4 md:top-6 md:left-6 text-[8px] md:text-[10px] font-bold tracking-[0.2em] text-indigo-400 uppercase bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
-                                {currentQ.item.type}
-                            </span>
-                            <span className="absolute top-4 right-4 md:top-6 md:right-6 text-[8px] md:text-[10px] font-bold tracking-[0.2em] text-slate-500 uppercase">
-                                {currentQ.isFormulaToName ? "NOMBRA" : "FORMULA"}
-                            </span>
-                            
-                            <div className="text-center w-full mt-4">
-                                <div className="mb-4 md:mb-8 transform transition-all duration-500">
-                                    {currentQ.isFormulaToName ? (
-                                        <div className="text-5xl md:text-8xl text-white font-bold drop-shadow-2xl font-mono break-all">
-                                            <SubscriptText text={currentQ.prompt} />
-                                        </div>
-                                    ) : (
-                                        <h2 className="text-2xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300 leading-tight drop-shadow-lg break-words">
-                                            {currentQ.prompt}
-                                        </h2>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Zona de Interacción */}
-                        <div className="p-4 md:p-8 bg-slate-900/50 flex flex-col justify-center min-h-[250px] md:min-h-[300px] relative">
-                            
-                            {!showOptions ? (
-                                <div className="text-center space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    <div className="w-12 h-12 md:w-16 md:h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-4 animate-pulse">
-                                        <Eye className="w-6 h-6 md:w-8 md:h-8 text-indigo-400" />
-                                    </div>
-                                    <p className="text-slate-400 font-medium italic text-sm md:text-base px-4">
-                                        Piensa la respuesta antes de ver las opciones...
-                                    </p>
-                                    <button
-                                        onClick={() => setShowOptions(true)}
-                                        className="mx-auto w-full md:w-auto px-10 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-lg transition-all shadow-lg hover:shadow-indigo-500/40 hover:-translate-y-1 flex items-center justify-center gap-3 active:scale-95 touch-manipulation"
-                                    >
-                                        MOSTRAR OPCIONES
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 animate-in zoom-in-95 duration-300">
-                                    {currentQ.options.map((option, idx) => {
-                                        let btnClass = "relative p-3 md:p-4 rounded-xl font-bold text-sm md:text-base border-2 transition-all flex items-center justify-center text-center min-h-[60px] md:min-h-[70px] group touch-manipulation ";
-                                        
-                                        if (feedback) {
-                                            if (option === currentQ.correct) {
-                                                btnClass += "bg-green-500/20 border-green-500 text-green-300 shadow-[0_0_20px_rgba(34,197,94,0.3)] z-10 ";
-                                            } else if (option !== currentQ.correct && feedback === 'incorrect') {
-                                                btnClass += "bg-slate-800 border-slate-700 text-slate-600 opacity-50 blur-[1px] ";
-                                            } else {
-                                                btnClass += "bg-slate-800 border-slate-700 text-slate-600 opacity-50 ";
-                                            }
-                                        } else {
-                                            btnClass += "bg-white/5 border-white/10 text-slate-200 hover:border-indigo-500 hover:bg-indigo-500/10 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.3)] cursor-pointer active:scale-95 active:bg-indigo-500/20 ";
-                                        }
-
-                                        // Determinamos si este botón específico debe explotar (ser la opción incorrecta seleccionada)
-                                        const isSelectedWrongOption = feedback === 'incorrect' && option === selectedOption;
-
-                                        return (
-                                            <button
-                                                key={idx}
-                                                disabled={feedback !== null}
-                                                onClick={() => handleAnswer(option)}
-                                                className={btnClass}
-                                            >
-                                                <span className="drop-shadow-md break-words w-full">
-                                                    {!currentQ.isFormulaToName ? <SubscriptText text={option} /> : option}
-                                                </span>
-                                                
-                                                {feedback === 'correct' && option === currentQ.correct && (
-                                                    <>
-                                                        <FireworkExplosion />
-                                                        <div className="absolute top-2 right-2 bg-green-500 rounded-full p-1 animate-bounce z-20">
-                                                            <CheckCircle className="w-4 h-4 text-white" />
-                                                        </div>
-                                                    </>
-                                                )}
-                                                
-                                                {/* Animación de explosión en el botón erróneo seleccionado */}
-                                                {isSelectedWrongOption && (
-                                                    <ErrorExplosion />
-                                                )}
-
-                                                {feedback === 'incorrect' && option === currentQ.correct && (
-                                                    <div className="absolute -top-3 -right-3 bg-green-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg z-20 animate-bounce">
-                                                        ¡ERA ESTA!
-                                                    </div>
-                                                )}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                            
-                            {feedback === 'incorrect' && failurePhrase && (
-                                <div className="absolute inset-x-0 bottom-6 mx-auto w-[90%] md:w-max px-4 md:px-8 py-3 md:py-4 bg-red-600 text-white rounded-2xl font-black text-lg md:text-2xl border-4 border-red-400 shadow-[0_0_40px_rgba(239,68,68,0.6)] animate-[shake_0.5s_ease-in-out] flex items-center justify-center gap-3 z-30 uppercase tracking-widest transform text-center break-words">
-                                    <AlertTriangle className="w-6 h-6 md:w-8 md:h-8 animate-pulse flex-shrink-0" /> 
-                                    <span>{failurePhrase}</span>
-                                </div>
-                            )}
-                            {feedback === 'correct' && (
-                                <div className="absolute inset-x-0 bottom-6 mx-auto w-max px-6 py-3 bg-green-500/90 text-white rounded-full font-bold border border-green-400 shadow-[0_0_30px_rgba(34,197,94,0.5)] animate-in fade-in slide-in-from-bottom-2 flex items-center gap-2 z-30">
-                                    <CheckCircle className="w-5 h-5" /> ¡Correcto!
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            );
+        // 1. Error de gas diatómico (usuario pone O, H, N... y debe ser O2, H2...)
+        const diatomics = ["H2", "N2", "O2", "F2", "Cl2", "Br2", "I2"];
+        // Eliminamos números de la correcta para ver el símbolo base
+        const strippedC = c.replace(/\d+/g, ''); 
+        
+        // Si la correcta es diatómica y el usuario puso el símbolo sin el 2
+        if (diatomics.includes(c) && u === strippedC) {
+            if (attempt === 1) return `Recuerda: El ${strippedC} en la naturaleza se encuentra en estado gaseoso.`;
+            return `¡Ojo! Los gases elementales son diatómicos (su molécula lleva un subíndice 2).`;
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<FormulacionApp />);
-    </script>
+        // 2. Falta de paréntesis en iones poliatómicos
+        if (c.includes('(') && !u.includes('(')) {
+            if (attempt === 1) return "Hay un grupo de átomos que funciona como un bloque (ion poliatómico) y se repite.";
+            return "Necesitas usar paréntesis para agrupar elementos. Ejemplo: Ca(OH)₂";
+        }
+
+        // 3. Error de mayúsculas/minúsculas (ej: Co vs CO)
+        // Comparamos minúsculas para ver si son las mismas letras pero mal escritas
+        if (u.toLowerCase() === c.toLowerCase() && u !== c) {
+            return "Revisa las mayúsculas y minúsculas. Los símbolos químicos distinguen entre elementos (ej: Co es cobalto, CO es monóxido).";
+        }
+        
+        // 4. Error genérico de valencias/subíndices
+        // Si es el primer intento, damos la pista de la base de datos (contextual)
+        if (attempt === 1) {
+            return dbHint ? "Pista: " + dbHint : "Revisa las valencias de los elementos.";
+        }
+        
+        // Si es el segundo intento, damos pista más técnica
+        if (attempt === 2) {
+            return "Revisa los subíndices. ¿Has intercambiado las valencias correctamente? ¿Se pueden simplificar?";
+        }
+
+        // Fallback
+        return "La fórmula no coincide. Revisa el nombre del compuesto.";
+    }
+
+    // --- VERIFICAR FÓRMULAS ---
+    function checkFormulas() {
+        const inputs = document.querySelectorAll('#formula-area input');
+        let allCorrect = true;
+        let firstErrorInput = null;
+        let firstErrorCorrectVal = null;
+
+        inputs.forEach(input => {
+            const type = input.dataset.type;
+            const idx = parseInt(input.dataset.index);
+            const rawValue = input.value.trim();
+            // Normalizar (convertir ₂ -> 2) para comparar
+            const normalizedVal = rawValue.split('').map(char => NORM_MAP[char] || char).join('');
+            
+            const correctVal = type === 'reactant' 
+                ? currentData.r_forms[idx] 
+                : currentData.p_forms[idx];
+
+            if (normalizedVal === correctVal) {
+                input.classList.add('correct');
+                input.classList.remove('incorrect');
+                input.disabled = true; 
+            } else {
+                input.classList.add('incorrect');
+                input.classList.remove('correct');
+                allCorrect = false;
+                // Guardamos el primer error para generar la pista sobre él
+                if (!firstErrorInput) {
+                    firstErrorInput = normalizedVal; // Usamos el valor normalizado para lógica
+                    firstErrorCorrectVal = correctVal;
+                }
+            }
+        });
+
+        const feedback = document.getElementById('feedback-formula');
+        const hintBox = document.getElementById('hint-formula');
+        
+        if (allCorrect) {
+            feedback.style.display = 'block';
+            feedback.innerText = "¡Fórmulas correctas! Ahora ajusta los coeficientes.";
+            feedback.className = "feedback-msg feedback-success";
+            hintBox.style.display = 'none';
+            // Ocultar botón verificar fórmula al acertar
+            document.getElementById('btn-check-formula').style.display = 'none';
+            initBalancePhase();
+        } else {
+            // Manejo de ERRORES e INTENTOS
+            currentAttempts++;
+            mistakes++; // Incrementa errores globales
+            
+            feedback.style.display = 'block';
+            feedback.className = "feedback-msg feedback-error";
+            
+            if (currentAttempts < 3) {
+                feedback.innerText = `Incorrecto (Intento ${currentAttempts}/3).`;
+                
+                // GENERAR PISTA INTELIGENTE
+                hintBox.style.display = 'block';
+                const specificHint = getErrorHint(firstErrorInput, firstErrorCorrectVal, currentAttempts, currentData.hint);
+                hintBox.innerText = specificHint;
+
+            } else {
+                // TERCER FALLO: Resolver automáticamente
+                feedback.innerText = "Se han agotado los intentos. Solución aplicada automáticamente.";
+                feedback.className = "feedback-msg feedback-info";
+                hintBox.style.display = 'none';
+                solveFormulasAndProceed();
+            }
+        }
+    }
+
+    function solveFormulasAndProceed() {
+        const inputs = document.querySelectorAll('#formula-area input');
+        inputs.forEach(input => {
+            const type = input.dataset.type;
+            const idx = parseInt(input.dataset.index);
+            const correctVal = type === 'reactant' 
+                ? currentData.r_forms[idx] 
+                : currentData.p_forms[idx];
+            
+            // Mostrar valor correcto con subíndices
+            input.value = correctVal.replace(/(\d)/g, d => SUB_MAP[d]);
+            input.classList.remove('incorrect');
+            input.classList.add('correct');
+            input.disabled = true;
+        });
+        document.getElementById('btn-check-formula').style.display = 'none';
+        
+        // Pequeña pausa antes de mostrar la fase 2
+        setTimeout(() => {
+            initBalancePhase();
+        }, 1500);
+    }
+
+    // --- FASE DE AJUSTE ---
+    function initBalancePhase() {
+        const balContainer = document.getElementById('balance-area');
+        balContainer.innerHTML = '';
+        
+        // REINICIAR CONTADOR DE INTENTOS PARA LA FASE DE AJUSTE
+        currentAttempts = 0;
+        
+        const balanceSection = document.getElementById('balance-container');
+        balanceSection.style.display = 'flex';
+        
+        setTimeout(() => {
+            balanceSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+
+        document.getElementById('btn-next').style.display = 'none';
+        document.getElementById('btn-check-balance').style.display = 'inline-flex';
+        
+        hideFeedback('feedback-balance');
+
+        currentData.r_forms.forEach((form, i) => {
+            if(i > 0) addOperator(balContainer, '+');
+            addBalanceGroup(balContainer, form, 'reactant', i);
+        });
+
+        addOperator(balContainer, '→');
+
+        currentData.p_forms.forEach((form, i) => {
+            if(i > 0) addOperator(balContainer, '+');
+            addBalanceGroup(balContainer, form, 'product', i);
+        });
+    }
+
+    function addBalanceGroup(container, formula, type, index) {
+        const group = document.createElement('div');
+        group.className = 'compound-group';
+        group.style.flexDirection = 'row';
+        group.style.alignItems = 'center';
+        group.style.gap = '8px';
+
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.min = '1';
+        input.dataset.type = type;
+        input.dataset.index = index;
+        input.placeholder = "1";
+        
+        input.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                checkBalance();
+            }
+        });
+
+        const display = document.createElement('div');
+        display.className = 'compound-display';
+        display.innerHTML = formula.replace(/(\d+)/g, '<sub>$1</sub>');
+
+        group.appendChild(input);
+        group.appendChild(display);
+        container.appendChild(group);
+    }
+
+    function checkBalance() {
+        const inputs = document.querySelectorAll('#balance-area input');
+        
+        // 1. Recopilar valores del usuario y valores base para verificar proporcionalidad
+        let userValues = [];
+        let baseValues = [];
+        
+        inputs.forEach(input => {
+            const type = input.dataset.type;
+            const idx = parseInt(input.dataset.index);
+            let userVal = parseFloat(input.value); 
+            
+            // Si el campo está vacío o es <= 0, asumimos 1 para el cálculo
+            if (isNaN(userVal) || userVal <= 0) userVal = 1;
+
+            const correctVal = type === 'reactant' 
+                ? currentData.r_coef[idx] 
+                : currentData.p_coef[idx];
+            
+            userValues.push(userVal);
+            baseValues.push(correctVal);
+        });
+
+        // 2. Verificar si todos mantienen la misma proporción (userVal / baseVal = constante)
+        let ratio = userValues[0] / baseValues[0];
+        let allProportional = true;
+        const epsilon = 0.0001; // Tolerancia para punto flotante
+
+        for (let i = 1; i < userValues.length; i++) {
+            let currentRatio = userValues[i] / baseValues[i];
+            if (Math.abs(currentRatio - ratio) > epsilon) {
+                allProportional = false;
+                break;
+            }
+        }
+
+        const feedback = document.getElementById('feedback-balance');
+        feedback.style.display = 'block';
+
+        if (allProportional) {
+            // ACIERTO
+            inputs.forEach(input => {
+                input.classList.add('correct');
+                input.classList.remove('incorrect');
+                input.disabled = true;
+            });
+
+            feedback.innerText = "¡Excelente! Reacción ajustada.";
+            feedback.className = "feedback-msg feedback-success";
+            document.getElementById('btn-check-balance').style.display = 'none';
+            document.getElementById('btn-next').style.display = 'inline-flex';
+            
+            const dbIndex = exerciseOrder[currentIdx];
+            if (!database[dbIndex].solved) {
+                score++;
+                document.getElementById('score').innerText = score;
+                database[dbIndex].solved = true;
+            }
+        } else {
+            // FALLO
+            mistakes++; 
+            currentAttempts++;
+
+            if (currentAttempts >= 3) {
+                // AUTO-RESOLVER TRAS 3 FALLOS
+                inputs.forEach(input => {
+                    const type = input.dataset.type;
+                    const idx = parseInt(input.dataset.index);
+                    const baseVal = type === 'reactant' ? currentData.r_coef[idx] : currentData.p_coef[idx];
+                    
+                    input.value = baseVal;
+                    input.classList.remove('incorrect');
+                    input.classList.add('correct');
+                    input.disabled = true;
+                });
+                
+                feedback.innerText = "Se han agotado los intentos. Solución aplicada automáticamente.";
+                feedback.className = "feedback-msg feedback-info";
+                document.getElementById('btn-check-balance').style.display = 'none';
+                document.getElementById('btn-next').style.display = 'inline-flex';
+                
+                // Marcar como resuelto pero SIN sumar puntos (score no incrementa)
+                const dbIndex = exerciseOrder[currentIdx];
+                database[dbIndex].solved = true; 
+
+            } else {
+                // Feedback de error normal
+                feedback.innerText = `Incorrecto (Intento ${currentAttempts}/3). Revisa la conservación de masa.`;
+                feedback.className = "feedback-msg feedback-error";
+                
+                // Resaltar individualmente los que coincidan con la base (pista visual)
+                inputs.forEach(input => {
+                    const type = input.dataset.type;
+                    const idx = parseInt(input.dataset.index);
+                    let userVal = parseFloat(input.value);
+                    if (isNaN(userVal) || userVal <= 0) userVal = 1;
+                    
+                    const baseVal = type === 'reactant' ? currentData.r_coef[idx] : currentData.p_coef[idx];
+                    
+                    if (Math.abs(userVal - baseVal) < epsilon) {
+                         input.classList.add('correct');
+                         input.classList.remove('incorrect');
+                    } else {
+                         input.classList.add('incorrect');
+                         input.classList.remove('correct');
+                    }
+                });
+            }
+        }
+    }
+
+    function showLevelScreen() {
+        if (score < 3) {
+            // Mostrar modal de advertencia en lugar de alert
+            document.getElementById('warning-score').innerText = score;
+            document.getElementById('warning-modal').style.display = 'flex';
+            return;
+        }
+
+        const app = document.getElementById('app-container');
+        const levelScreen = document.getElementById('level-screen');
+        
+        // Calcular porcentaje de acierto
+        const totalActions = score + mistakes;
+        const accuracy = totalActions === 0 ? 0 : Math.round((score / totalActions) * 100);
+        
+        let medal = "";
+        let title = "";
+        let subtitle = "";
+
+        if (accuracy >= 90) {
+            medal = "🥇";
+            title = "Nivel: Maestro";
+            subtitle = "¡Excelencia química! Apenas cometes errores.";
+        } else if (accuracy >= 70) {
+            medal = "🥈";
+            title = "Nivel: Experto";
+            subtitle = "Muy buen trabajo, dominas la estequiometría.";
+        } else if (accuracy >= 50) {
+            medal = "🥉";
+            title = "Nivel: Aprendiz";
+            subtitle = "Vas por buen camino, sigue practicando.";
+        } else {
+            medal = "🧪";
+            title = "Nivel: Novato";
+            subtitle = "Revisa las valencias y sigue intentándolo.";
+        }
+
+        document.getElementById('medal-display').innerText = medal;
+        document.getElementById('level-title').innerText = title;
+        document.getElementById('level-subtitle').innerText = subtitle;
+        document.getElementById('final-stats-count').innerText = score;
+        document.getElementById('final-stats-percent').innerText = accuracy + "%";
+
+        app.style.display = 'none';
+        levelScreen.style.display = 'flex';
+        document.getElementById('completion-modal').style.display = 'none'; 
+    }
+
+    function closeWarningModal() {
+        document.getElementById('warning-modal').style.display = 'none';
+    }
+
+    function hideFeedback(id) {
+        const el = document.getElementById(id);
+        el.innerText = '';
+        el.style.display = 'none';
+    }
+
+    function nextExercise() {
+        let nextIdx = currentIdx + 1;
+        if (nextIdx >= database.length) {
+            showCompletionModal(); // Fin del juego total
+        } else {
+            loadExercise(nextIdx);
+        }
+    }
+
+    function showCompletionModal() {
+        // Al finalizar todo, usamos la misma lógica de nivel
+        showLevelScreen();
+    }
+
+    function resetGame() {
+        document.getElementById('level-screen').style.display = 'none';
+        document.getElementById('completion-modal').style.display = 'none';
+        
+        // Resetear todo
+        score = 0;
+        mistakes = 0;
+        currentAttempts = 0;
+        document.getElementById('score').innerText = '0';
+        database.forEach(d => d.solved = false);
+        generateRandomOrder();
+        
+        // Volver a la app
+        document.getElementById('app-container').style.display = 'block';
+        loadExercise(0);
+    }
+
+</script>
+
 </body>
 </html>
