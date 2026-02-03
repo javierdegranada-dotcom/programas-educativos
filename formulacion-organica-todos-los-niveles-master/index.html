@@ -3,1083 +3,1079 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Entrenador de Formulación - Javier Gijón</title>
-    
-    <!-- React y ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    
-    <!-- Babel para traducir JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Tailwind CSS -->
+    <title>Química Orgánica Master</title>
+
+    <!-- Tailwind CDN (con safelist para clases dinámicas) -->
+    <script>
+      // IMPORTANTE: con el CDN de Tailwind, las clases creadas dinámicamente en JS no se “detectan”.
+      // Este safelist asegura que existan bg/text/border de los dos temas usados (blue/emerald).
+      tailwind = window.tailwind || {};
+      tailwind.config = {
+        safelist: [
+          // Header
+          'bg-blue-600','bg-emerald-600',
+          // Cards grid
+          'bg-blue-50','bg-emerald-50',
+          'border-blue-100','border-emerald-100',
+          'active:bg-blue-100','active:bg-emerald-100',
+          'text-blue-500','text-emerald-500',
+          'text-blue-900','text-emerald-900'
+        ]
+      };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
     <style>
-        /* Estilos personalizados para animaciones */
-        @keyframes explode {
-            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
-            80% { opacity: 1; }
-            100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(1); opacity: 0; }
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 
-        .animate-shake {
-            animation: shake 0.5s ease-in-out;
-        }
-        
-        /* Scrollbar personalizado */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        /* Ajustes móviles */
-        .touch-manipulation {
+        html, body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #F3F4F6;
+            height: 100%;
+            overflow: hidden;
             touch-action: manipulation;
         }
-    </style>
-</head>
-<body class="bg-slate-900 overflow-x-hidden fixed inset-0">
-    <div id="root" class="h-full overflow-y-auto custom-scrollbar"></div>
 
-    <script type="text/babel">
-        const { useState, useMemo, useEffect } = React;
-
-        // --- ICONOS (SVG Components) ---
-        const Icon = ({ path, className }) => (
-            <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="24" 
-                height="24" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className={className}
-            >
-                {path}
-            </svg>
-        );
-
-        const BookOpen = (props) => <Icon {...props} path={<><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></>} />;
-        const CheckCircle = (props) => <Icon {...props} path={<><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>} />;
-        const Play = (props) => <Icon {...props} path={<polygon points="5 3 19 12 5 21 5 3"/>} />;
-        const RefreshCw = (props) => <Icon {...props} path={<><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></>} />;
-        const Eye = (props) => <Icon {...props} path={<><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>} />;
-        const Award = (props) => <Icon {...props} path={<><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></>} />;
-        const Zap = (props) => <Icon {...props} path={<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>} />;
-        const AlertTriangle = (props) => <Icon {...props} path={<><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>} />;
-        const Atom = (props) => <Icon {...props} path={<><circle cx="12" cy="12" r="1"/><path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5z"/><path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5z"/></>} />;
-
-        // --- CONFIGURACIÓN ---
-        const FAILURE_PHRASES = [
-            "Madre mía... 🤦‍♂️",
-            "No mereces el agua que bebes 🚰",
-            "La vida... 😮‍💨",
-            "Porque tú lo digas... 🙄",
-            "¡Ay, mis ojos! 🙈",
-            "¿En serio? 🤨"
-        ];
-
-        // --- BASE DE DATOS ---
-        const rawData = [
-            // --- Óxidos Básicos ---
-            { formula: "Li2O", name: "Óxido de litio", type: "Óxidos" },
-            { formula: "Na2O", name: "Óxido de sodio", type: "Óxidos" },
-            { formula: "K2O", name: "Óxido de potasio", type: "Óxidos" },
-            { formula: "MgO", name: "Óxido de magnesio", type: "Óxidos" },
-            { formula: "CaO", name: "Óxido de calcio", type: "Óxidos" },
-            { formula: "SrO", name: "Óxido de estroncio", type: "Óxidos" },
-            { formula: "BaO", name: "Óxido de bario", type: "Óxidos" },
-            { formula: "FeO", name: "Óxido de hierro (II)", type: "Óxidos" },
-            { formula: "Fe2O3", name: "Óxido de hierro (III)", type: "Óxidos" },
-            { formula: "Cu2O", name: "Óxido de cobre (I)", type: "Óxidos" },
-            { formula: "CuO", name: "Óxido de cobre (II)", type: "Óxidos" },
-            { formula: "Hg2O", name: "Óxido de mercurio (I)", type: "Óxidos" },
-            { formula: "HgO", name: "Óxido de mercurio (II)", type: "Óxidos" },
-            { formula: "Au2O", name: "Óxido de oro (I)", type: "Óxidos" },
-            { formula: "Au2O3", name: "Óxido de oro (III)", type: "Óxidos" },
-            { formula: "Al2O3", name: "Óxido de aluminio", type: "Óxidos" },
-            { formula: "PbO", name: "Óxido de plomo (II)", type: "Óxidos" },
-            { formula: "PbO2", name: "Óxido de plomo (IV)", type: "Óxidos" },
-            { formula: "SnO", name: "Óxido de estaño (II)", type: "Óxidos" },
-            { formula: "SnO2", name: "Óxido de estaño (IV)", type: "Óxidos" },
-            { formula: "CrO", name: "Óxido de cromo (II)", type: "Óxidos" },
-            { formula: "Cr2O3", name: "Óxido de cromo (III)", type: "Óxidos" },
-            { formula: "CrO3", name: "Óxido de cromo (VI)", type: "Óxidos" },
-            { formula: "MnO", name: "Óxido de manganeso (II)", type: "Óxidos" },
-            { formula: "Mn2O3", name: "Óxido de manganeso (III)", type: "Óxidos" },
-            { formula: "MnO2", name: "Óxido de manganeso (IV)", type: "Óxidos" },
-            { formula: "Mn2O7", name: "Óxido de manganeso (VII)", type: "Óxidos" },
-            
-            // --- Óxidos de No Metales ---
-            { formula: "CO", name: "Monóxido de carbono", type: "Óxidos" },
-            { formula: "CO2", name: "Dióxido de carbono", type: "Óxidos" },
-            { formula: "SO2", name: "Dióxido de azufre", type: "Óxidos" },
-            { formula: "SO3", name: "Trióxido de azufre", type: "Óxidos" },
-            { formula: "N2O", name: "Óxido de dinitrógeno", type: "Óxidos" },
-            { formula: "NO", name: "Monóxido de nitrógeno", type: "Óxidos" },
-            { formula: "NO2", name: "Dióxido de nitrógeno", type: "Óxidos" },
-            { formula: "N2O5", name: "Pentóxido de dinitrógeno", type: "Óxidos" },
-            { formula: "P2O3", name: "Trióxido de difósforo", type: "Óxidos" },
-            { formula: "P2O5", name: "Pentóxido de difósforo", type: "Óxidos" },
-            
-            // --- HALÓGENOS (Nomenclatura Recomendada IUPAC 2005: Halogenuros de oxígeno) ---
-            { formula: "OCl2", name: "Dicloruro de oxígeno", type: "Halogenuros de Oxígeno" },
-            { formula: "O3Cl2", name: "Dicloruro de trioxígeno", type: "Halogenuros de Oxígeno" },
-            { formula: "O5Cl2", name: "Dicloruro de pentaoxígeno", type: "Halogenuros de Oxígeno" },
-            { formula: "O7Cl2", name: "Dicloruro de heptaoxígeno", type: "Halogenuros de Oxígeno" },
-            
-            { formula: "OBr2", name: "Dibromuro de oxígeno", type: "Halogenuros de Oxígeno" },
-            { formula: "O3Br2", name: "Dibromuro de trioxígeno", type: "Halogenuros de Oxígeno" },
-            { formula: "O5Br2", name: "Dibromuro de pentaoxígeno", type: "Halogenuros de Oxígeno" },
-            
-            { formula: "OI2", name: "Diyoduro de oxígeno", type: "Halogenuros de Oxígeno" },
-            { formula: "O5I2", name: "Diyoduro de pentaoxígeno", type: "Halogenuros de Oxígeno" },
-            { formula: "O7I2", name: "Diyoduro de heptaoxígeno", type: "Halogenuros de Oxígeno" },
-
-            // --- Peróxidos ---
-            { formula: "H2O2", name: "Peróxido de hidrógeno", type: "Peróxidos" },
-            { formula: "Li2O2", name: "Peróxido de litio", type: "Peróxidos" },
-            { formula: "Na2O2", name: "Peróxido de sodio", type: "Peróxidos" },
-            { formula: "K2O2", name: "Peróxido de potasio", type: "Peróxidos" },
-            { formula: "MgO2", name: "Peróxido de magnesio", type: "Peróxidos" },
-            { formula: "CaO2", name: "Peróxido de calcio", type: "Peróxidos" },
-            { formula: "SrO2", name: "Peróxido de estroncio", type: "Peróxidos" },
-            { formula: "BaO2", name: "Peróxido de bario", type: "Peróxidos" },
-            { formula: "ZnO2", name: "Peróxido de cinc", type: "Peróxidos" },
-            { formula: "CdO2", name: "Peróxido de cadmio", type: "Peróxidos" },
-
-            // --- Hidróxidos ---
-            { formula: "LiOH", name: "Hidróxido de litio", type: "Hidróxidos" },
-            { formula: "NaOH", name: "Hidróxido de sodio", type: "Hidróxidos" },
-            { formula: "KOH", name: "Hidróxido de potasio", type: "Hidróxidos" },
-            { formula: "Mg(OH)2", name: "Hidróxido de magnesio", type: "Hidróxidos" },
-            { formula: "Ca(OH)2", name: "Hidróxido de calcio", type: "Hidróxidos" },
-            { formula: "Sr(OH)2", name: "Hidróxido de estroncio", type: "Hidróxidos" },
-            { formula: "Ba(OH)2", name: "Hidróxido de bario", type: "Hidróxidos" },
-            { formula: "Fe(OH)2", name: "Hidróxido de hierro (II)", type: "Hidróxidos" },
-            { formula: "Fe(OH)3", name: "Hidróxido de hierro (III)", type: "Hidróxidos" },
-            { formula: "Co(OH)2", name: "Hidróxido de cobalto (II)", type: "Hidróxidos" },
-            { formula: "Co(OH)3", name: "Hidróxido de cobalto (III)", type: "Hidróxidos" },
-            { formula: "Ni(OH)2", name: "Hidróxido de níquel (II)", type: "Hidróxidos" },
-            { formula: "Ni(OH)3", name: "Hidróxido de níquel (III)", type: "Hidróxidos" },
-            { formula: "CuOH", name: "Hidróxido de cobre (I)", type: "Hidróxidos" },
-            { formula: "Cu(OH)2", name: "Hidróxido de cobre (II)", type: "Hidróxidos" },
-            { formula: "AgOH", name: "Hidróxido de plata", type: "Hidróxidos" },
-            { formula: "Au(OH)3", name: "Hidróxido de oro (III)", type: "Hidróxidos" },
-            { formula: "Zn(OH)2", name: "Hidróxido de cinc", type: "Hidróxidos" },
-            { formula: "Cd(OH)2", name: "Hidróxido de cadmio", type: "Hidróxidos" },
-            { formula: "Hg(OH)2", name: "Hidróxido de mercurio (II)", type: "Hidróxidos" },
-            { formula: "Al(OH)3", name: "Hidróxido de aluminio", type: "Hidróxidos" },
-            { formula: "Pb(OH)2", name: "Hidróxido de plomo (II)", type: "Hidróxidos" },
-            { formula: "Pb(OH)4", name: "Hidróxido de plomo (IV)", type: "Hidróxidos" },
-            { formula: "Sn(OH)2", name: "Hidróxido de estaño (II)", type: "Hidróxidos" },
-            { formula: "Sn(OH)4", name: "Hidróxido de estaño (IV)", type: "Hidróxidos" },
-
-            // --- Hidruros ---
-            { formula: "LiH", name: "Hidruro de litio", type: "Hidruros" },
-            { formula: "NaH", name: "Hidruro de sodio", type: "Hidruros" },
-            { formula: "KH", name: "Hidruro de potasio", type: "Hidruros" },
-            { formula: "CaH2", name: "Hidruro de calcio", type: "Hidruros" },
-            { formula: "BaH2", name: "Hidruro de bario", type: "Hidruros" },
-            { formula: "AlH3", name: "Hidruro de aluminio", type: "Hidruros" },
-            { formula: "FeH2", name: "Hidruro de hierro (II)", type: "Hidruros" },
-            { formula: "FeH3", name: "Hidruro de hierro (III)", type: "Hidruros" },
-            { formula: "CH4", name: "Metano", type: "Hidruros" },
-            { formula: "SiH4", name: "Silano", type: "Hidruros" },
-            { formula: "NH3", name: "Amoniaco", type: "Hidruros" },
-            { formula: "PH3", name: "Fosfano", type: "Hidruros" },
-            { formula: "AsH3", name: "Arsano", type: "Hidruros" },
-            { formula: "SbH3", name: "Estibano", type: "Hidruros" },
-            { formula: "H2O", name: "Agua", type: "Hidruros" },
-            { formula: "H2S", name: "Sulfuro de hidrógeno", type: "Hidruros" },
-            { formula: "H2Se", name: "Seleniuro de hidrógeno", type: "Hidruros" },
-            { formula: "H2Te", name: "Telururo de hidrógeno", type: "Hidruros" },
-            { formula: "HF", name: "Fluoruro de hidrógeno", type: "Hidruros" },
-            { formula: "HCl", name: "Cloruro de hidrógeno", type: "Hidruros" },
-            { formula: "HBr", name: "Bromuro de hidrógeno", type: "Hidruros" },
-            { formula: "HI", name: "Yoduro de hidrógeno", type: "Hidruros" },
-
-            // --- Sales Binarias ---
-            { formula: "LiF", name: "Fluoruro de litio", type: "Sales Binarias" },
-            { formula: "NaCl", name: "Cloruro de sodio", type: "Sales Binarias" },
-            { formula: "KBr", name: "Bromuro de potasio", type: "Sales Binarias" },
-            { formula: "KI", name: "Yoduro de potasio", type: "Sales Binarias" },
-            { formula: "CaF2", name: "Fluoruro de calcio", type: "Sales Binarias" },
-            { formula: "MgCl2", name: "Cloruro de magnesio", type: "Sales Binarias" },
-            { formula: "CaBr2", name: "Bromuro de calcio", type: "Sales Binarias" },
-            { formula: "AlCl3", name: "Cloruro de aluminio", type: "Sales Binarias" },
-            { formula: "FeCl2", name: "Cloruro de hierro (II)", type: "Sales Binarias" },
-            { formula: "FeCl3", name: "Cloruro de hierro (III)", type: "Sales Binarias" },
-            { formula: "CuBr", name: "Bromuro de cobre (I)", type: "Sales Binarias" },
-            { formula: "CuBr2", name: "Bromuro de cobre (II)", type: "Sales Binarias" },
-            { formula: "AgCl", name: "Cloruro de plata", type: "Sales Binarias" },
-            { formula: "AgI", name: "Yoduro de plata", type: "Sales Binarias" },
-            { formula: "ZnS", name: "Sulfuro de cinc", type: "Sales Binarias" },
-            { formula: "PbS", name: "Sulfuro de plomo (II)", type: "Sales Binarias" },
-            { formula: "MnS", name: "Sulfuro de manganeso (II)", type: "Sales Binarias" },
-            { formula: "NiCl2", name: "Cloruro de níquel (II)", type: "Sales Binarias" },
-            { formula: "CCl4", name: "Tetracloruro de carbono", type: "Sales Binarias" },
-            { formula: "CS2", name: "Disulfuro de carbono", type: "Sales Binarias" },
-            { formula: "SF6", name: "Hexafluoruro de azufre", type: "Sales Binarias" },
-            { formula: "PCl3", name: "Tricloruro de fósforo", type: "Sales Binarias" },
-            { formula: "PCl5", name: "Pentacloruro de fósforo", type: "Sales Binarias" },
-
-            // --- Oxoácidos ---
-            { formula: "HClO", name: "Ácido hipocloroso", type: "Oxoácidos" },
-            { formula: "HClO2", name: "Ácido cloroso", type: "Oxoácidos" },
-            { formula: "HClO3", name: "Ácido clórico", type: "Oxoácidos" },
-            { formula: "HClO4", name: "Ácido perclórico", type: "Oxoácidos" },
-            { formula: "HBrO", name: "Ácido hipobromoso", type: "Oxoácidos" },
-            { formula: "HBrO2", name: "Ácido bromoso", type: "Oxoácidos" },
-            { formula: "HBrO3", name: "Ácido brómico", type: "Oxoácidos" },
-            { formula: "HBrO4", name: "Ácido perbrómico", type: "Oxoácidos" },
-            { formula: "HIO", name: "Ácido hipoyodoso", type: "Oxoácidos" },
-            { formula: "HIO3", name: "Ácido yódico", type: "Oxoácidos" },
-            { formula: "HIO4", name: "Ácido peryódico", type: "Oxoácidos" },
-            { formula: "H2SO3", name: "Ácido sulfuroso", type: "Oxoácidos" },
-            { formula: "H2SO4", name: "Ácido sulfúrico", type: "Oxoácidos" },
-            { formula: "H2SeO3", name: "Ácido selenioso", type: "Oxoácidos" },
-            { formula: "H2SeO4", name: "Ácido selénico", type: "Oxoácidos" },
-            { formula: "H2TeO3", name: "Ácido teluroso", type: "Oxoácidos" },
-            { formula: "H2TeO4", name: "Ácido telúrico", type: "Oxoácidos" },
-            { formula: "HNO2", name: "Ácido nitroso", type: "Oxoácidos" },
-            { formula: "HNO3", name: "Ácido nítrico", type: "Oxoácidos" },
-            { formula: "H3PO3", name: "Ácido fosforoso", type: "Oxoácidos" },
-            { formula: "H3PO4", name: "Ácido fosfórico", type: "Oxoácidos" },
-            { formula: "H3AsO3", name: "Ácido arsenioso", type: "Oxoácidos" },
-            { formula: "H3AsO4", name: "Ácido arsénico", type: "Oxoácidos" },
-            { formula: "H2CO3", name: "Ácido carbónico", type: "Oxoácidos" },
-            { formula: "H2SiO3", name: "Ácido metasilícico", type: "Oxoácidos" },
-            { formula: "H3BO3", name: "Ácido bórico", type: "Oxoácidos" },
-            { formula: "HMnO4", name: "Ácido permangánico", type: "Oxoácidos" },
-            { formula: "H2CrO4", name: "Ácido crómico", type: "Oxoácidos" },
-            { formula: "H2Cr2O7", name: "Ácido dicrómico", type: "Oxoácidos" },
-
-            // --- Oxisales (Incluyendo Dicromatos Extra) ---
-            { formula: "NaClO", name: "Hipoclorito de sodio", type: "Oxisales" },
-            { formula: "NaClO2", name: "Clorito de sodio", type: "Oxisales" },
-            { formula: "NaClO3", name: "Clorato de sodio", type: "Oxisales" },
-            { formula: "NaClO4", name: "Perclorato de sodio", type: "Oxisales" },
-            { formula: "KClO3", name: "Clorato de potasio", type: "Oxisales" },
-            { formula: "Ca(ClO)2", name: "Hipoclorito de calcio", type: "Oxisales" },
-            { formula: "NaNO2", name: "Nitrito de sodio", type: "Oxisales" },
-            { formula: "NaNO3", name: "Nitrato de sodio", type: "Oxisales" },
-            { formula: "KNO3", name: "Nitrato de potasio", type: "Oxisales" },
-            { formula: "AgNO3", name: "Nitrato de plata", type: "Oxisales" },
-            { formula: "Ca(NO3)2", name: "Nitrato de calcio", type: "Oxisales" },
-            { formula: "Cu(NO3)2", name: "Nitrato de cobre (II)", type: "Oxisales" },
-            { formula: "Pb(NO3)2", name: "Nitrato de plomo (II)", type: "Oxisales" },
-            { formula: "Na2SO3", name: "Sulfito de sodio", type: "Oxisales" },
-            { formula: "Na2SO4", name: "Sulfato de sodio", type: "Oxisales" },
-            { formula: "CaSO4", name: "Sulfato de calcio", type: "Oxisales" },
-            { formula: "MgSO4", name: "Sulfato de magnesio", type: "Oxisales" },
-            { formula: "BaSO4", name: "Sulfato de bario", type: "Oxisales" },
-            { formula: "CuSO4", name: "Sulfato de cobre (II)", type: "Oxisales" },
-            { formula: "FeSO4", name: "Sulfato de hierro (II)", type: "Oxisales" },
-            { formula: "Fe2(SO4)3", name: "Sulfato de hierro (III)", type: "Oxisales" },
-            { formula: "Al2(SO4)3", name: "Sulfato de aluminio", type: "Oxisales" },
-            { formula: "Na2CO3", name: "Carbonato de sodio", type: "Oxisales" },
-            { formula: "K2CO3", name: "Carbonato de potasio", type: "Oxisales" },
-            { formula: "CaCO3", name: "Carbonato de calcio", type: "Oxisales" },
-            { formula: "MgCO3", name: "Carbonato de magnesio", type: "Oxisales" },
-            { formula: "Na3PO4", name: "Fosfato de sodio", type: "Oxisales" },
-            { formula: "Ca3(PO4)2", name: "Fosfato de calcio", type: "Oxisales" },
-            { formula: "AlPO4", name: "Fosfato de aluminio", type: "Oxisales" },
-            { formula: "K2CrO4", name: "Cromato de potasio", type: "Oxisales" },
-            { formula: "K2Cr2O7", name: "Dicromato de potasio", type: "Oxisales" },
-            { formula: "Na2Cr2O7", name: "Dicromato de sodio", type: "Oxisales" },
-            { formula: "Li2Cr2O7", name: "Dicromato de litio", type: "Oxisales" },
-            { formula: "CaCr2O7", name: "Dicromato de calcio", type: "Oxisales" },
-            { formula: "MgCr2O7", name: "Dicromato de magnesio", type: "Oxisales" },
-            { formula: "ZnCr2O7", name: "Dicromato de cinc", type: "Oxisales" },
-            { formula: "Ag2Cr2O7", name: "Dicromato de plata", type: "Oxisales" },
-            { formula: "(NH4)2Cr2O7", name: "Dicromato de amonio", type: "Oxisales" },
-            { formula: "KMnO4", name: "Permanganato de potasio", type: "Oxisales" },
-
-            // --- Sales Ácidas ---
-            { formula: "NaHCO3", name: "Hidrogenocarbonato de sodio", type: "Sales Ácidas" },
-            { formula: "KHCO3", name: "Hidrogenocarbonato de potasio", type: "Sales Ácidas" },
-            { formula: "Ca(HCO3)2", name: "Hidrogenocarbonato de calcio", type: "Sales Ácidas" },
-            { formula: "NaHSO4", name: "Hidrogenosulfato de sodio", type: "Sales Ácidas" },
-            { formula: "KHSO4", name: "Hidrogenosulfato de potasio", type: "Sales Ácidas" },
-            { formula: "Ca(HSO4)2", name: "Hidrogenosulfato de calcio", type: "Sales Ácidas" },
-            { formula: "NaHSO3", name: "Hidrogenosulfito de sodio", type: "Sales Ácidas" },
-            { formula: "KH2PO4", name: "Dihidrogenofosfato de potasio", type: "Sales Ácidas" },
-            { formula: "K2HPO4", name: "Hidrogenofosfato de potasio", type: "Sales Ácidas" },
-            { formula: "NaH2PO4", name: "Dihidrogenofosfato de sodio", type: "Sales Ácidas" },
-            { formula: "Na2HPO4", name: "Hidrogenofosfato de sodio", type: "Sales Ácidas" },
-            { formula: "Ca(H2PO4)2", name: "Dihidrogenofosfato de calcio", type: "Sales Ácidas" },
-            { formula: "CaHPO4", name: "Hidrogenofosfato de calcio", type: "Sales Ácidas" },
-        ];
-
-        const generateSmartDistractors = (correct, allItems, mode) => {
-            const distractors = new Set();
-            const targetType = mode === 'formula' ? 'formula' : 'name';
-            
-            // --- DETECCIÓN DEL ELEMENTO PRINCIPAL Y TIPO ---
-            let mainHalogen = null;
-            if (correct.includes("Cl") || correct.toLowerCase().includes("cloro")) mainHalogen = { sym: "Cl", name: "cloro" };
-            else if (correct.includes("Br") || correct.toLowerCase().includes("bromo")) mainHalogen = { sym: "Br", name: "bromo" };
-            else if (correct.includes("I") && !correct.includes("Li") || correct.toLowerCase().includes("yodo")) mainHalogen = { sym: "I", name: "yodo" };
-
-            const isHalogenOxide = mainHalogen && (correct.startsWith("O") || correct.toLowerCase().includes("oxígeno"));
-            const itemType = allItems.find(i => i[targetType] === correct)?.type;
-            const isOxoCompound = itemType === "Oxoácidos" || itemType === "Oxisales" || itemType === "Sales Ácidas";
-
-            // Función mejorada para mutar fórmulas preservando los elementos
-            const mutateFormula = (str) => {
-                if (isHalogenOxide) {
-                    if (/\d/.test(str)) {
-                        return str.replace(/(\d)/g, (m) => {
-                            const val = parseInt(m);
-                            const options = [1, 2, 3, 5, 7].filter(n => n !== val);
-                            return options[Math.floor(Math.random() * options.length)];
-                        });
-                    } else {
-                        return str.replace(mainHalogen.sym, mainHalogen.sym + "2").replace("O", "O" + (Math.random() > 0.5 ? "3" : "5"));
-                    }
-                }
-
-                if (isOxoCompound) {
-                    const parts = str.split(/([A-Z][a-z]?|\(|\)|\[|\])(\d*)/).filter(Boolean);
-                    let mutated = "";
-                    let changed = false;
-                    
-                    for (let i = 0; i < parts.length; i++) {
-                        const part = parts[i];
-                        if (/^\d+$/.test(part)) {
-                            const val = parseInt(part);
-                            const options = [val-1, val+1, val+2, 2, 3, 4].filter(n => n > 0 && n !== val);
-                            mutated += options[Math.floor(Math.random() * options.length)];
-                            changed = true;
-                        } 
-                        else if (!/^\d+$/.test(part) && (i + 1 >= parts.length || !/^\d+$/.test(parts[i+1]))) {
-                            mutated += part;
-                            if ((part === 'O' || part === 'H' || part === ')') && Math.random() > 0.6) {
-                                mutated += (Math.random() > 0.5 ? "2" : "3");
-                                changed = true;
-                            }
-                        }
-                        else if (!/^\d+$/.test(part)) {
-                            mutated += part;
-                        }
-                    }
-                    if (!changed) return mutated + "2";
-                    return mutated;
-                }
-
-                if (str.match(/[A-Z][a-z]?\d*/g)) {
-                    let mutated = str.replace(/(\d+)/g, (match) => {
-                        const val = parseInt(match);
-                        const options = [2, 3, 4, 5, 7].filter(n => n !== val);
-                        return options[Math.floor(Math.random() * options.length)];
-                    });
-                    if (mutated === str) {
-                         mutated = str.replace(/([A-Z][a-z]?)(?![a-z])(?!.*\d)/, "$12"); 
-                         if (mutated === str) mutated = str + "2"; 
-                    }
-                    return mutated;
-                }
-                return str + "2"; 
-            };
-
-            // Función mejorada para mutar nombres preservando el elemento central
-            const mutateName = (str) => {
-                let options = [];
-                
-                // 1. Estrategia para Óxidos y Halogenuros (Sistemática)
-                if (str.match(/\b(Mon|Di|Tri|Tetra|Penta|Hexa|Hepta)/)) {
-                    const prefixes = ["Mon", "Di", "Tri", "Tetra", "Penta", "Hepta"];
-                    prefixes.forEach(p => {
-                        // Reemplazar prefijo en "óxido" o en el elemento
-                        let newVal = str.replace(/\b(Mon|Di|Tri|Tetra|Penta|Hexa|Hepta)óxido/g, p + "óxido")
-                                          .replace(/\b(mon|di|tri|tetra|penta|hexa|hepta)óxido/g, p.toLowerCase() + "óxido")
-                                          .replace(/\b(Mon|Di|Tri|Tetra|Penta|Hexa|Hepta)(clor|brom|yod)/g, p + "$2") 
-                                          .replace(/\b(mon|di|tri|tetra|penta|hexa|hepta)(clor|brom|yod)/g, p.toLowerCase() + "$2");
-                        
-                        // Si no hubo reemplazo por regex (ej: Dicloruro de...), intentar forzar
-                        if (newVal === str && !str.includes("óxido")) {
-                             const words = str.split(" ");
-                             if (words[0].match(/^(Mon|Di|Tri|Tetra|Penta|Hexa|Hepta)/)) {
-                                 // Reemplazar el prefijo de la primera palabra
-                                 words[0] = words[0].replace(/^(Mon|Di|Tri|Tetra|Penta|Hexa|Hepta)/, p);
-                                 newVal = words.join(" ");
-                             } else {
-                                 // Añadir prefijo
-                                 newVal = p + words[0].toLowerCase() + " " + words.slice(1).join(" ");
-                             }
-                        }
-
-                        if (newVal !== str) options.push(newVal);
-                    });
-                }
-
-                // 2. Estrategia para Ácidos y Sales (Tradicional)
-                let suffix = "";
-                let prefix = "";
-                
-                if (str.includes("ico")) suffix = "ico";
-                else if (str.includes("oso")) suffix = "oso";
-                else if (str.includes("ato")) suffix = "ato";
-                else if (str.includes("ito")) suffix = "ito";
-                
-                if (str.includes("Hipo")) prefix = "Hipo";
-                else if (str.includes("Per")) prefix = "Per";
-                else if (str.includes("Meta")) prefix = "Meta";
-                else if (str.includes("Orto")) prefix = "Orto";
-
-                if (suffix) {
-                    const suffixes = ["ico", "oso"]; 
-                    const saltSuffixes = ["ato", "ito"]; 
-                    const targetSuffixes = (suffix === "ato" || suffix === "ito") ? saltSuffixes : suffixes;
-                    const possiblePrefixes = ["", "Hipo", "Per", "Meta", "Orto"];
-
-                    targetSuffixes.forEach(s => {
-                        possiblePrefixes.forEach(p => {
-                            let newName = str;
-                            // Reemplazar sufijo
-                            newName = newName.replace(suffix, s);
-                            
-                            // Manejar prefijo
-                            if (prefix) {
-                                if (p === "") newName = newName.replace(prefix, ""); 
-                                else newName = newName.replace(prefix, p); 
-                            } else {
-                                if (p !== "") {
-                                    if (newName.startsWith("Ácido ")) {
-                                        newName = newName.replace("Ácido ", "Ácido " + p.toLowerCase());
-                                    } else {
-                                        newName = p + newName.charAt(0).toLowerCase() + newName.slice(1);
-                                    }
-                                }
-                            }
-                            
-                            newName = newName.replace("  ", " ").trim();
-                            newName = newName.charAt(0).toUpperCase() + newName.slice(1);
-                            
-                            if (newName !== str) options.push(newName);
-                        });
-                    });
-                }
-
-                // 3. Estrategia Números Romanos
-                if (str.includes("(")) {
-                    const romans = ['(I)', '(II)', '(III)', '(IV)', '(V)', '(VI)', '(VII)'];
-                    romans.forEach(r => {
-                        const newVal = str.replace(/\((I|II|III|IV|V|VI|VII)\)/, r);
-                        if (newVal !== str) options.push(newVal);
-                    });
-                } else if (!str.match(/\b(Mon|Di|Tri)/) && !str.includes("Ácido")) {
-                    // Si no es ácido ni sistemática, añadir valencia inventada
-                    options.push(str + " (II)");
-                    options.push(str + " (III)");
-                    options.push(str + " (IV)");
-                }
-
-                // 4. Estrategia sales ácidas
-                if (str.includes("Hidrogeno") || str.includes("hidrogeno")) {
-                     const variants = ["Hidrogeno", "Dihidrogeno"];
-                     variants.forEach(v => {
-                         let newVal = str;
-                         if (str.includes("Dihidrogeno")) newVal = str.replace("Dihidrogeno", v);
-                         else if (str.includes("Trihidrogeno")) newVal = str.replace("Trihidrogeno", v);
-                         else newVal = str.replace("Hidrogeno", v);
-                         
-                         if (newVal !== str) options.push(newVal);
-                     });
-                }
-
-                if (options.length > 0) {
-                    return options[Math.floor(Math.random() * options.length)];
-                }
-                
-                return "Di" + str.toLowerCase();
-            };
-
-            let attempts = 0;
-            while (distractors.size < 5 && attempts < 50) {
-                attempts++;
-                let fake = targetType === 'formula' ? mutateFormula(correct) : mutateName(correct);
-                
-                if (fake && fake !== correct && fake !== "undefined") {
-                    distractors.add(fake);
-                }
-            }
-            
-            // Fallback: Buscar en la BD elementos que compartan la RAÍZ del nombre
-            if (distractors.size < 5) {
-                const currentItemType = allItems.find(i => i[targetType] === correct)?.type;
-                const sameType = allItems.filter(i => i.type === currentItemType && i[targetType] !== correct);
-                
-                // Extraer raíces simples (palabras de >3 letras) del nombre correcto
-                const correctNameLower = correct.toLowerCase();
-                // Ignorar palabras comunes
-                const stopWords = ["ácido", "de", "oxido", "peroxido", "hidroxido", "hidruro", "sal", "mono", "di", "tri"];
-                const roots = correctNameLower.split(/[\s\(\)]+/)
-                                              .filter(w => w.length > 3 && !stopWords.includes(w))
-                                              .map(w => w.replace(/ato$|ito$|ico$|oso$|uro$/, "")); // Quitar sufijos para obtener raíz pura
-
-                while (distractors.size < 5 && sameType.length > 0) {
-                     // Elegir uno random
-                     const randIndex = Math.floor(Math.random() * sameType.length);
-                     const randomItem = sameType[randIndex];
-                     sameType.splice(randIndex, 1); // Quitar para no repetir
-                     
-                     let valid = false;
-                     // Filtro estricto: Debe compartir alguna raíz
-                     if (roots.length > 0) {
-                         const candidateName = randomItem[targetType].toLowerCase();
-                         if (roots.some(r => candidateName.includes(r))) {
-                             valid = true;
-                         }
-                     } else {
-                         // Si no pudimos sacar raíces (ej. nombres muy cortos), aceptamos del mismo tipo
-                         valid = true; 
-                     }
-
-                     // Filtro extra para halogenuros
-                     if (isHalogenOxide) {
-                        if (!randomItem[targetType].includes(mainHalogen.sym) && !randomItem[targetType].toLowerCase().includes(mainHalogen.name)) valid = false;
-                     }
-
-                     if (valid) distractors.add(randomItem[targetType]);
-                }
-            }
-
-            return Array.from(distractors).slice(0, 5).sort(() => 0.5 - Math.random());
-        };
-
-        // --- COMPONENTE EXPLOSIÓN ERROR ---
-        const ErrorExplosion = () => {
-            // Partículas rojas/naranjas con movimiento caótico hacia afuera
-            const particles = Array.from({ length: 20 }).map((_, i) => {
-                const angle = (i / 20) * 360;
-                const distance = 60 + Math.random() * 40;
-                const delay = Math.random() * 0.1;
-                
-                // Color rojo intenso y naranja
-                const color = ['#ef4444', '#dc2626', '#f87171', '#fb923c'][Math.floor(Math.random() * 4)];
-                
-                const tx = Math.cos(angle * Math.PI / 180) * distance;
-                const ty = Math.sin(angle * Math.PI / 180) * distance;
-
-                return (
-                    <div
-                        key={i}
-                        className="absolute w-3 h-3 rounded-sm opacity-0" // Cuadrados pequeños para diferenciar
-                        style={{
-                            backgroundColor: color,
-                            top: '50%',
-                            left: '50%',
-                            animation: `explode 0.6s ease-out forwards ${delay}s`,
-                            '--tx': `${tx}px`,
-                            '--ty': `${ty}px`,
-                        }}
-                    />
-                );
-            });
-
-            return (
-                <div className="absolute top-1/2 left-1/2 w-0 h-0 overflow-visible pointer-events-none z-50 flex items-center justify-center">
-                    {particles}
-                </div>
-            );
-        };
-
-        const SubscriptText = ({ text }) => {
-            if (!text) return null;
-            const parts = text.split(/(\d+)/g);
-            return (
-                <span className="font-mono tracking-wider break-words">
-                    {parts.map((part, i) => 
-                        /\d+/.test(part) ? <sub key={i} className="text-[0.7em] align-baseline relative top-[0.3em] font-bold opacity-90">{part}</sub> : part
-                    )}
-                </span>
-            );
-        };
-
-        const FireworkExplosion = () => {
-            const particles = Array.from({ length: 30 }).map((_, i) => {
-                const angle = (i / 30) * 360;
-                const distance = 150 + Math.random() * 100;
-                const delay = Math.random() * 0.2;
-                const color = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#ec4899', '#8b5cf6'][Math.floor(Math.random() * 6)];
-                
-                const tx = Math.cos(angle * Math.PI / 180) * distance;
-                const ty = Math.sin(angle * Math.PI / 180) * distance;
-
-                return (
-                    <div
-                        key={i}
-                        className="absolute w-2 h-2 rounded-full opacity-0"
-                        style={{
-                            backgroundColor: color,
-                            top: '50%',
-                            left: '50%',
-                            animation: `explode 0.8s ease-out forwards ${delay}s`,
-                            '--tx': `${tx}px`,
-                            '--ty': `${ty}px`,
-                        }}
-                    />
-                );
-            });
-
-            return (
-                <div className="absolute top-1/2 left-1/2 w-0 h-0 overflow-visible pointer-events-none z-50 flex items-center justify-center">
-                    {particles}
-                </div>
-            );
-        };
-
-        // --- APP PRINCIPAL ---
-        function FormulacionApp() {
-            const [gameState, setGameState] = useState('setup');
-            const [selectedTypes, setSelectedTypes] = useState(['Todos']);
-            const [questionCount, setQuestionCount] = useState(15);
-            const [questions, setQuestions] = useState([]);
-            const [currentIndex, setCurrentIndex] = useState(0);
-            const [showOptions, setShowOptions] = useState(false);
-            const [correctCount, setCorrectCount] = useState(0);
-            const [incorrectCount, setIncorrectCount] = useState(0);
-            const [feedback, setFeedback] = useState(null);
-            const [history, setHistory] = useState([]);
-            const [failurePhrase, setFailurePhrase] = useState(null);
-            const [selectedOption, setSelectedOption] = useState(null); // Nuevo estado para saber qué botón se pulsó
-
-            const allTypes = useMemo(() => ['Todos', ...new Set(rawData.map(i => i.type))], []);
-
-            const toggleType = (type) => {
-                if (type === 'Todos') {
-                    setSelectedTypes(['Todos']);
-                    return;
-                }
-                let newTypes = selectedTypes.filter(t => t !== 'Todos');
-                if (selectedTypes.includes(type)) {
-                    newTypes = newTypes.filter(t => t !== type);
-                } else {
-                    newTypes = [...newTypes, type];
-                }
-                if (newTypes.length === 0) newTypes = ['Todos'];
-                setSelectedTypes(newTypes);
-            };
-
-            const startGame = () => {
-                // 1. Determinar tipos seleccionados
-                let typesToUse = [];
-                if (selectedTypes.includes('Todos')) {
-                    // Obtener todos los tipos únicos de rawData
-                    typesToUse = [...new Set(rawData.map(i => i.type))];
-                } else {
-                    typesToUse = [...selectedTypes];
-                }
-
-                // 2. Seleccionar preguntas equitativamente entre los tipos
-                let selectedItems = [];
-                // Barajamos los tipos para que el reparto del "resto" sea aleatorio
-                typesToUse.sort(() => 0.5 - Math.random());
-                
-                const baseCountPerType = Math.floor(questionCount / typesToUse.length);
-                let remainder = questionCount % typesToUse.length;
-
-                typesToUse.forEach(type => {
-                    // Filtrar items de este tipo
-                    const itemsOfType = rawData.filter(i => i.type === type);
-                    // Determinar cuántos coger: base + 1 si hay resto disponible
-                    let countToTake = baseCountPerType;
-                    if (remainder > 0) {
-                        countToTake++;
-                        remainder--;
-                    }
-                    
-                    // Coger aleatoriamente
-                    const itemsTaken = itemsOfType.sort(() => 0.5 - Math.random()).slice(0, countToTake);
-                    selectedItems = [...selectedItems, ...itemsTaken];
-                });
-
-                // Barajar las preguntas seleccionadas para que no salgan por bloques de tipos
-                selectedItems.sort(() => 0.5 - Math.random());
-
-                // 3. Preparar distribución 50/50 de Fórmula/Nombre
-                // Crear array con mitad true, mitad false
-                const halfCount = Math.floor(selectedItems.length / 2);
-                let modes = Array(selectedItems.length).fill(false); // Llenar todo con false (Nombre -> Fórmula)
-                for (let i = 0; i < halfCount; i++) modes[i] = true; // Poner la mitad a true (Fórmula -> Nombre)
-                
-                // Barajar los modos
-                modes.sort(() => 0.5 - Math.random());
-                
-                const preparedQuestions = selectedItems.map((item, index) => {
-                    const isFormulaToName = modes[index]; // Usar el modo pre-calculado
-                    
-                    const target = isFormulaToName ? item.name : item.formula;
-                    const prompt = isFormulaToName ? item.formula : item.name;
-                    const mode = isFormulaToName ? 'name' : 'formula'; 
-
-                    const distractors = generateSmartDistractors(target, rawData, mode);
-                    const options = [target, ...distractors].sort(() => 0.5 - Math.random());
-
-                    return { item, mode, prompt, correct: target, options, isFormulaToName };
-                });
-
-                setQuestions(preparedQuestions);
-                setCurrentIndex(0);
-                setCorrectCount(0);
-                setIncorrectCount(0);
-                setHistory([]);
-                setFeedback(null);
-                setSelectedOption(null);
-                setShowOptions(false);
-                setGameState('playing');
-            };
-
-            const handleAnswer = (answer) => {
-                const currentQ = questions[currentIndex];
-                const isCorrect = answer === currentQ.correct;
-                
-                setSelectedOption(answer); // Guardamos la opción elegida
-
-                if (isCorrect) {
-                    setCorrectCount(c => c + 1);
-                    setFeedback('correct');
-                    setFailurePhrase(null);
-                } else {
-                    setIncorrectCount(c => c + 1);
-                    setFeedback('incorrect');
-                    setFailurePhrase(FAILURE_PHRASES[Math.floor(Math.random() * FAILURE_PHRASES.length)]);
-                }
-                
-                setHistory([...history, { ...currentQ, userAnswer: answer, isCorrect }]);
-
-                setTimeout(() => {
-                    if (currentIndex < questions.length - 1) {
-                        setCurrentIndex(c => c + 1);
-                        setShowOptions(false);
-                        setFeedback(null);
-                        setFailurePhrase(null);
-                        setSelectedOption(null);
-                    } else {
-                        setGameState('finished');
-                    }
-                }, 3000);
-            };
-
-            const bgStyle = "bg-slate-900 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-black min-h-screen text-white font-sans selection:bg-indigo-500 selection:text-white";
-
-            if (gameState === 'setup') {
-                return (
-                    <div className={bgStyle + " flex items-center justify-center p-4 min-h-screen"}>
-                        <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-6 md:p-8 w-full max-w-2xl shadow-2xl relative overflow-hidden">
-                            <div className="absolute -top-20 -right-20 w-60 h-60 bg-indigo-600/30 rounded-full blur-3xl pointer-events-none"></div>
-                            <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-pink-600/30 rounded-full blur-3xl pointer-events-none"></div>
-
-                            <div className="relative z-10">
-                                <div className="text-center mb-6">
-                                    <div className="inline-flex items-center justify-center p-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg mb-4 transform hover:rotate-6 transition-transform">
-                                        <Atom className="w-10 h-10 text-white" />
-                                    </div>
-                                    <h1 className="text-3xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 mb-2">Formulación Pro</h1>
-                                    <p className="text-slate-300 text-sm md:text-lg font-medium mb-4">Entrenador de Alto Rendimiento</p>
-                                    <div className="inline-block px-4 py-1 rounded-full bg-white/10 border border-white/20 text-indigo-300 text-xs md:text-sm font-bold tracking-wide">
-                                        Realizado por Javier Gijón. Profesor del IES Maria Moliner de Segovia
-                                    </div>
-                                </div>
-
-                                <div className="space-y-6">
-                                    <div>
-                                        <label className="flex items-center gap-2 text-xs font-bold text-indigo-300 mb-3 uppercase tracking-[0.2em]">
-                                            <BookOpen className="w-4 h-4" /> Configuración de Temas
-                                        </label>
-                                        <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                                            {allTypes.map(type => (
-                                                <button
-                                                    key={type}
-                                                    onClick={() => toggleType(type)}
-                                                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 border backdrop-blur-md flex-grow md:flex-grow-0 touch-manipulation ${
-                                                        selectedTypes.includes(type)
-                                                            ? 'bg-indigo-600/80 border-indigo-400 text-white shadow-[0_0_15px_rgba(99,102,241,0.5)] transform scale-105'
-                                                            : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:border-white/30'
-                                                    }`}
-                                                >
-                                                    {type}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="flex items-center gap-2 text-xs font-bold text-pink-300 mb-2 uppercase tracking-[0.2em]">
-                                            <Zap className="w-4 h-4" /> Intensidad ({questionCount} Preguntas)
-                                        </label>
-                                        <input 
-                                            type="range" 
-                                            min="5" 
-                                            max="50" 
-                                            step="5"
-                                            value={questionCount}
-                                            onChange={(e) => setQuestionCount(parseInt(e.target.value))}
-                                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-pink-500 hover:accent-pink-400 touch-manipulation"
-                                        />
-                                    </div>
-
-                                    <button
-                                        onClick={startGame}
-                                        className="group w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-2xl font-bold text-xl shadow-lg hover:shadow-indigo-500/30 transform hover:-translate-y-1 transition-all flex items-center justify-center gap-3 relative overflow-hidden active:scale-95 touch-manipulation"
-                                    >
-                                        <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out skew-y-12"></div>
-                                        <Play className="w-6 h-6 fill-current relative z-10" />
-                                        <span className="relative z-10">EMPEZAR PARTIDA</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            if (gameState === 'finished') {
-                const percentage = Math.round((correctCount / questions.length) * 100);
-                return (
-                    <div className={bgStyle + " flex items-center justify-center p-2 md:p-4 min-h-screen"}>
-                        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-4 md:p-8 w-full max-w-4xl shadow-2xl h-[95vh] md:max-h-[90vh] flex flex-col">
-                            <div className="text-center mb-4 md:mb-8 border-b border-white/10 pb-4 md:pb-6 flex-shrink-0">
-                                <div className="inline-block p-3 md:p-4 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 mb-2 md:mb-4 shadow-lg shadow-orange-500/30">
-                                    <Award className="w-8 h-8 md:w-12 md:h-12 text-white" />
-                                </div>
-                                <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">Resultados</h2>
-                                
-                                <div className="grid grid-cols-3 gap-2 md:gap-4 max-w-lg mx-auto">
-                                    <div className="bg-green-500/20 p-2 md:p-4 rounded-xl md:rounded-2xl border border-green-500/30 backdrop-blur-sm">
-                                        <div className="text-2xl md:text-3xl font-black text-green-400">{correctCount}</div>
-                                        <div className="text-[8px] md:text-[10px] uppercase font-bold text-green-200/60 tracking-widest mt-1">Aciertos</div>
-                                    </div>
-                                    <div className="bg-red-500/20 p-2 md:p-4 rounded-xl md:rounded-2xl border border-red-500/30 backdrop-blur-sm">
-                                        <div className="text-2xl md:text-3xl font-black text-red-400">{incorrectCount}</div>
-                                        <div className="text-[8px] md:text-[10px] uppercase font-bold text-red-200/60 tracking-widest mt-1">Fallos</div>
-                                    </div>
-                                    <div className="bg-blue-500/20 p-2 md:p-4 rounded-xl md:rounded-2xl border border-blue-500/30 backdrop-blur-sm">
-                                        <div className="text-2xl md:text-3xl font-black text-blue-400">{percentage}%</div>
-                                        <div className="text-[8px] md:text-[10px] uppercase font-bold text-blue-200/60 tracking-widest mt-1">Precisión</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar">
-                                <table className="w-full text-left border-collapse">
-                                    <thead className="sticky top-0 bg-slate-900/90 backdrop-blur-md z-10">
-                                        <tr>
-                                            <th className="py-2 px-2 md:py-3 md:px-4 text-slate-400 font-bold text-[10px] md:text-xs uppercase tracking-wider rounded-l-lg">Pregunta</th>
-                                            <th className="py-2 px-2 md:py-3 md:px-4 text-slate-400 font-bold text-[10px] md:text-xs uppercase tracking-wider">Tu Respuesta</th>
-                                            <th className="py-2 px-2 md:py-3 md:px-4 text-slate-400 font-bold text-[10px] md:text-xs uppercase tracking-wider text-right rounded-r-lg">Correcta</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-white/5">
-                                        {history.map((h, i) => (
-                                            <tr key={i} className="hover:bg-white/5 transition-colors group">
-                                                <td className="py-2 px-2 md:py-4 md:px-4 font-medium text-white text-xs md:text-base">
-                                                    <div className="flex flex-col">
-                                                        <span>{h.isFormulaToName ? <SubscriptText text={h.prompt} /> : h.prompt}</span>
-                                                        <span className="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase">{h.item.type}</span>
-                                                    </div>
-                                                </td>
-                                                <td className={`py-2 px-2 md:py-4 md:px-4 font-medium text-xs md:text-base ${h.isCorrect ? 'text-green-400' : 'text-red-400 line-through decoration-red-500/50'}`}>
-                                                    {!h.isFormulaToName ? <SubscriptText text={h.userAnswer} /> : h.userAnswer}
-                                                </td>
-                                                <td className="py-2 px-2 md:py-4 md:px-4 text-right text-indigo-300 font-medium text-xs md:text-base">
-                                                    {!h.isFormulaToName ? <SubscriptText text={h.correct} /> : h.correct}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div className="mt-4 md:mt-6 flex-shrink-0">
-                                <button
-                                    onClick={() => setGameState('setup')}
-                                    className="w-full py-3 md:py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold text-base md:text-lg shadow-lg border border-white/10 transition-all flex items-center justify-center gap-2 active:scale-95 touch-manipulation"
-                                >
-                                    <RefreshCw className="w-5 h-5" />
-                                    NUEVA SESIÓN
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            const currentQ = questions[currentIndex];
-
-            return (
-                <div className={bgStyle + " flex flex-col items-center pt-4 md:pt-8 px-2 md:px-4 pb-4 min-h-screen"}>
-                    
-                    {/* HUD SUPERIOR */}
-                    <div className="w-full max-w-4xl bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-2 md:p-4 mb-4 md:mb-8 flex justify-between items-center shadow-lg">
-                        <div className="flex gap-4 md:gap-8">
-                            <div className="flex flex-col items-center px-2">
-                                <span className="text-xl md:text-2xl font-black text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.5)]">{correctCount}</span>
-                                <span className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bien</span>
-                            </div>
-                            <div className="flex flex-col items-center px-2 border-l border-white/10 pl-4 md:pl-8">
-                                <span className="text-xl md:text-2xl font-black text-red-400 drop-shadow-[0_0_10px_rgba(248,113,113,0.5)]">{incorrectCount}</span>
-                                <span className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mal</span>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <div className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Pregunta</div>
-                            <div className="text-base md:text-xl font-bold text-white tracking-wider">
-                                {currentIndex + 1} <span className="text-slate-500 text-xs md:text-base">/ {questions.length}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* TARJETA DE JUEGO */}
-                    <div className="w-full max-w-4xl bg-slate-800/50 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/10 min-h-[60vh] md:min-h-[550px] flex flex-col relative transition-all duration-500">
-                        
-                        {/* Barra de Progreso */}
-                        <div className="h-1 bg-slate-700 w-full">
-                            <div 
-                                className="h-full bg-gradient-to-r from-indigo-500 to-pink-500 transition-all duration-700 ease-out shadow-[0_0_10px_rgba(236,72,153,0.5)]"
-                                style={{ width: `${((currentIndex) / questions.length) * 100}%` }}
-                            />
-                        </div>
-
-                        {/* Zona de Pregunta */}
-                        <div className="p-6 md:p-12 flex flex-col items-center justify-center border-b border-white/5 flex-grow relative bg-white/[0.02]">
-                            <span className="absolute top-4 left-4 md:top-6 md:left-6 text-[8px] md:text-[10px] font-bold tracking-[0.2em] text-indigo-400 uppercase bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
-                                {currentQ.item.type}
-                            </span>
-                            <span className="absolute top-4 right-4 md:top-6 md:right-6 text-[8px] md:text-[10px] font-bold tracking-[0.2em] text-slate-500 uppercase">
-                                {currentQ.isFormulaToName ? "NOMBRA" : "FORMULA"}
-                            </span>
-                            
-                            <div className="text-center w-full mt-4">
-                                <div className="mb-4 md:mb-8 transform transition-all duration-500">
-                                    {currentQ.isFormulaToName ? (
-                                        <div className="text-5xl md:text-8xl text-white font-bold drop-shadow-2xl font-mono break-all">
-                                            <SubscriptText text={currentQ.prompt} />
-                                        </div>
-                                    ) : (
-                                        <h2 className="text-2xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300 leading-tight drop-shadow-lg break-words">
-                                            {currentQ.prompt}
-                                        </h2>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Zona de Interacción */}
-                        <div className="p-4 md:p-8 bg-slate-900/50 flex flex-col justify-center min-h-[250px] md:min-h-[300px] relative">
-                            
-                            {!showOptions ? (
-                                <div className="text-center space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    <div className="w-12 h-12 md:w-16 md:h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-4 animate-pulse">
-                                        <Eye className="w-6 h-6 md:w-8 md:h-8 text-indigo-400" />
-                                    </div>
-                                    <p className="text-slate-400 font-medium italic text-sm md:text-base px-4">
-                                        Piensa la respuesta antes de ver las opciones...
-                                    </p>
-                                    <button
-                                        onClick={() => setShowOptions(true)}
-                                        className="mx-auto w-full md:w-auto px-10 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-lg transition-all shadow-lg hover:shadow-indigo-500/40 hover:-translate-y-1 flex items-center justify-center gap-3 active:scale-95 touch-manipulation"
-                                    >
-                                        MOSTRAR OPCIONES
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 animate-in zoom-in-95 duration-300">
-                                    {currentQ.options.map((option, idx) => {
-                                        let btnClass = "relative p-3 md:p-4 rounded-xl font-bold text-sm md:text-base border-2 transition-all flex items-center justify-center text-center min-h-[60px] md:min-h-[70px] group touch-manipulation ";
-                                        
-                                        if (feedback) {
-                                            if (option === currentQ.correct) {
-                                                btnClass += "bg-green-500/20 border-green-500 text-green-300 shadow-[0_0_20px_rgba(34,197,94,0.3)] z-10 ";
-                                            } else if (option !== currentQ.correct && feedback === 'incorrect') {
-                                                btnClass += "bg-slate-800 border-slate-700 text-slate-600 opacity-50 blur-[1px] ";
-                                            } else {
-                                                btnClass += "bg-slate-800 border-slate-700 text-slate-600 opacity-50 ";
-                                            }
-                                        } else {
-                                            btnClass += "bg-white/5 border-white/10 text-slate-200 hover:border-indigo-500 hover:bg-indigo-500/10 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.3)] cursor-pointer active:scale-95 active:bg-indigo-500/20 ";
-                                        }
-
-                                        // Determinamos si este botón específico debe explotar (ser la opción incorrecta seleccionada)
-                                        const isSelectedWrongOption = feedback === 'incorrect' && option === selectedOption;
-
-                                        return (
-                                            <button
-                                                key={idx}
-                                                disabled={feedback !== null}
-                                                onClick={() => handleAnswer(option)}
-                                                className={btnClass}
-                                            >
-                                                <span className="drop-shadow-md break-words w-full">
-                                                    {!currentQ.isFormulaToName ? <SubscriptText text={option} /> : option}
-                                                </span>
-                                                
-                                                {feedback === 'correct' && option === currentQ.correct && (
-                                                    <>
-                                                        <FireworkExplosion />
-                                                        <div className="absolute top-2 right-2 bg-green-500 rounded-full p-1 animate-bounce z-20">
-                                                            <CheckCircle className="w-4 h-4 text-white" />
-                                                        </div>
-                                                    </>
-                                                )}
-                                                
-                                                {/* Animación de explosión en el botón erróneo seleccionado */}
-                                                {isSelectedWrongOption && (
-                                                    <ErrorExplosion />
-                                                )}
-
-                                                {feedback === 'incorrect' && option === currentQ.correct && (
-                                                    <div className="absolute -top-3 -right-3 bg-green-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg z-20 animate-bounce">
-                                                        ¡ERA ESTA!
-                                                    </div>
-                                                )}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                            
-                            {feedback === 'incorrect' && failurePhrase && (
-                                <div className="absolute inset-x-0 bottom-6 mx-auto w-[90%] md:w-max px-4 md:px-8 py-3 md:py-4 bg-red-600 text-white rounded-2xl font-black text-lg md:text-2xl border-4 border-red-400 shadow-[0_0_40px_rgba(239,68,68,0.6)] animate-[shake_0.5s_ease-in-out] flex items-center justify-center gap-3 z-30 uppercase tracking-widest transform text-center break-words">
-                                    <AlertTriangle className="w-6 h-6 md:w-8 md:h-8 animate-pulse flex-shrink-0" /> 
-                                    <span>{failurePhrase}</span>
-                                </div>
-                            )}
-                            {feedback === 'correct' && (
-                                <div className="absolute inset-x-0 bottom-6 mx-auto w-max px-6 py-3 bg-green-500/90 text-white rounded-full font-bold border border-green-400 shadow-[0_0_30px_rgba(34,197,94,0.5)] animate-in fade-in slide-in-from-bottom-2 flex items-center gap-2 z-30">
-                                    <CheckCircle className="w-5 h-5" /> ¡Correcto!
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            );
+        .chemical-font { font-family: 'Courier New', Courier, monospace; font-weight: 700; }
+
+        .app-container {
+            width: 100%;
+            height: 100dvh;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<FormulacionApp />);
+        @media (min-width: 640px) {
+            body { display: flex; align-items: center; justify-content: center; padding: 1rem; }
+            .app-container { height: 90vh; max-width: 30rem; border-radius: 1.5rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        }
+
+        /* --- ANIMACIONES (faltaban en la versión original) --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.35s ease-in; }
+        .animate-slide-up { animation: slideUp 0.35s ease-out; }
+
+        /* --- VISUALIZACIÓN SEGURA --- */
+        #question-scroll-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            overflow-x: auto;
+            padding: 1.5rem 0.5rem;
+            background-color: #F9FAFB;
+            border-bottom: 1px solid #E5E7EB;
+            -webkit-overflow-scrolling: touch;
+            min-height: 160px;
+        }
+
+        .molecule-wrapper {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            border: 1px solid #E5E7EB;
+            white-space: nowrap;
+        }
+
+        .text-question { font-size: 1.5rem; font-weight: 800; color: #1F2937; white-space: normal; text-align: center; }
+
+        /* --- BOTONES CON SCROLL ROBUSTO --- */
+        .btn-div-wrapper {
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-inner-layout {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .btn-scroll-text {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            min-width: 0;
+            overflow-x: auto;
+            white-space: nowrap;
+            text-align: left;
+            padding-bottom: 6px;
+            padding-top: 4px;
+            margin-left: 0.5rem;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            pointer-events: auto;
+            touch-action: pan-x;
+        }
+
+        .btn-scroll-text::-webkit-scrollbar { height: 4px; }
+        .btn-scroll-text::-webkit-scrollbar-thumb { background: #94A3B8; border-radius: 4px; }
+        .btn-scroll-text::-webkit-scrollbar-track { background: #F1F5F9; }
+
+        /* --- MOLECULAR STYLES --- */
+        .molecule-container { display: inline-flex; align-items: center; flex-shrink: 0; padding-right: 10px; }
+        .carbon-group { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 32px; }
+        .main-atom { padding: 2px 0; z-index: 10; font-size: 1.2rem; color: #1F2937; letter-spacing: -1px; }
+
+        .atom-O { color: #DC2626; }
+        .atom-N { color: #2563EB; }
+        .atom-Cl { color: #16A34A; }
+        .atom-Br { color: #991B1B; }
+        .atom-I { color: #7F1D1D; }
+        .atom-F { color: #059669; }
+        .atom-Na { color: #7C3AED; }
+        .atom-K { color: #7C3AED; }
+        .atom-condensed { font-size: 1rem; color: #4B5563; border: 1px dashed #D1D5DB; padding: 0 4px; border-radius: 4px; }
+
+        .branch-atom { font-size: 0.85rem; color: #4B5563; font-weight: bold; }
+        .branch-atom-O { color: #DC2626; }
+        .branch-atom-N { color: #2563EB; }
+        .branch-atom-X { color: #059669; }
+        .branch-atom-hard { font-size: 0.85rem; color: #374151; font-weight: bold; }
+
+        .bond-spacer { width: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0; flex-shrink: 0; height: 24px; }
+
+        .h-bond { width: 100%; height: 2px; background-color: #374151; }
+        .h-bond-double { width: 100%; height: 6px; border-top: 2px solid #374151; border-bottom: 2px solid #374151; }
+        .h-bond-triple { width: 100%; height: 8px; border-top: 2px solid #374151; border-bottom: 2px solid #374151; position: relative; }
+        .h-bond-triple::after { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 2px; background-color: #374151; transform: translateY(-50%); }
+
+        .v-bond-up { width: 2px; height: 14px; background-color: #374151; margin-bottom: -2px; }
+        .v-bond-down { width: 2px; height: 14px; background-color: #374151; margin-top: -2px; }
+        .v-bond-double-up { width: 6px; height: 16px; margin-bottom: -2px; border-left: 2px solid #374151; border-right: 2px solid #374151; }
+        .v-bond-double-down { width: 6px; height: 16px; margin-top: -2px; border-left: 2px solid #374151; border-right: 2px solid #374151; }
+
+        sub { font-size: 0.7em; vertical-align: sub; }
+        .q-selector input:checked + div { background-color: #2563EB; color: white; border-color: #2563EB; }
+        .touch-btn { min-height: 44px; display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body>
+
+    <!-- HUB -->
+    <div id="hub-screen" class="app-container fade-in">
+        <div class="bg-gray-900 p-8 text-center text-white shrink-0 rounded-b-3xl shadow-lg relative overflow-hidden h-1/3 flex flex-col justify-center items-center">
+            <i class="fas fa-atom text-6xl mb-4 text-blue-400 animate-pulse"></i>
+            <h1 class="text-3xl font-bold">Química Master</h1>
+            <div class="mt-4 text-xs bg-gray-800 bg-opacity-50 p-2 rounded-lg">
+                <p>Javier Gijón</p>
+                <p class="text-gray-400">IES María Moliner (Segovia)</p>
+            </div>
+        </div>
+
+        <div class="flex-grow p-6 flex flex-col justify-center gap-6">
+            <button onclick="selectApp('hydro')" class="group relative w-full bg-blue-600 hover:bg-blue-700 text-white rounded-2xl p-6 shadow-xl transition-all transform hover:scale-105 text-left overflow-hidden">
+                <div class="absolute right-[-20px] bottom-[-20px] text-blue-800 opacity-20 transform rotate-12"><i class="fas fa-link text-9xl"></i></div>
+                <h2 class="text-2xl font-bold mb-1">Hidrocarburos</h2>
+                <p class="text-blue-100 text-sm">Alcanos, Alquenos, Alquinos</p>
+            </button>
+
+            <button onclick="selectApp('func')" class="group relative w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl p-6 shadow-xl transition-all transform hover:scale-105 text-left overflow-hidden">
+                <div class="absolute right-[-20px] bottom-[-20px] text-emerald-800 opacity-20 transform rotate-12"><i class="fas fa-flask text-9xl"></i></div>
+                <h2 class="text-2xl font-bold mb-1">Grupos Funcionales</h2>
+                <p class="text-emerald-100 text-sm">Alcoholes, Ácidos, Nitrilos...</p>
+            </button>
+        </div>
+    </div>
+
+    <!-- SELECCIÓN NIVEL -->
+    <div id="level-screen" class="app-container hidden">
+        <div id="header-bg" class="bg-blue-600 p-6 text-center text-white shrink-0 rounded-b-3xl shadow-lg z-10 relative">
+            <button onclick="goHub()" class="absolute left-4 top-6 text-white opacity-80"><i class="fas fa-arrow-left"></i></button>
+            <h1 id="app-title" class="text-2xl font-bold mt-2">Título</h1>
+        </div>
+
+        <div class="flex-grow overflow-y-auto p-4 space-y-5">
+            <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+                <p class="text-xs font-bold text-gray-400 mb-2 text-center uppercase">Preguntas</p>
+                <div class="flex justify-center gap-3">
+                    <label class="cursor-pointer q-selector"><input type="radio" name="q-count" value="5" class="hidden"><div class="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center font-bold text-gray-400 text-sm transition-all">5</div></label>
+                    <label class="cursor-pointer q-selector"><input type="radio" name="q-count" value="10" class="hidden" checked><div class="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center font-bold text-gray-400 text-sm transition-all">10</div></label>
+                    <label class="cursor-pointer q-selector"><input type="radio" name="q-count" value="20" class="hidden"><div class="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center font-bold text-gray-400 text-sm transition-all">20</div></label>
+                </div>
+            </div>
+            <div id="levels-grid" class="grid grid-cols-2 gap-3"></div>
+            <div id="mix-buttons" class="space-y-3"></div>
+        </div>
+
+        <div class="p-4 bg-gray-50 border-t border-gray-200 shrink-0 text-center">
+            <button onclick="toggleModal('theory-modal')" class="text-gray-500 text-sm font-bold py-1 block w-full hover:text-blue-600"><i class="fas fa-info-circle mr-1"></i> Ver Chuleta</button>
+        </div>
+    </div>
+
+    <!-- JUEGO -->
+    <div id="game-screen" class="app-container hidden">
+        <div class="bg-gray-800 text-white p-3 flex justify-between items-center shrink-0 shadow-md z-10">
+            <button onclick="goLevelSelect()" class="text-gray-300 active:text-white p-2"><i class="fas fa-chevron-left text-lg"></i></button>
+            <div class="font-bold text-sm" id="level-indicator">Nivel</div>
+            <div class="bg-gray-700 px-3 py-1 rounded-full text-xs font-mono"><span id="current-q">1</span>/<span id="total-q">10</span></div>
+        </div>
+        <div class="w-full bg-gray-200 h-1 shrink-0"><div id="progress-bar" class="bg-blue-500 h-1 transition-all duration-300" style="width: 0%"></div></div>
+
+        <div class="flex-grow flex flex-col overflow-y-auto bg-white">
+            <div class="bg-gray-50 pb-4 border-b border-gray-200 sticky top-0 z-0">
+                <div class="text-center pt-3 pb-2"><span id="question-type-badge" class="px-3 py-1 text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-800 rounded-full">Nombrar</span></div>
+                <div id="question-scroll-area">
+                    <div id="question-display" class="molecule-wrapper"></div>
+                </div>
+            </div>
+
+            <div class="p-4 flex flex-col justify-center flex-grow">
+                <div id="input-text-area" class="w-full hidden space-y-4">
+                    <input type="text" id="user-input" placeholder="Nombre IUPAC..." class="w-full p-4 text-center text-base border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:outline-none transition-all" autocomplete="off" spellcheck="false">
+                    <div id="keyboard-area" class="grid grid-cols-4 gap-2 text-xs font-bold"></div>
+                </div>
+                <div id="input-options-area" class="w-full hidden space-y-3"></div>
+                <div id="feedback-area" class="mt-4 text-center hidden p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <div id="feedback-icon" class="text-4xl mb-2"></div>
+                    <p id="feedback-text" class="font-bold text-xl mb-1"></p>
+                    <p id="feedback-correction" class="text-gray-600 text-sm"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 border-t border-gray-200 bg-white shrink-0 z-20">
+            <button id="check-btn" onclick="checkAnswer()" class="w-full bg-blue-600 active:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg">Comprobar</button>
+            <button id="next-btn" onclick="nextQuestion()" class="hidden w-full bg-green-500 active:bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg">Siguiente <i class="fas fa-arrow-right ml-2"></i></button>
+        </div>
+    </div>
+
+    <!-- RESULTADOS -->
+    <div id="end-screen" class="app-container hidden flex flex-col h-full">
+        <div class="bg-gray-800 p-6 text-center text-white shrink-0">
+            <h2 class="text-2xl font-bold">Resultados</h2>
+            <div class="mt-4 inline-block bg-gray-700 rounded-xl px-6 py-2">
+                <span class="text-gray-400 text-sm uppercase mr-2">Puntuación</span>
+                <span id="final-score" class="text-2xl font-bold text-white">0/0</span>
+            </div>
+            <div id="level-feedback" class="mt-3 text-yellow-400 font-bold text-lg animate-pulse uppercase tracking-wide"></div>
+        </div>
+        <div class="flex-grow overflow-y-auto p-0 min-h-0">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-100 text-gray-600 sticky top-0 shadow-sm z-10">
+                    <tr>
+                        <th class="p-3 text-left">Pregunta</th>
+                        <th class="p-3 text-center">Tú</th>
+                        <th class="p-3 text-center">Solución</th>
+                        <th class="p-3 text-center">Ok</th>
+                    </tr>
+                </thead>
+                <tbody id="results-table-body" class="divide-y divide-gray-100"></tbody>
+            </table>
+        </div>
+        <div class="p-4 border-t border-gray-200 bg-white shrink-0">
+            <button onclick="goLevelSelect()" class="w-full bg-gray-800 text-white font-bold py-4 rounded-xl shadow-lg">Volver</button>
+        </div>
+    </div>
+
+    <!-- CHULETA -->
+    <div id="theory-modal" class="fixed inset-0 bg-black bg-opacity-80 hidden z-50 flex items-end sm:items-center justify-center sm:p-4">
+        <div class="bg-white w-full h-[85vh] sm:h-auto sm:max-w-xl sm:rounded-2xl rounded-t-2xl flex flex-col overflow-hidden shadow-2xl animate-slide-up">
+            <div id="theory-header" class="bg-blue-600 p-4 text-white flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-lg" id="theory-title">Chuleta</h3>
+                <button onclick="toggleModal('theory-modal')" class="p-2 bg-white bg-opacity-20 rounded-full"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="theory-content" class="p-6 overflow-y-auto flex-grow space-y-4 text-sm text-gray-700"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- UTILIDADES ---
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function normName(s) {
+            return (s || '')
+                .toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[–—]/g, '-')
+                .replace(/[\s\-_,]/g, '');
+        }
+
+        // --- 1. CONFIGURACIÓN APP ---
+        const apps = {
+            hydro: {
+                title: "Hidrocarburos", color: "blue",
+                levels: [
+                    { id: 'linear', name: 'Lineales', icon: 'fa-link' },
+                    { id: 'branched', name: 'Ramificados', icon: 'fa-code-branch' },
+                    { id: 'alkenes', name: 'Alquenos (=)', icon: 'fa-equals' },
+                    { id: 'alkynes', name: 'Alquinos (≡)', icon: 'fa-bars' }
+                ],
+                keyboard: ['-', ',', 'eno', 'ino', 'di', 'tri'],
+                cheatsheet: `<div><h4 class="font-bold border-b-2 mb-2">Prefijos</h4><div class="grid grid-cols-2 gap-2 text-xs"><div>1:Met</div><div>2:Et</div><div>3:Prop</div><div>4:But</div><div>5:Pent</div><div>6:Hex</div><div>7:Hept</div><div>8:Oct</div></div></div><div><h4 class="font-bold border-b-2 mb-2">Sufijos</h4><div class="space-y-1 text-xs"><div>-ano (Simple)</div><div>-eno (Doble)</div><div>-ino (Triple)</div></div></div>`
+            },
+            func: {
+                title: "Grupos Funcionales", color: "emerald",
+                levels: [
+                    { id: 'oxy1', name: 'Alcohol/Éter', icon: 'fa-wine-bottle' },
+                    { id: 'oxy2', name: 'Ald/Cetona', icon: 'fa-bacon' },
+                    { id: 'acids', name: 'Ácidos/Éster', icon: 'fa-lemon' },
+                    { id: 'nitrogen', name: 'Nitrogenados', icon: 'fa-fish' },
+                    { id: 'halonitro', name: 'Halógenos/Nitro', icon: 'fa-bomb' }
+                ],
+                keyboard: ['N', '-', ',', 'ol', 'al', 'ona', 'oico', 'il', 'oxi', 'nitrilo', 'amida', 'amina', 'nitro', 'cloro'],
+                cheatsheet: `<p class="text-xs text-gray-500 mb-2 italic">Prioridad (1 mayor):</p><table class="w-full text-left text-xs text-gray-700"><thead class="bg-gray-100 font-bold"><tr><th class="p-2">Grupo</th><th class="p-2">Sufijo</th><th class="p-2">Prefijo</th></tr></thead><tbody class="divide-y"><tr><td class="p-2 text-red-600 font-bold">Ácido</td><td>-oico</td><td>carboxi-</td></tr><tr><td class="p-2 text-red-500 font-bold">Éster</td><td>-oato</td><td>-</td></tr><tr><td class="p-2 text-purple-600 font-bold">Amida</td><td>-amida</td><td>carbamoil-</td></tr><tr class="bg-purple-50"><td class="p-2 text-purple-800 font-bold">Nitrilo</td><td>-nitrilo</td><td>ciano-</td></tr><tr><td class="p-2 text-orange-600 font-bold">Aldehído</td><td>-al</td><td>formil/oxo</td></tr><tr><td class="p-2 text-orange-500 font-bold">Cetona</td><td>-ona</td><td>oxo-</td></tr><tr><td class="p-2 text-blue-600 font-bold">Alcohol</td><td>-ol</td><td>hidroxi-</td></tr><tr><td class="p-2 text-purple-500 font-bold">Amina</td><td>-amina</td><td>amino-</td></tr><tr><td class="p-2 text-blue-400 font-bold">Éter</td><td>éter</td><td>alcoxi-</td></tr><tr class="bg-yellow-50"><td class="p-2 font-bold">Nitro/Halo</td><td>-</td><td>nitro-/cloro-</td></tr></tbody></table>`
+            }
+        };
+
+        // --- 2. BASE DE DATOS ---
+        const db = { linear: [], branched: [], alkenes: [], alkynes: [], oxy1: [], oxy2: [], acids: [], nitrogen: [], halonitro: [], hydroHard: [], funcHard: [], proMix: [], proHydro: [] };
+        const prefixes = ['', 'Met', 'Et', 'Prop', 'But', 'Pent', 'Hex', 'Hept', 'Oct', 'Non', 'Dec', 'Undec', 'Dodec'];
+        function getN(n) { return prefixes[n] ? prefixes[n].toLowerCase() : 'pol'; }
+        function sub(t) { if(!t) return ''; return t.toString().replace(/(\d+)/g, '<sub>$1</sub>'); }
+        function getFormula(n) { return n===1?'CH4':n===2?'CH3-CH3':`CH3-(CH2)${n-2}-CH3`; }
+        function addUnique(category, item) { if(!db[category].some(x => x.name === item.name)) db[category].push(item); }
+
+        function generateData() {
+            // --- HIDROCARBUROS ---
+            for(let i=1; i<=12; i++) addUnique('linear', {name:getN(i)+'ano', chain:[getFormula(i)], type:'simple'});
+
+            const bSeeds=[
+                {n:"2-metilpropano",c:["CH3","CH","CH3"],b:[{i:1,g:"CH3",p:"top"}]},
+                {n:"2,2-dimetilpropano",c:["CH3","C","CH3"],b:[{i:1,g:"CH3",p:"top"},{i:1,g:"CH3",p:"bottom"}]},
+                {n:"2-metilbutano",c:["CH3","CH","CH2","CH3"],b:[{i:1,g:"CH3",p:"top"}]},
+                {n:"2,3-dimetilbutano",c:["CH3","CH","CH","CH3"],b:[{i:1,g:"CH3",p:"top"},{i:2,g:"CH3",p:"bottom"}]},
+                {n:"2,2-dimetilbutano",c:["CH3","C","CH2","CH3"],b:[{i:1,g:"CH3",p:"top"},{i:1,g:"CH3",p:"bottom"}]},
+                {n:"3-metilpentano",c:["CH3","CH2","CH","CH2","CH3"],b:[{i:2,g:"CH3",p:"top"}]},
+                {n:"3-etilpentano",c:["CH3","CH2","CH","CH2","CH3"],b:[{i:2,g:"CH2CH3",p:"bottom"}]},
+                {n:"2,4-dimetilpentano",c:["CH3","CH","CH2","CH","CH3"],b:[{i:1,g:"CH3",p:"top"},{i:3,g:"CH3",p:"bottom"}]},
+                {n:"3-etil-2-metilpentano",c:["CH3","CH","CH","CH2","CH3"],b:[{i:1,g:"CH3",p:"top"},{i:2,g:"CH2CH3",p:"bottom"}]},
+                {n:"3,3-dimetilhexano",c:["CH3","CH2","C","CH2","CH2","CH3"],b:[{i:2,g:"CH3",p:"top"},{i:2,g:"CH3",p:"bottom"}]},
+                {n:"4-etil-2-metilhexano",c:["CH3","CH","CH2","CH","CH2","CH3"],b:[{i:1,g:"CH3",p:"top"},{i:3,g:"CH2CH3",p:"bottom"}]},
+                {n:"2,2,4-trimetilpentano",c:["CH3","C","CH2","CH","CH3"],b:[{i:1,g:"CH3",p:"top"},{i:1,g:"CH3",p:"bottom"},{i:3,g:"CH3",p:"top"}]}
+            ];
+            bSeeds.forEach(s=>addUnique('branched',{name:s.n,chain:s.c,branches:s.b.map(x=>({idx:x.i,g:x.g,pos:x.p}))}));
+            for(let i=0;i<30;i++){
+                let mc=Math.floor(Math.random()*6)+5;
+                let limit=Math.ceil(mc/2);
+                let p=Math.floor(Math.random()*(limit-1))+2;
+                let ch=["CH3"];for(let k=0;k<mc-2;k++)ch.push("CH2");ch.push("CH3");
+                ch[p-1]="CH";
+                addUnique('branched',{name:`${p}-metil${getN(mc)}ano`,chain:ch,branches:[{idx:p-1,g:"CH3",pos:Math.random()>0.5?"top":"bottom"}]});
+            }
+
+            const alkSeeds=[
+                {n:"eteno",c:["CH2","CH2"],b:[{i:0,t:"="}]},
+                {n:"propeno",c:["CH2","CH","CH3"],b:[{i:0,t:"="}]},
+                {n:"but-1-eno",c:["CH2","CH","CH2","CH3"],b:[{i:0,t:"="}]},
+                {n:"but-2-eno",c:["CH3","CH","CH","CH3"],b:[{i:1,t:"="}]},
+                {n:"2-metilprop-1-eno",c:["CH2","C","CH3"],b:[{i:0,t:"="}],br:[{i:1,g:"CH3",p:"top"}]},
+                {n:"3-metilbut-1-eno",c:["CH2","CH","CH","CH3"],b:[{i:0,t:"="}],br:[{i:2,g:"CH3",p:"top"}]},
+                {n:"2-metilbut-2-eno",c:["CH3","C","CH","CH3"],b:[{i:1,t:"="}],br:[{i:1,g:"CH3",p:"top"}]},
+                {n:"pent-2-eno",c:["CH3","CH","CH","CH2","CH3"],b:[{i:1,t:"="}]},
+                {n:"3-metilpent-2-eno",c:["CH3","CH","C","CH2","CH3"],b:[{i:1,t:"="}],br:[{i:2,g:"CH3",p:"top"}]},
+                {n:"hexa-1,4-dieno",c:["CH2","CH","CH2","CH","CH","CH3"],b:[{i:0,t:"="},{i:3,t:"="}]},
+                {n:"penta-1,3-dieno",c:["CH2","CH","CH","CH","CH3"],b:[{i:0,t:"="},{i:2,t:"="}]}
+            ];
+            alkSeeds.forEach(s=>addUnique('alkenes',{name:s.n,chain:s.c,bonds:s.b.map(x=>({idx:x.i,type:x.t})),branches:s.br?s.br.map(x=>({idx:x.i,g:x.g,pos:x.p})):[]}));
+            for(let i=0;i<15;i++){
+                let len=Math.floor(Math.random()*5)+4;
+                let maxPos=Math.ceil(len/2);
+                // FIX: permitir también la posición "mitad" (p.ej. hex-3-eno)
+                let dPos=Math.floor(Math.random()*maxPos)+1;
+                let name=`${getN(len)}-${dPos}-eno`;
+                if(dPos===1&&len<=3)name=getN(len)+"eno";
+                let chain=Array(len).fill("CH2");
+                chain[0]="CH3";chain[len-1]="CH3";
+                if(dPos===1){chain[0]="CH2";chain[1]="CH";}
+                else {chain[dPos-1]="CH";chain[dPos]="CH";}
+                addUnique('alkenes',{name:name,chain:chain,bonds:[{idx:dPos-1,type:"="}]});
+            }
+
+            const yneSeeds=[
+                {n:"etino",c:["CH","CH"],b:[{i:0,t:"3"}]},
+                {n:"propino",c:["CH","C","CH3"],b:[{i:0,t:"3"}]},
+                {n:"but-1-ino",c:["CH","C","CH2","CH3"],b:[{i:0,t:"3"}]},
+                {n:"but-2-ino",c:["CH3","C","C","CH3"],b:[{i:1,t:"3"}]},
+                {n:"pent-1-ino",c:["CH","C","CH2","CH2","CH3"],b:[{i:0,t:"3"}]},
+                {n:"pent-2-ino",c:["CH3","C","C","CH2","CH3"],b:[{i:1,t:"3"}]},
+                {n:"4-metilpent-2-ino",c:["CH3","C","C","CH","CH3"],b:[{i:1,t:"3"}],br:[{i:3,g:"CH3",p:"top"}]},
+                {n:"hex-1-ino",c:["CH","C","CH2","CH2","CH2","CH3"],b:[{i:0,t:"3"}]},
+                {n:"hex-3-ino",c:["CH3","CH2","C","C","CH2","CH3"],b:[{i:2,t:"3"}]},
+                {n:"hexa-1,5-diino",c:["CH","C","CH2","CH2","C","CH"],b:[{i:0,t:"3"},{i:4,t:"3"}]}
+            ];
+            yneSeeds.forEach(s=>addUnique('alkynes',{name:s.n,chain:s.c,bonds:s.b.map(x=>({idx:x.i,type:x.t})),branches:s.br?s.br.map(x=>({idx:x.i,g:x.g,pos:x.p})):[]}));
+
+            // --- FUNCIONALES ---
+            const oxy1Seeds = [
+                {n:"metanol",c:["CH3OH"]},{n:"etanol",c:["CH3","CH2OH"]},{n:"propan-1-ol",c:["CH3","CH2","CH2OH"]},{n:"propan-2-ol",c:["CH3","CH","CH3"],br:[{i:1,g:"OH",p:"bottom"}]},
+                {n:"butan-1-ol",c:["CH3","CH2","CH2","CH2OH"]},{n:"butan-2-ol",c:["CH3","CH2","CH","CH3"],br:[{i:2,g:"OH",p:"bottom"}]},
+                {n:"2-metilpropan-1-ol",c:["CH3","CH","CH2OH"],br:[{i:1,g:"CH3",p:"top"}]},{n:"2-metilpropan-2-ol",c:["CH3","C","CH3"],br:[{i:1,g:"CH3",p:"top"},{i:1,g:"OH",p:"bottom"}]},
+                {n:"pentan-1-ol",c:["CH3","CH2","CH2","CH2","CH2OH"]},{n:"pentan-3-ol",c:["CH3","CH2","CH","CH2","CH3"],br:[{i:2,g:"OH",p:"bottom"}]},
+                {n:"etano-1,2-diol",c:["CH2OH","CH2OH"]},{n:"propano-1,2-diol",c:["CH2OH","CH","CH3"],br:[{i:1,g:"OH",p:"bottom"}]},{n:"propano-1,2,3-triol",c:["CH2OH","CH","CH2OH"],br:[{i:1,g:"OH",p:"bottom"}]},
+                {n:"metoximetano",c:["CH3","O","CH3"],t:'ether'},{n:"metoxietano",c:["CH3","O","CH2","CH3"],t:'ether'},{n:"etoxietano",c:["CH3","CH2","O","CH2","CH3"],t:'ether'},
+                {n:"1-metoxipropano",c:["CH3","O","CH2","CH2","CH3"],t:'ether'},{n:"2-metoxipropano",c:["CH3","CH","CH3"],br:[{i:1,g:"OCH3",p:"top"}],t:'ether'},
+                {n:"1-etoxibutano",c:["CH3","CH2","O","CH2","CH2","CH2","CH3"],t:'ether'}
+            ];
+            oxy1Seeds.forEach(s=>addUnique('oxy1',{name:s.n,chain:s.c,branches:s.br?s.br.map(x=>({idx:x.i,g:x.g,pos:x.p})):[],subtype:s.t||'alcohol'}));
+
+            const oxy2Seeds = [
+                {n:"metanal",c:["H","CH"],br:[{i:1,g:"=O",p:"top-double"}],t:'aldehyde'},{n:"etanal",c:["CH3","CH"],br:[{i:1,g:"=O",p:"top-double"}],t:'aldehyde'},
+                {n:"propanal",c:["CH3","CH2","CH"],br:[{i:2,g:"=O",p:"top-double"}],t:'aldehyde'},{n:"butanal",c:["CH3","CH2","CH2","CH"],br:[{i:3,g:"=O",p:"top-double"}],t:'aldehyde'},
+                {n:"2-metilpropanal",c:["CH3","CH","CH"],br:[{i:1,g:"CH3",p:"bottom"},{i:2,g:"=O",p:"top-double"}],t:'aldehyde'},{n:"pentanal",c:["CH3","CH2","CH2","CH2","CH"],br:[{i:4,g:"=O",p:"top-double"}],t:'aldehyde'},
+                {n:"3-metilbutanal",c:["CH3","CH","CH2","CH"],br:[{i:1,g:"CH3",p:"bottom"},{i:3,g:"=O",p:"top-double"}],t:'aldehyde'},
+                {n:"propanona",c:["CH3","C","CH3"],br:[{i:1,g:"=O",p:"top-double"}],t:'ketone'},{n:"butanona",c:["CH3","C","CH2","CH3"],br:[{i:1,g:"=O",p:"top-double"}],t:'ketone'},
+                {n:"pentan-2-ona",c:["CH3","C","CH2","CH2","CH3"],br:[{i:1,g:"=O",p:"top-double"}],t:'ketone'},{n:"pentan-3-ona",c:["CH3","CH2","C","CH2","CH3"],br:[{i:2,g:"=O",p:"top-double"}],t:'ketone'},
+                {n:"3-metilbutan-2-ona",c:["CH3","C","CH","CH3"],br:[{i:1,g:"=O",p:"top-double"},{i:2,g:"CH3",p:"bottom"}],t:'ketone'},
+                {n:"hexan-2-ona",c:["CH3","C","CH2","CH2","CH2","CH3"],br:[{i:1,g:"=O",p:"top-double"}],t:'ketone'},
+                {n:"butano-2,3-diona",c:["CH3","C","C","CH3"],br:[{i:1,g:"=O",p:"top-double"},{i:2,g:"=O",p:"top-double"}],t:'ketone'},
+                {n:"pentano-2,4-diona",c:["CH3","C","CH2","C","CH3"],br:[{i:1,g:"=O",p:"top-double"},{i:3,g:"=O",p:"top-double"}],t:'ketone'},
+                {n:"etanodial",c:["CH","CH"],br:[{i:0,g:"=O",p:"top-double"},{i:1,g:"=O",p:"top-double"}],t:'aldehyde'}
+            ];
+            oxy2Seeds.forEach(s=>addUnique('oxy2',{name:s.n,chain:s.c,branches:s.br?s.br.map(x=>({idx:x.i,g:x.g,pos:x.p})):[],subtype:s.t}));
+            for(let c=4;c<=8;c++){
+                let kPosLimit = Math.ceil(c/2);
+                let kPos=Math.floor(Math.random()*(kPosLimit-1))+2;
+                let chK=Array(c).fill("CH2");
+                chK[0]="CH3";chK[c-1]="CH3";
+                chK[kPos-1]="C";
+                addUnique('oxy2',{name:`${getN(c)}an-${kPos}-ona`,chain:chK,branches:[{idx:kPos-1,g:"=O",pos:"top-double"}],subtype:'ketone'});
+            }
+
+            const acidSeeds = [
+                {n:"ácido metanoico",c:["H","C","OH"],br:[{i:1,g:"=O",p:"top-double"}],t:'acid'},
+                {n:"ácido etanoico",c:["CH3","C","OH"],br:[{i:1,g:"=O",p:"top-double"}],t:'acid'},
+                {n:"ácido propanoico",c:["CH3","CH2","C","OH"],br:[{i:2,g:"=O",p:"top-double"}],t:'acid'},
+                {n:"ácido butanoico",c:["CH3","CH2","CH2","C","OH"],br:[{i:3,g:"=O",p:"top-double"}],t:'acid'},
+                {n:"ácido 2-metilpropanoico",c:["CH3","CH","C","OH"],br:[{i:1,g:"CH3",p:"bottom"},{i:2,g:"=O",p:"top-double"}],t:'acid'},
+                {n:"ácido pentanoico",c:["CH3","CH2","CH2","CH2","C","OH"],br:[{i:4,g:"=O",p:"top-double"}],t:'acid'},
+                {n:"ácido 3-clorobutanoico",c:["CH3","CH","CH2","C","OH"],br:[{i:1,g:"Cl",p:"top"},{i:3,g:"=O",p:"top-double"}],t:'acid'},
+                {n:"ácido etanodioico",c:["OH","C","C","OH"],br:[{i:1,g:"=O",p:"top-double"},{i:2,g:"=O",p:"top-double"}],t:'acid'},
+                {n:"ácido propanodioico",c:["OH","C","CH2","C","OH"],br:[{i:1,g:"=O",p:"top-double"},{i:3,g:"=O",p:"top-double"}],t:'acid'},
+                {n:"metanoato de metilo",c:["H","C","O","CH3"],br:[{i:1,g:"=O",p:"top-double"}],t:'ester'},
+                {n:"etanoato de metilo",c:["CH3","C","O","CH3"],br:[{i:1,g:"=O",p:"top-double"}],t:'ester'},
+                {n:"etanoato de etilo",c:["CH3","C","O","CH2","CH3"],br:[{i:1,g:"=O",p:"top-double"}],t:'ester'},
+                {n:"propanoato de metilo",c:["CH3","CH2","C","O","CH3"],br:[{i:2,g:"=O",p:"top-double"}],t:'ester'},
+                {n:"butanoato de etilo",c:["CH3","CH2","CH2","C","O","CH2","CH3"],br:[{i:3,g:"=O",p:"top-double"}],t:'ester'}
+            ];
+            acidSeeds.forEach(s=>addUnique('acids',{name:s.n,chain:s.c,branches:s.br?s.br.map(x=>({idx:x.i,g:x.g,pos:x.p})):[],subtype:s.t}));
+
+            const nitroSeeds = [
+                {n:"metanamina",c:["CH3","NH2"],t:'amine'},{n:"etanamina",c:["CH3","CH2","NH2"],t:'amine'},{n:"propan-1-amina",c:["CH3","CH2","CH2","NH2"],t:'amine'},
+                {n:"propan-2-amina",c:["CH3","CH","CH3"],br:[{i:1,g:"NH2",p:"bottom"}],t:'amine'},
+                {n:"N-metilmetanamina",c:["CH3","NH","CH3"],br:[{i:1,g:"CH3",p:"bottom"}],t:'amine'},
+                {n:"N-metiletanamina",c:["CH3","CH2","NH"],br:[{i:2,g:"CH3",p:"bottom"}],t:'amine'},
+                {n:"N,N-dimetiletanamina",c:["CH3","CH2","N"],br:[{i:2,g:"CH3",p:"top"},{i:2,g:"CH3",p:"bottom"}],t:'amine'},
+                {n:"etano-1,2-diamina",c:["NH2","CH2","CH2","NH2"],t:'amine'},
+                {n:"etanamida",c:["CH3","C","NH2"],br:[{i:1,g:"=O",p:"top-double"}],t:'amide'},
+                {n:"propanamida",c:["CH3","CH2","C","NH2"],br:[{i:2,g:"=O",p:"top-double"}],t:'amide'},
+                {n:"N-metiletanamida",c:["CH3","C","NH"],br:[{i:1,g:"=O",p:"top-double"},{i:2,g:"CH3",p:"bottom"}],t:'amide'},
+                {n:"N,N-dimetilpropanamida",c:["CH3","CH2","C","N"],br:[{i:2,g:"=O",p:"top-double"},{i:3,g:"CH3",p:"top"},{i:3,g:"CH3",p:"bottom"}],t:'amide'},
+                {n:"etanonitrilo",c:["CH3","CN"],t:'nitrile',isNitrile:true},{n:"propanonitrilo",c:["CH3","CH2","CN"],t:'nitrile',isNitrile:true},
+                {n:"butanonitrilo",c:["CH3","CH2","CH2","CN"],t:'nitrile',isNitrile:true},{n:"propanodinitrilo",c:["CN","CH2","CN"],t:'nitrile',isNitrile:true},
+                {n:"butanodinitrilo",c:["CN","CH2","CH2","CN"],t:'nitrile',isNitrile:true}
+            ];
+            nitroSeeds.forEach(s=>addUnique('nitrogen',{name:s.n,chain:s.c,branches:s.br?s.br.map(x=>({idx:x.i,g:x.g,pos:x.p})):[],subtype:s.t,isNitrile:s.isNitrile}));
+
+            // FIX QUÍMICO: 1,1,2-tricloroetano tenía hidrógenos mal representados (CH2Cl + 2 Cl => imposible).
+            // Se representa como CH(Cl)2-CH2Cl -> cadena ["CH","CH2"] con 2 Cl en C1 y 1 Cl en C2.
+            const haloSeeds = [
+                {n:"clorometano",c:["CH3"],br:[{i:0,g:"Cl",p:"top"}],t:'halide'},
+                {n:"bromometano",c:["CH3"],br:[{i:0,g:"Br",p:"top"}],t:'halide'},
+                {n:"cloroetano",c:["CH3","CH2"],br:[{i:1,g:"Cl",p:"top"}],t:'halide'},
+                {n:"1,1-dicloroetano",c:["CH3","CH"],br:[{i:1,g:"Cl",p:"top"},{i:1,g:"Cl",p:"bottom"}],t:'halide'},
+                {n:"1,2-dicloroetano",c:["CH2","CH2"],br:[{i:0,g:"Cl",p:"top"},{i:1,g:"Cl",p:"bottom"}],t:'halide'},
+                {n:"1,1,2-tricloroetano",c:["CH","CH2"],br:[{i:0,g:"Cl",p:"top"},{i:0,g:"Cl",p:"bottom"},{i:1,g:"Cl",p:"top"}],t:'halide'},
+                {n:"2-cloropropano",c:["CH3","CH","CH3"],br:[{i:1,g:"Cl",p:"top"}],t:'halide'},
+                {n:"2-bromo-2-cloropropano",c:["CH3","C","CH3"],br:[{i:1,g:"Br",p:"top"},{i:1,g:"Cl",p:"bottom"}],t:'halide'},
+                {n:"nitrometano",c:["CH3"],br:[{i:0,g:"NO2",p:"top"}],t:'nitro'},
+                {n:"nitroetano",c:["CH3","CH2"],br:[{i:1,g:"NO2",p:"top"}],t:'nitro'},
+                {n:"1-nitropropano",c:["CH3","CH2","CH2"],br:[{i:2,g:"NO2",p:"top"}],t:'nitro'},
+                {n:"2-nitropropano",c:["CH3","CH","CH3"],br:[{i:1,g:"NO2",p:"top"}],t:'nitro'}
+            ];
+            haloSeeds.forEach(s=>addUnique('halonitro',{name:s.n,chain:s.c,branches:s.br?s.br.map(x=>({idx:x.i,g:x.g,pos:x.p})):[],subtype:s.t}));
+
+            // --- HARD / PRO (idéntico a tu base, con proMix/proHydro ya precargados) ---
+            // Nota: mantengo tu set (no lo recorto) para no romper coherencia interna.
+
+            const hardSeeds = [
+                {n:"ácido 2-hidroxipropanoico",c:["CH3","CH","C","OH"],br:[{i:1,g:"OH",p:"bottom"},{i:2,g:"=O",p:"top-double"}],t:'acid'},
+                {n:"ácido 3-oxobutanoico",c:["CH3","C","CH2","C","OH"],br:[{i:1,g:"=O",p:"top-double"},{i:3,g:"=O",p:"top-double"}],t:'acid'},
+                {n:"ácido 2-aminopropanoico",c:["CH3","CH","C","OH"],br:[{i:1,g:"NH2",p:"bottom"},{i:2,g:"=O",p:"top-double"}],t:'acid'},
+                {n:"3-hidroxibutanal",c:["CH3","CH","CH2","CH"],br:[{i:1,g:"OH",p:"bottom"},{i:3,g:"=O",p:"top-double"}],t:'aldehyde'},
+                {n:"4-cloropentan-2-ona",c:["CH3","CH","CH2","C","CH3"],br:[{i:1,g:"Cl",p:"top"},{i:3,g:"=O",p:"top-double"}],t:'ketone'},
+                {n:"butano-2,3-diona",c:["CH3","C","C","CH3"],br:[{i:1,g:"=O",p:"top-double"},{i:2,g:"=O",p:"top-double"}],t:'ketone'},
+                {n:"3-aminobutanonitrilo",c:["CH3","CH","CH2","CN"],br:[{i:1,g:"NH2",p:"top"}],isNitrile:true,t:'nitrile'},
+                {n:"propanoato de sodio",c:["CH3","CH2","C","ONa"],br:[{i:2,g:"=O",p:"top-double"}],t:'salt'},
+                {n:"etanoato de potasio",c:["CH3","C","OK"],br:[{i:1,g:"=O",p:"top-double"}],t:'salt'},
+                {n:"3-oxopentanoato de metilo",c:["CH3","CH2","C","CH2","C","O","CH3"],br:[{i:2,g:"=O",p:"top-double"},{i:4,g:"=O",p:"top-double"}],t:'ester'}
+            ];
+            hardSeeds.forEach(s=>addUnique('funcHard',{name:s.n,chain:s.c,branches:s.br?s.br.map(x=>({idx:x.i,g:x.g,pos:x.p})):[],subtype:s.t,isNitrile:s.isNitrile}));
+
+            const hHardSeeds = [
+                {n:"3-metilbut-1-ino",c:["CH3","CH","C","CH"],br:[{i:1,g:"CH3",p:"top"}],b:[{i:2,t:"3"}]},
+                {n:"4-metilpent-2-ino",c:["CH3","CH","C","C","CH3"],br:[{i:1,g:"CH3",p:"top"}],b:[{i:2,t:"3"}]},
+                {n:"3-etilhexa-1,4-dieno",c:["CH2","CH","CH","CH","CH","CH3"],br:[{i:2,g:"CH2CH3",p:"bottom"}],b:[{i:0,t:"="},{i:3,t:"="}]},
+                {n:"3-vinilpenta-1,4-dieno",c:["CH2","CH","CH","CH","CH2"],br:[{i:2,g:"CH=CH2",p:"bottom"}],b:[{i:0,t:"="},{i:3,t:"="}]},
+                {n:"but-1-en-3-ino",c:["CH2","CH","C","CH"],b:[{i:0,t:"="},{i:2,t:"3"}]},
+                {n:"5-metilhex-1-en-3-ino",c:["CH2","CH","C","C","CH","CH3"],b:[{i:0,t:"="},{i:2,t:"3"}],br:[{i:4,g:"CH3",p:"top"}]}
+            ];
+            hHardSeeds.forEach(s=>addUnique('hydroHard',{name:s.n,chain:s.c,bonds:s.b?s.b.map(x=>({idx:x.i,type:x.t})):[],branches:s.br?s.br.map(x=>({idx:x.i,g:x.g,pos:x.p})):[]}));
+
+            // PRO HYDRO
+            const proHydroSeeds = [
+                {n: "3,3-dietil-4-vinilhepta-1,6-dieno", c: ["CH2","CH","C","CH","CH2","CH","CH2"], br: [{i:2,g:"CH2CH3",p:"top"}, {i:2,g:"CH2CH3",p:"bottom"}, {i:3,g:"CH=CH2",p:"top"}], b: [{i:0,t:"="},{i:5,t:"="}], t: 'hydro'},
+                {n: "4-isopropil-3-metilhept-3-en-1-ino", c: ["CH","C","C","C","CH2","CH2","CH3"], br: [{i:2,g:"CH3",p:"top"}, {i:3,g:"CH(CH3)2",p:"bottom"}], b: [{i:0,t:"3"},{i:2,t:"="}], t: 'hydro'},
+                {n: "2,3,4-trimetilhexa-1,3,5-trieno", c: ["CH2","CH","C","C","C","CH2"], b: [{i:0,t:"="},{i:2,t:"="},{i:4,t:"="}], br: [{i:2,g:"CH3",p:"top"}, {i:3,g:"CH3",p:"bottom"}, {i:4,g:"CH3",p:"top"}], t:'hydro'},
+                {n: "3-etil-3-metilpent-1-en-4-ino", c: ["CH2","CH","C","C","CH"], br: [{i:2,g:"CH3",p:"top"}, {i:2,g:"CH2CH3",p:"bottom"}], b: [{i:0,t:"="},{i:3,t:"3"}], t: 'hydro'},
+                {n: "3-isopropil-4,4-dimetilpent-1-ino", c: ["CH","C","CH","C","CH3"], b: [{i:0,t:"3"}], br: [{i:2,g:"CH(CH3)2",p:"top"}, {i:3,g:"CH3",p:"top"}, {i:3,g:"CH3",p:"bottom"}], t:'hydro'},
+                {n: "3-propil-4-vinilhexa-1,5-dieno", c: ["CH2","CH","CH","CH","CH","CH2"], b: [{i:0,t:"="},{i:4,t:"="}], br: [{i:2,g:"CH2CH2CH3",p:"top"}, {i:3,g:"CH=CH2",p:"bottom"}], t:'hydro'},
+                {n: "3,3-dimetil-4-vinilpenta-1,4-dieno", c: ["CH2","CH","C","C","CH2"], b: [{i:0,t:"="},{i:3,t:"="}], br: [{i:2,g:"CH3",p:"top"}, {i:2,g:"CH3",p:"bottom"}, {i:3,g:"CH=CH2",p:"bottom"}], t:'hydro'},
+                {n: "3-etil-3-isopropilpent-1-en-4-ino", c: ["CH2","CH","C","C","CH"], b: [{i:0,t:"="},{i:3,t:"3"}], br: [{i:2,g:"CH2CH3",p:"top"}, {i:2,g:"CH(CH3)2",p:"bottom"}], t:'hydro'},
+                {n: "3,4-dimetil-3-vinilhex-1-ino", c: ["CH","C","C","CH","CH2","CH3"], br: [{i:2,g:"CH3",p:"top"}, {i:2,g:"CH=CH2",p:"bottom"}, {i:3,g:"CH3",p:"top"}], b: [{i:0,t:"3"}], t: 'hydro'}
+            ];
+            proHydroSeeds.forEach(s => addUnique('proHydro', {name:s.n, chain:s.c, branches:s.br?s.br.map(x=>({idx:x.i, g:x.g, pos:x.p})):[], bonds:s.b?s.b.map(x=>({idx:x.i, type:x.t})):[], subtype:s.t}));
+
+            // PRO FUNC (tu lista original, con un ajuste químico: evitar CH2Cl como “átomo” y pasarlo a rama)
+            const proFuncSeeds = [
+                {n: "ácido 3-metil-4-oxohex-2-enoico", c: ["CH3","CH2","C","C","CH","C","OH"], br: [{i:2,g:"=O",p:"top-double"},{i:3,g:"CH3",p:"bottom"},{i:5,g:"=O",p:"top-double"}], b: [{i:3,t:"="}], t: 'acid'},
+                {n: "3-hidroxi-2-vinilpentanamida", c: ["CH3","CH2","CH","CH","C","NH2"], br: [{i:2,g:"OH",p:"top"},{i:3,g:"CH=CH2",p:"bottom"},{i:4,g:"=O",p:"top-double"}], t: 'amide'},
+                {n: "4-cloro-3-etilpentanonitrilo", c: ["CH3","CH","CH","CH2","CN"], br: [{i:1,g:"Cl",p:"top"},{i:2,g:"CH2CH3",p:"bottom"}], t: 'nitrile', isNitrile:true},
+                {n: "4-hidroxi-3-oxopentanoato de sodio", c: ["CH3","CH","C","CH2","C","ONa"], br: [{i:1,g:"OH",p:"bottom"},{i:2,g:"=O",p:"top-double"},{i:4,g:"=O",p:"top-double"}], t: 'salt'},
+                {n: "4-nitrohex-2-inal", c: ["CH3","CH2","CH","C","C","CH"], br: [{i:2,g:"NO2",p:"top"},{i:5,g:"=O",p:"top-double"}], b: [{i:3,t:"3"}], t: 'aldehyde'},
+                {n: "4-amino-2-metilbut-3-enoato de etilo", c: ["NH2","CH","CH","CH","C","O","CH2","CH3"], br: [{i:3,g:"CH3",p:"bottom"},{i:4,g:"=O",p:"top-double"}], b: [{i:1,t:"="}], t: 'ester'},
+                {n: "3-bromo-4-metilhexano-2,5-diol", c: ["CH3","CH","CH","CH","CH","CH3"], br: [{i:1,g:"OH",p:"bottom"},{i:2,g:"Br",p:"top"},{i:3,g:"CH3",p:"bottom"},{i:4,g:"OH",p:"top"}], t: 'alcohol'},
+                {n: "3-vinilhexano-2,5-diona", c: ["CH3","C","CH","CH2","C","CH3"], br: [{i:1,g:"=O",p:"top-double"},{i:2,g:"CH=CH2",p:"bottom"},{i:4,g:"=O",p:"top-double"}], t: 'ketone'},
+                {n: "ácido 2,3-dihidroxi-4-metilpentanoico", c: ["CH3","CH","CH","CH","C","OH"], br: [{i:1,g:"CH3",p:"bottom"},{i:2,g:"OH",p:"top"},{i:3,g:"OH",p:"bottom"},{i:4,g:"=O",p:"top-double"}], t: 'acid'},
+                {n: "4-oxopent-2-enonitrilo", c: ["CH3","C","CH","CH","CN"], br: [{i:1,g:"=O",p:"top-double"}], b: [{i:2,t:"="}], t: 'nitrile', isNitrile:true},
+                {n: "2-cloro-3-isopropilbutanamida", c: ["CH3","CH","CH","CH","NH2"], br: [{i:2,g:"CH(CH3)2",p:"bottom"},{i:3,g:"Cl",p:"top"},{i:4,g:"=O",p:"top-double"}], t: 'amide'},
+                {n: "pentano-1,3,5-triol", c: ["CH2OH","CH2","CH","CH2","CH2OH"], br: [{i:2,g:"OH",p:"bottom"}], t: 'alcohol'},
+                {n: "4-oxopentanal", c: ["CH3","C","CH2","CH2","CH"], br: [{i:1,g:"=O",p:"top-double"},{i:4,g:"=O",p:"top-double"}], t: 'aldehyde'},
+                {n: "2-etilbut-2-enoato de metilo", c: ["CH3","CH","C","C","O","CH3"], br: [{i:2,g:"CH2CH3",p:"top"},{i:3,g:"=O",p:"top-double"}], b: [{i:1,t:"="}], t: 'ester'},
+                {n: "ácido 3-amino-4-nitropentanoico", c: ["CH3","CH","CH","CH2","C","OH"], br: [{i:1,g:"NO2",p:"top"},{i:2,g:"NH2",p:"bottom"},{i:4,g:"=O",p:"top-double"}], t: 'acid'},
+                {n: "but-3-enoato de potasio", c: ["CH2","CH","CH2","C","OK"], br: [{i:3,g:"=O",p:"top-double"}], b: [{i:0,t:"="}], t: 'salt'},
+                {n: "N-etil-2-metilpropanamida", c: ["CH3","CH","C","NH"], br: [{i:1,g:"CH3",p:"top"},{i:2,g:"=O",p:"top-double"},{i:3,g:"CH2CH3",p:"bottom"}], t: 'amide'},
+                {n: "2-metilbutanodial", c: ["CH","CH2","CH","CH"], br: [{i:0,g:"=O",p:"top-double"},{i:2,g:"CH3",p:"top"},{i:3,g:"=O",p:"top-double"}], t: 'aldehyde'},
+                {n: "3-oxobutanoato de etilo", c: ["CH3","C","CH2","C","O","CH2","CH3"], br: [{i:1,g:"=O",p:"top-double"},{i:3,g:"=O",p:"top-double"}], t: 'ester'},
+                {n: "ácido but-2-enodioico", c: ["OH","C","CH","CH","C","OH"], br: [{i:1,g:"=O",p:"top-double"},{i:4,g:"=O",p:"top-double"}], b: [{i:2,t:"="}], t: 'acid'},
+                {n: "3-hidroxibutanonitrilo", c: ["CH3","CH","CH2","CN"], br: [{i:1,g:"OH",p:"top"}], isNitrile:true, t: 'nitrile'},
+                {n: "4-aminopentan-2-ona", c: ["CH3","CH","CH2","C","CH3"], br: [{i:1,g:"NH2",p:"top"},{i:3,g:"=O",p:"top-double"}], t: 'ketone'},
+                {n: "2-nitroetanol", c: ["CH2","CH2OH"], br: [{i:0,g:"NO2",p:"top"}], t: 'alcohol'},
+                {n: "N-metil-N-propilpropan-1-amina", c: ["CH3","CH2","CH2","N"], br: [{i:3,g:"CH3",p:"top"},{i:3,g:"CH2CH2CH3",p:"bottom"}], t: 'amine'},
+                {n: "ácido 3-vinilhexanoico", c: ["CH3","CH2","CH2","CH","CH2","C","OH"], br: [{i:3,g:"CH=CH2",p:"bottom"},{i:5,g:"=O",p:"top-double"}], t: 'acid'},
+                // FIX: CH2Cl como átomo principal coloreaba el carbono como halógeno. Se pasa a rama.
+                {n: "2-cloroetanoato de sodio", c: ["CH2","C","ONa"], br: [{i:0,g:"Cl",p:"top"},{i:1,g:"=O",p:"top-double"}], t: 'salt'}
+            ];
+            proFuncSeeds.forEach(s => addUnique('proMix', {name:s.n, chain:s.c, branches:s.br?s.br.map(x=>({idx:x.i, g:x.g, pos:x.p})):[], bonds:s.b?s.b.map(x=>({idx:x.i, type:x.t})):[], subtype:s.t, isNitrile:s.isNitrile}));
+
+            // Añadir también hidro PRO al mix PRO general
+            proHydroSeeds.forEach(s => addUnique('proMix', {name:s.n, chain:s.c, branches:s.br?s.br.map(x=>({idx:x.i, g:x.g, pos:x.p})):[], bonds:s.b?s.b.map(x=>({idx:x.i, type:x.t})):[], subtype:s.t}));
+        }
+
+        generateData();
+
+        // --- RENDERIZADOR ---
+        function renderMoleculeHTML(data, isMini = false, noColor = false) {
+            let html = `<div class="molecule-container chemical-font ${isMini ? 'text-xs' : ''}">`;
+
+            if(data.type === "simple") {
+                return `<div class="molecule-wrapper text-xl">${sub(data.chain[0])}</div>`;
+            }
+
+            data.chain.forEach((atom, index) => {
+                const branches = data.branches ? data.branches.filter(b => b.idx === index) : [];
+                const topBranch = branches.find(b => b.pos.includes('top'));
+                const bottomBranch = branches.find(b => b.pos.includes('bottom'));
+
+                let atomClass = "main-atom";
+                if(atom.includes("(CH2)")) atomClass += " atom-condensed";
+
+                if(!noColor && !atomClass.includes("condensed")) {
+                    if(atom.includes("O")) atomClass += " atom-O";
+                    if(atom.includes("N") || atom === "CN") atomClass += " atom-N";
+                    if(atom.includes("Cl")) atomClass += " atom-Cl";
+                    if(atom.includes("Br")) atomClass += " atom-Br";
+                    if(atom.includes("I")) atomClass += " atom-I";
+                    if(atom.includes("F")) atomClass += " atom-F";
+                    if(atom.includes("Na") || atom.includes("K")) atomClass += " atom-Na";
+                }
+
+                html += '<div class="carbon-group">';
+                html += `<div class="flex flex-col items-center justify-end ${isMini ? 'h-5' : 'h-10'}" style="min-width:10px">`;
+                if (topBranch) {
+                    let bClass = noColor ? "branch-atom-hard" : "branch-atom";
+                    if(!noColor) {
+                        if(topBranch.g.includes("O")) bClass += " branch-atom-O";
+                        if(topBranch.g.includes("N")) bClass += " branch-atom-N";
+                        if(topBranch.g.match(/Cl|Br|I|F|NO/)) bClass += " branch-atom-X";
+                    }
+                    let gStr = topBranch.g.replace("=O","O");
+                    if(gStr.length > 3) html += `<span class="${bClass}" style="font-size:0.7rem; white-space:nowrap; margin-left:-10px">${sub(gStr)}</span>`;
+                    else html += `<span class="${bClass}">${sub(gStr)}</span>`;
+
+                    if(topBranch.pos === "top-double") html += `<div class="v-bond-double-up"></div>`; else html += `<div class="v-bond-up"></div>`;
+                }
+                html += '</div>';
+
+                html += `<div class="${atomClass}">${sub(atom)}</div>`;
+
+                html += `<div class="flex flex-col items-center justify-start ${isMini ? 'h-5' : 'h-10'}" style="min-width:10px">`;
+                if (bottomBranch) {
+                    let bClass = noColor ? "branch-atom-hard" : "branch-atom";
+                    if(!noColor) {
+                        if(bottomBranch.g.includes("OH") || bottomBranch.g.includes("O")) bClass += " branch-atom-O";
+                        if(bottomBranch.g.includes("N")) bClass += " branch-atom-N";
+                        if(bottomBranch.g.match(/Cl|Br|I|F|NO/)) bClass += " branch-atom-X";
+                    }
+                    if(bottomBranch.pos === "bottom-double") html += `<div class="v-bond-double-down"></div>`; else html += `<div class="v-bond-down"></div>`;
+
+                    let gStr = bottomBranch.g;
+                    if(gStr.length > 3) html += `<span class="${bClass}" style="font-size:0.7rem; white-space:nowrap; margin-left:-10px">${sub(gStr)}</span>`;
+                    else html += `<span class="${bClass}">${sub(gStr)}</span>`;
+                }
+                html += '</div></div>';
+
+                if (index < data.chain.length - 1) {
+                    let bondType = "single";
+                    if (data.bonds) {
+                        let b = data.bonds.find(bd => bd.idx === index);
+                        if (b) bondType = b.type;
+                    }
+                    html += `<div class="bond-spacer">`;
+                    if(bondType === "=") html += `<div class="h-bond-double"></div>`;
+                    else if(bondType === "3") html += `<div class="h-bond-triple"></div>`;
+                    else html += `<div class="h-bond"></div>`;
+                    html += `</div>`;
+                }
+            });
+            html += '</div>';
+            return html;
+        }
+
+        // --- LÓGICA JUEGO ---
+        let currentMode = 'hydro';
+        let state = { questions: [], idx: 0, score: 0, history: [], selected: null, levelId: '', isHard: false };
+
+        function selectApp(mode) { currentMode = mode; switchScreen('level-screen'); renderLevelScreen(); }
+
+        function renderLevelScreen() {
+            const config = apps[currentMode];
+            document.getElementById('header-bg').className = `bg-${config.color}-600 p-6 text-center text-white shrink-0 rounded-b-3xl shadow-lg z-10 relative`;
+            document.getElementById('app-title').innerText = config.title;
+            document.getElementById('theory-content').innerHTML = config.cheatsheet;
+
+            const grid = document.getElementById('levels-grid');
+            grid.innerHTML = '';
+            config.levels.forEach(lvl => {
+                grid.innerHTML += `<button onclick="startGame('${lvl.id}')" class="p-4 bg-${config.color}-50 border border-${config.color}-100 rounded-xl active:bg-${config.color}-100 flex flex-col items-center justify-center text-center transition-all hover:shadow-md group"><div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-2 shadow-sm"><i class="fas ${lvl.icon} text-2xl text-${config.color}-500"></i></div><div class="text-${config.color}-900 font-bold text-sm leading-tight">${lvl.name}</div></button>`;
+            });
+
+            const mixBtns = document.getElementById('mix-buttons');
+            let hardKey = currentMode === 'hydro' ? 'hydroHard' : 'funcHard';
+            mixBtns.innerHTML = `
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="startGame('mix', false, true)" class="py-4 bg-gray-800 text-white rounded-xl active:bg-black font-bold text-xs shadow-md flex flex-col items-center justify-center"><i class="fas fa-random text-lg mb-1"></i> Mix General</button>
+                    <button onclick="startGame('${hardKey}', true)" class="py-4 bg-red-600 text-white rounded-xl active:bg-red-700 font-bold text-xs shadow-md flex flex-col items-center justify-center border-b-4 border-red-800"><i class="fas fa-skull-crossbones text-lg mb-1"></i> Mix Experto</button>
+                </div>
+                <button onclick="startGame('pro', true, false, true)" class="w-full py-4 bg-purple-600 text-white rounded-xl active:bg-purple-700 font-bold text-sm shadow-lg flex items-center justify-center border-b-4 border-purple-800 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-white opacity-10 transform -skew-x-12"></div>
+                    <i class="fas fa-graduation-cap text-xl mr-2"></i> Mix Nivel PRO
+                </button>
+            `;
+        }
+
+        function startGame(dbKey, isHard = false, isMix = false, isPro = false) {
+            const count = parseInt(document.querySelector('input[name="q-count"]:checked').value);
+            let pool = [];
+
+            if(isPro) {
+                if(currentMode === 'hydro') {
+                    pool = db.proHydro;
+                } else {
+                    const proSource = db.proMix;
+                    const acidTypes = ['acid', 'salt', 'ester'];
+                    const acidsPool = proSource.filter(x => acidTypes.includes(x.subtype));
+                    const otherPool = proSource.filter(x => !acidTypes.includes(x.subtype));
+
+                    // FIX: limitar a 40% aprox. (especificación 30-40%).
+                    let maxAcids = Math.max(0, Math.floor(count * 0.4));
+                    let selectedAcids = shuffle(acidsPool.slice()).slice(0, maxAcids);
+                    let neededOthers = count - selectedAcids.length;
+                    let selectedOthers = shuffle(otherPool.slice()).slice(0, neededOthers);
+                    pool = [...selectedAcids, ...selectedOthers];
+                }
+            } else if(isMix && !isHard) {
+                let keys = currentMode === 'hydro' ? ['linear','branched','alkenes','alkynes'] : ['oxy1','oxy2','acids','nitrogen','halonitro'];
+                let perKey = Math.ceil(count / keys.length);
+                keys.forEach(k => { if(db[k]) pool.push(...shuffle(db[k].slice()).slice(0, perKey)); });
+            } else if (db[dbKey]) {
+                let subtypes = {};
+                let hasSubtypes = false;
+                db[dbKey].forEach(item => {
+                    if(item.subtype) {
+                        hasSubtypes = true;
+                        if(!subtypes[item.subtype]) subtypes[item.subtype] = [];
+                        subtypes[item.subtype].push(item);
+                    }
+                });
+                if(hasSubtypes) {
+                    let types = Object.keys(subtypes);
+                    let perType = Math.ceil(count / types.length);
+                    types.forEach(t => { pool.push(...shuffle(subtypes[t].slice()).slice(0, perType)); });
+                } else {
+                    pool = db[dbKey];
+                }
+            } else {
+                pool = db.linear;
+            }
+
+            if(!pool || pool.length === 0) {
+                alert("No hay suficientes preguntas para este nivel.");
+                return;
+            }
+
+            let uniquePool = shuffle(pool.slice());
+            if(uniquePool.length < count) {
+                while(uniquePool.length < count) uniquePool = uniquePool.concat(pool);
+            }
+            const finalSelection = uniquePool.slice(0, count);
+
+            state.questions = prepareQuestions(finalSelection, isHard, isPro);
+            state.idx = 0;
+            state.score = 0;
+            state.history = [];
+            state.levelId = dbKey;
+            state.isHard = isHard;
+            state.selected = null;
+
+            document.getElementById('level-indicator').innerText = isPro ? 'PRO' : (isHard ? 'EXPERTO' : 'NORMAL');
+
+            switchScreen('game-screen');
+            renderQuestion();
+        }
+
+        function prepareQuestions(source, isHard, isPro) {
+            let res = [];
+
+            source.forEach(item => {
+                // Respuestas válidas: aceptamos tildes/guiones/espacios equivalentes (comparación normalizada)
+                let validNames = [item.name];
+
+                // sinónimos simples (opcionales, mínimos) para aprendizaje
+                const syn = {
+                    'propanona': ['propan-2-ona'],
+                    'butanona': ['butan-2-ona']
+                };
+                if(syn[item.name]) validNames.push(...syn[item.name]);
+
+                // Variación ácido sin tilde (por si el alumno escribe "acido")
+                if(item.name.startsWith('ácido ')) validNames.push('acido ' + item.name.slice(6));
+
+                let cleanItem = JSON.parse(JSON.stringify(item));
+                let qType = isPro ? 'naming' : (Math.random() > 0.4 ? 'naming' : 'formulating');
+
+                if(qType === 'naming') {
+                    res.push({ type: 'naming', mode: item.type==='simple'?'simple':'structural', q: cleanItem, a: validNames });
+                } else {
+                    let w1 = JSON.parse(JSON.stringify(item));
+                    let w2 = JSON.parse(JSON.stringify(item));
+
+                    // Distractores: ajuste suave de cadena para que sea plausible, evitando duplicados.
+                    if(item.type === 'simple') {
+                        let f = w1.chain[0];
+                        if(f.includes("(CH2)")) {
+                            let n = parseInt(f.match(/\(CH2\)(\d+)/)[1]);
+                            w1.chain[0] = f.replace(`(CH2)${n}`, `(CH2)${Math.max(1, n-1)}`);
+                            w2.chain[0] = f.replace(`(CH2)${n}`, `(CH2)${n+1}`);
+                        } else {
+                            let n = f.match(/CH2/g) ? f.match(/CH2/g).length + 2 : (f==='CH4'?1:2);
+                            w1.chain[0] = getFormula(Math.max(1, n-1));
+                            w2.chain[0] = getFormula(n+1);
+                        }
+                    } else {
+                        if(w1.chain.some(x=>x.includes("(CH2)"))) {
+                            let idx = w1.chain.findIndex(x=>x.includes("(CH2)"));
+                            let n = parseInt(w1.chain[idx].match(/\d+/)[0]);
+                            w1.chain[idx] = `(CH2)${Math.max(1, n-1)}`;
+                            w2.chain[idx] = `(CH2)${n+1}`;
+                        } else {
+                            // Inferencias básicas por tipo funcional (por subtipo)
+                            const subtype = item.subtype || '';
+                            const isNitrile = !!item.isNitrile || subtype === 'nitrile';
+
+                            if(isNitrile) {
+                                // Evitar borrar el terminador CN en distractores
+                                w1.chain.splice(0, 0, "CH2");
+                                if(w2.chain.length > 2) w2.chain.splice(1, 1);
+                            } else {
+                                w1.chain.unshift("CH2");
+                                if(w2.chain.length > 2) w2.chain.pop();
+                                else w2.chain.push("CH2");
+                            }
+                        }
+                    }
+
+                    // Protección anti-duplicados (por HTML renderizado)
+                    const s0 = renderMoleculeHTML(item);
+                    let s1 = renderMoleculeHTML(w1);
+                    let s2 = renderMoleculeHTML(w2);
+                    if (s1 === s0 || s1 === s2) { w1.chain.push("CH2"); s1 = renderMoleculeHTML(w1); }
+                    if (s2 === s0 || s2 === s1) { w2.chain.unshift("CH2"); }
+
+                    res.push({
+                        type: 'formulating',
+                        mode: item.type==='simple'?'simple':'structural',
+                        name: item.name,
+                        correctStruct: item,
+                        optionsStruct: [w1, w2]
+                    });
+                }
+            });
+
+            return res;
+        }
+
+        function renderQuestion() {
+            const q = state.questions[state.idx];
+            const display = document.getElementById('question-display');
+            const txtArea = document.getElementById('input-text-area');
+            const optArea = document.getElementById('input-options-area');
+            const kbArea = document.getElementById('keyboard-area');
+
+            document.getElementById('total-q').innerText = state.questions.length;
+            document.getElementById('current-q').innerText = state.idx + 1;
+
+            kbArea.innerHTML = '';
+            apps[currentMode].keyboard.forEach(k => {
+                kbArea.innerHTML += `<button onclick="addText('${k}')" class="touch-btn bg-gray-100 rounded border border-gray-200 text-gray-700 font-bold">${escapeHtml(k)}</button>`;
+            });
+            kbArea.innerHTML += `<button onclick="backspace()" class="col-span-4 touch-btn bg-red-50 rounded-lg border border-red-200 text-red-600"><i class="fas fa-backspace"></i></button>`;
+
+            document.getElementById('feedback-area').classList.add('hidden');
+            document.getElementById('check-btn').classList.remove('hidden');
+            document.getElementById('next-btn').classList.add('hidden');
+            document.getElementById('user-input').value = '';
+            state.selected = null;
+            document.getElementById('progress-bar').style.width = `${(state.idx / state.questions.length)*100}%`;
+
+            if(q.type === 'naming') {
+                document.getElementById('question-type-badge').innerText = "ESCRIBE EL NOMBRE";
+                txtArea.classList.remove('hidden');
+                optArea.classList.add('hidden');
+
+                if(q.mode === 'simple') display.innerHTML = `<span class="text-xl font-bold">${sub(q.q.chain[0])}</span>`;
+                else display.innerHTML = renderMoleculeHTML(q.q, false, state.isHard);
+            } else {
+                document.getElementById('question-type-badge').innerText = "ELIGE LA FÓRMULA";
+                txtArea.classList.add('hidden');
+                optArea.classList.remove('hidden');
+                display.innerHTML = `<div class="text-question">${escapeHtml(q.name)}</div>`;
+
+                optArea.innerHTML = '';
+                let opts = [];
+
+                if(q.mode === 'simple') {
+                    opts = q.optionsStruct.map(o => ({
+                        h: `<span class="text-lg font-bold">${sub(o.chain[0])}</span>`,
+                        ok: false,
+                        choice: o.chain[0],
+                        choiceIsStruct: false
+                    }));
+                    opts.push({
+                        h: `<span class="text-lg font-bold">${sub(q.correctStruct.chain[0])}</span>`,
+                        ok: true,
+                        choice: q.correctStruct.chain[0],
+                        choiceIsStruct: false
+                    });
+                } else {
+                    opts = q.optionsStruct.map(o => ({
+                        h: renderMoleculeHTML(o, true, state.isHard),
+                        ok: false,
+                        choice: o,
+                        choiceIsStruct: true
+                    }));
+                    opts.push({
+                        h: renderMoleculeHTML(q.correctStruct, true, state.isHard),
+                        ok: true,
+                        choice: q.correctStruct,
+                        choiceIsStruct: true
+                    });
+                }
+
+                shuffle(opts).forEach(opt => {
+                    const baseStyle = "w-full p-2 border-2 border-gray-200 rounded-xl active:bg-gray-50 transition-colors btn-inner-layout btn-div-wrapper";
+                    const selectedStyle = "w-full p-2 border-2 border-blue-500 bg-blue-50 rounded-xl transition-colors btn-inner-layout btn-div-wrapper";
+                    const circleBase = "w-6 h-6 rounded-full border-2 border-gray-300 mr-2 flex-shrink-0";
+                    const circleSelected = "w-6 h-6 rounded-full border-2 border-blue-500 bg-blue-500 mr-2 flex-shrink-0";
+
+                    const btn = document.createElement('div');
+                    btn.className = baseStyle;
+                    btn.innerHTML = `<div class="${circleBase}"></div><div class="btn-scroll-text">${opt.h}</div>`;
+
+                    btn.onclick = () => {
+                        Array.from(optArea.children).forEach(child => {
+                            child.className = baseStyle;
+                            child.querySelector('div:first-child').className = circleBase;
+                        });
+                        btn.className = selectedStyle;
+                        btn.querySelector('div:first-child').className = circleSelected;
+                        // FIX: guardar también la opción elegida (para la tabla de resultados)
+                        state.selected = { ok: opt.ok, choice: opt.choice, isStruct: opt.choiceIsStruct };
+                    };
+                    optArea.appendChild(btn);
+                });
+            }
+        }
+
+        function checkAnswer() {
+            try {
+                const q = state.questions[state.idx];
+                let isOk = false;
+                let userAns = "";
+                let userIsStruct = false;
+
+                if(q.type === 'naming') {
+                    userAns = document.getElementById('user-input').value;
+                    isOk = q.a.some(ans => normName(userAns) === normName(ans));
+                } else {
+                    if(!state.selected) return;
+                    isOk = state.selected.ok;
+                    userAns = state.selected.choice;
+                    userIsStruct = state.selected.isStruct;
+                }
+
+                let qStore = (q.type==='naming') ? (q.mode==='simple'?q.q.chain[0]:q.q) : q.name;
+                let corrStore = (q.type==='naming') ? q.a[0] : (q.mode==='simple'?q.correctStruct.chain[0]:q.correctStruct);
+
+                state.history.push({
+                    q: qStore,
+                    user: userAns,
+                    userIsStruct,
+                    ok: isOk,
+                    struct: (q.type==='naming' && q.mode!=='simple'),
+                    isHard: state.isHard,
+                    simple: q.mode==='simple',
+                    correct: corrStore
+                });
+                if(isOk) state.score++;
+
+                const fb = document.getElementById('feedback-area');
+                fb.classList.remove('hidden');
+                const icon = document.getElementById('feedback-icon');
+                const txt = document.getElementById('feedback-text');
+                const corr = document.getElementById('feedback-correction');
+
+                if(isOk) {
+                    fb.className = "mt-4 text-center p-4 bg-green-50 rounded-xl border border-green-100";
+                    icon.innerHTML = '<i class="fas fa-check-circle text-green-500"></i>';
+                    txt.innerText = "Correcto";
+                    txt.className = "font-bold text-xl mb-1 text-green-700";
+                    corr.innerText = "";
+                } else {
+                    fb.className = "mt-4 text-center p-4 bg-red-50 rounded-xl border border-red-100";
+                    icon.innerHTML = '<i class="fas fa-times-circle text-red-500"></i>';
+                    txt.innerText = "Incorrecto";
+                    txt.className = "font-bold text-xl mb-1 text-red-700";
+                    corr.innerText = q.type==='naming' ? `Solución: ${q.a[0]}` : "Revisa la estructura";
+                }
+
+                document.getElementById('check-btn').classList.add('hidden');
+                document.getElementById('next-btn').classList.remove('hidden');
+            } catch(e) {
+                console.error("Error checking answer:", e);
+                nextQuestion();
+            }
+        }
+
+        function finishGame() {
+            try {
+                switchScreen('end-screen');
+                const pct = state.score / state.questions.length;
+                let msg = pct === 1 ? "Nivel Maestro" : pct >= 0.8 ? "Excelente" : pct >= 0.6 ? "Buen trabajo" : "Sigue practicando";
+                document.getElementById('final-score').innerText = `${state.score} / ${state.questions.length}`;
+                document.getElementById('level-feedback').innerText = msg;
+
+                const tbody = document.getElementById('results-table-body');
+                tbody.innerHTML = '';
+
+                state.history.forEach((h) => {
+                    const tr = document.createElement('tr');
+
+                    let qHTML = "";
+                    try {
+                        if(h.struct) qHTML = `<div class="overflow-x-auto max-w-[140px]">${renderMoleculeHTML(h.q, true, h.isHard)}</div>`;
+                        else if(h.simple && typeof h.q === 'string' && h.q.startsWith('CH')) qHTML = `<span class="font-bold text-gray-700 text-lg">${sub(h.q)}</span>`;
+                        else qHTML = `<span class="font-bold text-gray-700">${escapeHtml(h.q)}</span>`;
+                    } catch(err) {
+                        qHTML = `<span class="text-xs text-red-400">Error visual</span>`;
+                    }
+
+                    let userHTML = "";
+                    try {
+                        if(h.userIsStruct) userHTML = `<div class="overflow-x-auto max-w-[140px]">${renderMoleculeHTML(h.user, true, h.isHard)}</div>`;
+                        else if(h.simple && typeof h.user === 'string' && h.user.startsWith('CH')) userHTML = `<span class="font-bold ${h.ok?'text-green-600':'text-red-600'}">${sub(h.user)}</span>`;
+                        else userHTML = `<span class="${h.ok?'text-green-600':'text-red-600'} font-bold text-xs">${escapeHtml(h.user)}</span>`;
+                    } catch(err) {
+                        userHTML = `<span class="text-xs ${h.ok?'text-green-600':'text-red-600'}">(selección)</span>`;
+                    }
+
+                    let solHTML = "";
+                    if(h.ok) {
+                        solHTML = '<span class="text-green-500 font-bold">-</span>';
+                    } else {
+                        if(typeof h.correct === 'string') {
+                            solHTML = `<span class="text-xs font-bold text-blue-600">${escapeHtml(h.correct)}</span>`;
+                        } else {
+                            solHTML = `<div class="overflow-x-auto max-w-[140px]">${renderMoleculeHTML(h.correct, true, true)}</div>`;
+                        }
+                    }
+
+                    tr.innerHTML = `
+                        <td class="p-3 align-middle text-xs font-bold text-gray-700">${qHTML}</td>
+                        <td class="p-3 text-center align-middle">${userHTML}</td>
+                        <td class="p-3 text-center align-middle">${solHTML}</td>
+                        <td class="p-3 text-center align-middle">${h.ok?'<i class="fas fa-check text-green-500"></i>':'<i class="fas fa-times text-red-500"></i>'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch(e) {
+                console.error("Error finishing game", e);
+                alert("Juego terminado. Puntuación: " + state.score + "/" + state.questions.length);
+                goLevelSelect();
+            }
+        }
+
+        // --- NAVEGACIÓN ---
+        function switchScreen(id) {
+            ['hub-screen','level-screen','game-screen','end-screen'].forEach(s => document.getElementById(s).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
+        function goHub() { switchScreen('hub-screen'); }
+        function goLevelSelect() { switchScreen('level-screen'); }
+        function nextQuestion() { state.idx++; if(state.idx < state.questions.length) renderQuestion(); else finishGame(); }
+
+        // --- UI helpers ---
+        function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
+        function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
+        function addText(t) { const i=document.getElementById('user-input'); i.value+=t; i.focus(); }
+        function backspace() { const i=document.getElementById('user-input'); i.value=i.value.slice(0,-1); i.focus(); }
+
+        document.getElementById('user-input').addEventListener('keypress', (e)=>{ if(e.key==='Enter') checkAnswer(); });
     </script>
 </body>
 </html>
