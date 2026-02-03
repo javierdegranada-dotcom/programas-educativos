@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programas Educativos - Javier Martínez</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 20px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #fff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .author {
+            margin-top: 10px;
+            font-size: 1.1em;
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        .section {
+            margin-bottom: 60px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .section-title {
+            font-size: 2.2em;
+            margin-bottom: 30px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .section-title::before,
+        .section-title::after {
+            content: '';
+            height: 3px;
+            width: 80px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+        }
+
+        .programs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 30px;
+            padding: 20px;
+        }
+
+        .program-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .program-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .program-card:hover::before {
+            opacity: 1;
+        }
+
+        .program-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .program-icon {
+            font-size: 3.5em;
+            margin-bottom: 15px;
+            text-align: center;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+
+        .program-title {
+            font-size: 1.4em;
+            margin-bottom: 12px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .program-description {
+            text-align: center;
+            opacity: 0.9;
+            font-size: 0.95em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            min-height: 80px;
+        }
+
+        .program-link {
+            display: inline-block;
+            width: 100%;
+            padding: 12px 25px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.15));
+            border: 2px solid rgba(255,255,255,0.4);
+            border-radius: 12px;
+            color: #fff;
+            text-decoration: none;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .program-link:hover {
+            background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.25));
+            border-color: rgba(255,255,255,0.6);
+            transform: scale(1.05);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 1s ease-out;
+        }
+
+        footer p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.25);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            margin: 5px 3px;
+            font-weight: 600;
+        }
+
+        .device-warning {
+            background: rgba(255, 200, 100, 0.3);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.85em;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 200, 100, 0.5);
+            text-align: center;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .subtitle {
+                font-size: 1.1em;
+            }
+
+            .section-title {
+                font-size: 1.7em;
+            }
+
+            .programs-grid {
+                grid-template-columns: 1fr;
+                padding: 10px;
+            }
+
+            .program-card {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎓 Programas Educativos Interactivos</h1>
+            <p class="subtitle">Física y Química para ESO y Bachillerato</p>
+            <p class="author">👨‍🏫 Creado por Javier Gijón - IES María Moliner, Segovia</p>
+        </header>
+
+        <!-- SECCIÓN DE FÍSICA -->
+        <section class="section">
+            <h2 class="section-title">⚛️ Física</h2>
+            <div class="programs-grid">
+                
+                <!-- Cifras Significativas -->
+                <div class="program-card">
+                    <div class="program-icon">🔢</div>
+                    <h3 class="program-title">Cifras Significativas</h3>
+                    <p class="program-description">Comprende las cifras significativas y la notación científica</p>
+                    <span class="badge">Medidas</span>
+                    <a href="cifras-significativas/index.html" class="program-link">Acceder →</a>
+                </div>
+
+                <!-- Diagrama del Cuerpo Libre -->
+                <div class="program-card">
+                    <div class="program-icon">📐</div>
+                    <h3 class="program-title">Diagrama del Cuerpo Libre</h3>
+                    <p class="program-description">Dibuja las fuerzas y obtén las componentes de las mismas cambiando situaciones y sistemas de referencia</p>
+                    <div class="device-warning">💻 Usar en tablet u ordenador</div>
+                    <span class="badge">Fuerzas</span>
+                    <a href="diagrama-cuerpo-libre/index.html" class="program-link">Acceder →</a>
+                </div>
+
+                <!-- Gráficas MRUA por Tramos -->
+                <div class="program-card">
+                    <div class="program-icon">📊</div>
+                    <h3 class="program-title">Gráficas MRUA por Tramos</h3>
+                    <p class="program-description">Construye gráficas por tramos en diferentes situaciones del movimiento</p>
+                    <div class="device-warning">💻 Usar en tablet u ordenador</div>
+                    <span class="badge">Cinemática</span>
+                    <a href="graficas-mrua-por-tramos/index.html" class="program-link">Acceder →</a>
+                </div>
+
+                <!-- Estudio MRUA -->
+                <div class="program-card">
+                    <div class="program-icon">🚗</div>
+                    <h3 class="program-title">Estudio del MRUA</h3>
+                    <p class="program-description">Estudio del MRUA cambiando las condiciones iniciales y el sistema de referencia. Obtén las ecuaciones del movimiento y sus gráficas correspondientes</p>
+                    <div class="device-warning">💻 Usar en tablet u ordenador</div>
+                    <span class="badge">Cinemática</span>
+                    <a href="estudio-mrua/index.html" class="program-link">Acceder →</a>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECCIÓN DE QUÍMICA -->
+        <section class="section">
+            <h2 class="section-title">🧪 Química</h2>
+            <div class="programs-grid">
+
+                <!-- Comprender el Mol -->
+                <div class="program-card">
+                    <div class="program-icon">⚗️</div>
+                    <h3 class="program-title">Comprender el Mol</h3>
+                    <p class="program-description">Actividades para entender el concepto de mol y las conversiones entre masa, moléculas y átomos</p>
+                    <span class="badge">Estequiometría</span>
+                    <a href="comprender-el-mol/index.html" class="program-link">Acceder →</a>
+                </div>
+
+                <!-- Leyes Ponderales -->
+                <div class="program-card">
+                    <div class="program-icon">⚖️</div>
+                    <h3 class="program-title">Leyes Ponderales</h3>
+                    <p class="program-description">Estudio de las leyes ponderales con ejercicios de cada una de ellas</p>
+                    <span class="badge">Leyes fundamentales</span>
+                    <a href="leyes-ponderales/index.html" class="program-link">Acceder →</a>
+                </div>
+
+                <!-- Números de Oxidación -->
+                <div class="program-card">
+                    <div class="program-icon">🔴</div>
+                    <h3 class="program-title">Números de Oxidación</h3>
+                    <p class="program-description">Aprende los números de oxidación con una tabla periódica muda que se encuentra en la ayuda</p>
+                    <span class="badge">Redox</span>
+                    <a href="aprende-numeros-oxidacion/index.html" class="program-link">Acceder →</a>
+                </div>
+
+                <!-- Estequiometría -->
+                <div class="program-card">
+                    <div class="program-icon">🧮</div>
+                    <h3 class="program-title">Estequiometría</h3>
+                    <p class="program-description">Reacciones químicas y formulación y ajuste de las mismas</p>
+                    <span class="badge">Cálculos químicos</span>
+                    <a href="estequiometria/index.html" class="program-link">Acceder →</a>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECCIÓN DE FORMULACIÓN INORGÁNICA -->
+        <section class="section">
+            <h2 class="section-title">🔬 Formulación Inorgánica</h2>
+            <div class="programs-grid">
+
+                <!-- Formulación Binarios -->
+                <div class="program-card">
+                    <div class="program-icon">🦆</div>
+                    <h3 class="program-title">Formulación de Binarios</h3>
+                    <p class="program-description">Formulación en sistemática y Stock con un patito que debes salvar</p>
+                    <span class="badge">Nivel Básico</span>
+                    <span class="badge">Gamificado</span>
+                    <a href="formulacion-binarios-sitematica-stock-pato/index.html" class="program-link">Acceder →</a>
+                </div>
+
+                <!-- Formulación Inorgánica PRO -->
+                <div class="program-card">
+                    <div class="program-icon">🎯</div>
+                    <h3 class="program-title">Formulación Inorgánica PRO</h3>
+                    <p class="program-description">De nivel cero a master. Con tipo test e introducción de fórmulas</p>
+                    <span class="badge">Nivel 1</span>
+                    <span class="badge">Test</span>
+                    <a href="formulacion-inorganica-pro/index.html" class="program-link">Acceder →</a>
+                </div>
+
+                <!-- Formulación Inorgánica Avanzada -->
+                <div class="program-card">
+                    <div class="program-icon">🏆</div>
+                    <h3 class="program-title">Formulación Inorgánica</h3>
+                    <p class="program-description">Formulación variada con introducción de fórmulas o escribir nombre</p>
+                    <span class="badge">Nivel 2</span>
+                    <span class="badge">Avanzado</span>
+                    <a href="Formulación-inorganica/index.html" class="program-link">Acceder →</a>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECCIÓN DE FORMULACIÓN ORGÁNICA -->
+        <section class="section">
+            <h2 class="section-title">🌿 Formulación Orgánica</h2>
+            <div class="programs-grid">
+
+                <!-- Formulación Orgánica Grupos Funcionales -->
+                <div class="program-card">
+                    <div class="program-icon">📚</div>
+                    <h3 class="program-title">Grupos Funcionales</h3>
+                    <p class="program-description">Ejercicios de cada grupo funcional a todos los niveles</p>
+                    <span class="badge">Todos los niveles</span>
+                    <a href="formulacion-organica-grupos/index.html" class="program-link">Acceder →</a>
+                </div>
+
+                <!-- Formulación Orgánica Saturados e Insaturados -->
+                <div class="program-card">
+                    <div class="program-icon">⚗️</div>
+                    <h3 class="program-title">Saturados e Insaturados</h3>
+                    <p class="program-description">Todos los niveles enfocados en compuestos saturados e insaturados</p>
+                    <span class="badge">Todos los niveles</span>
+                    <a href="formulacion-organica-saturados-insaturados/index.html" class="program-link">Acceder →</a>
+                </div>
+
+                <!-- Formulación Orgánica Semidesarrollada -->
+                <div class="program-card">
+                    <div class="program-icon">🧬</div>
+                    <h3 class="program-title">Fórmulas Semidesarrolladas</h3>
+                    <p class="program-description">Todos los niveles en compuestos con fórmulas semidesarrolladas</p>
+                    <span class="badge">Todos los niveles</span>
+                    <a href="formulacion-organica-semidesarrollada/index.html" class="program-link">Acceder →</a>
+                </div>
+
+                <!-- Formulación Orgánica Master -->
+                <div class="program-card">
+                    <div class="program-icon">🎓</div>
+                    <h3 class="program-title">Formulación Orgánica Master</h3>
+                    <p class="program-description">Todos los niveles completos hasta nivel master</p>
+                    <span class="badge">Nivel Master</span>
+                    <span class="badge">Completo</span>
+                    <a href="formulacion-organica-todos-los-niveles-master/index.html" class="program-link">Acceder →</a>
+                </div>
+
+            </div>
+        </section>
+
+        <footer>
+            <p>✨ Herramientas educativas desarrolladas con dedicación para facilitar el aprendizaje de Física y Química ✨</p>
+            <p style="margin-top: 15px; font-size: 0.95em;">📚 IES María Moliner - Segovia, España</p>
+        </footer>
+    </div>
+</body>
+</html>
