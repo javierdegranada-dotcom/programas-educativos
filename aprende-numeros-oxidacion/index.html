@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrenador de Oxidación - IES María Moliner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap');
+
+        body { font-family: 'Poppins', sans-serif; background-color: #f3f4f6; }
+
+        /* Animaciones */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake-animation { animation: shake 0.4s ease-in-out; }
+
+        @keyframes pulse-blue {
+            0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            50% { transform: scale(1.2); opacity: 0.9; box-shadow: 0 0 10px 5px rgba(59, 130, 246, 0.3); }
+        }
+        .highlight-dot {
+            background-color: #2563eb; 
+            border: 2px solid white;
+            animation: pulse-blue 1.5s infinite;
+            z-index: 10;
+        }
+
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up { animation: fade-in-up 0.8s ease-out forwards; }
+
+        .metal-bg { background-color: #e9d5ff; color: #6b21a8; border: 2px solid #a855f7; }
+        .nometal-bg { background-color: #dcfce7; color: #15803d; border: 2px solid #22c55e; }
+
+        .btn-option {
+            transition: all 0.1s;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-option:active { transform: scale(0.95); }
+
+        /* Estilos de la Tabla Periódica */
+        .periodic-grid {
+            display: grid;
+            grid-template-columns: repeat(18, 1fr);
+            grid-template-rows: repeat(7, 1fr);
+            gap: 2px;
+            width: 100%;
+            aspect-ratio: 18/7;
+        }
+        .element-cell {
+            background-color: #cbd5e1; /* Slate 300 */
+            border-radius: 2px;
+            position: relative;
+        }
+        /* Para la tabla de inicio, un poco más sutil */
+        .start-table .element-cell {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .empty-cell { background-color: transparent; }
+    </style>
+</head>
+<body class="flex flex-col items-center min-h-screen relative overflow-hidden bg-slate-100">
+
+    <!-- PANTALLA DE INICIO -->
+    <div id="startScreen" class="fixed inset-0 z-50 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col items-center justify-center text-center p-6 text-white">
+        
+        <div class="animate-fade-in-up max-w-2xl w-full flex flex-col items-center">
+            
+            <h1 class="text-3xl md:text-5xl font-black tracking-tight mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
+                Entrenador de Oxidación
+            </h1>
+            <p class="text-slate-400 text-sm mb-8 uppercase tracking-widest font-semibold">Aprender a formular es el principio de entender la Química</p>
+
+            <!-- Decoración Tabla Periódica -->
+            <div class="w-full max-w-md mb-10 opacity-80 start-table">
+                <div class="periodic-grid" id="startPeriodicTable"></div>
+            </div>
+
+            <p class="text-slate-300 text-lg mb-8 max-w-lg">
+                Elige tu desafío. Necesitas un <strong>80% de aciertos</strong> para aprobar el nivel.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+                <button onclick="startGame(20)" class="flex-1 group relative inline-flex items-center justify-center px-6 py-4 font-bold text-white transition-all duration-200 bg-emerald-600 rounded-xl focus:outline-none hover:bg-emerald-500 hover:-translate-y-1 shadow-lg shadow-emerald-500/30">
+                    <span>Test Rápido (20)</span>
+                </button>
+                
+                <button onclick="startGame('all')" class="flex-1 group relative inline-flex items-center justify-center px-6 py-4 font-bold text-white transition-all duration-200 bg-blue-600 rounded-xl focus:outline-none hover:bg-blue-500 hover:-translate-y-1 shadow-lg shadow-blue-500/30">
+                    <span>Examen Completo</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer Actualizado -->
+        <div class="absolute bottom-2 text-yellow-400 text-xs font-medium animate-fade-in-up" style="animation-delay: 0.3s;">
+            Creado por Javier Gijón • IES María Moliner (Segovia)
+        </div>
+    </div>
+
+    <!-- PANTALLA DE JUEGO -->
+    <div id="gameScreen" class="hidden mt-8 bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col relative z-0">
+        
+        <!-- Cabecera -->
+        <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
+            <div class="text-sm font-semibold">
+                <span class="text-green-400">✔ <span id="wins">0</span></span>
+                <span class="mx-2">|</span>
+                <span class="text-red-400">✘ <span id="losses">0</span></span>
+            </div>
+            <h1 class="font-bold text-lg tracking-wide">MODO EXAMEN</h1>
+            <div class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-300">
+                <span id="currentCount">1</span> / <span id="totalCount">0</span>
+            </div>
+        </div>
+
+        <!-- Área del Elemento -->
+        <div class="p-6 flex flex-col items-center relative bg-slate-50 border-b border-slate-200 min-h-[180px] justify-center">
+            
+            <!-- Botón de Ayuda -->
+            <button onclick="toggleHelp()" class="absolute top-4 left-4 text-xs font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-full hover:bg-blue-200 transition flex items-center gap-1">
+                <span>💡 Ayuda</span>
+            </button>
+
+            <!-- Badge Tipo -->
+            <div id="typeBadge" class="absolute top-4 right-4 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                METAL
+            </div>
+
+            <div class="text-7xl font-extrabold text-slate-800 mb-2" id="elSymbol">Fe</div>
+            
+            <div class="text-2xl text-slate-600 font-bold" id="elNameContainer">
+                Hierro
+            </div>
+            
+            <p class="text-xs text-slate-400 mt-4 text-center" id="instructionText">Selecciona <strong>todos</strong> los números</p>
+        </div>
+
+        <!-- Grid de Opciones -->
+        <div class="p-6 bg-white">
+            <div class="grid grid-cols-4 gap-3 mb-6" id="buttonsGrid">
+                <!-- Botones generados JS -->
+            </div>
+
+            <!-- Feedback Mensaje (CON NOTAS EDUCATIVAS) -->
+            <div id="feedbackContainer" class="hidden mb-4 p-3 rounded-lg text-center font-bold text-sm"></div>
+
+            <!-- Botón de Acción -->
+            <button id="actionBtn" onclick="checkAnswer()" class="w-full py-4 rounded-xl font-bold text-lg text-white shadow-lg transition transform hover:-translate-y-1 focus:outline-none bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30">
+                Comprobar
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL DE AYUDA (Tabla Periódica) -->
+    <div id="helpModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-2xl rounded-xl p-4 shadow-2xl animate-fade-in">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg text-slate-700">Tabla de Ayuda</h3>
+                <button onclick="toggleHelp()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold">&times;</button>
+            </div>
+            
+            <div class="relative w-full">
+                <!-- Grid CSS de la tabla -->
+                <div class="periodic-grid" id="periodicTable">
+                    <!-- Celdas generadas por JS -->
+                </div>
+                <div class="mt-4 text-center text-sm text-slate-500">
+                    <span class="inline-block w-3 h-3 bg-blue-600 rounded-full mr-2"></span>
+                    Posición de: <strong id="helpSymbol" class="text-slate-800 text-lg"></strong>
+                </div>
+            </div>
+
+            <button onclick="toggleHelp()" class="w-full mt-6 bg-slate-800 text-white py-3 rounded-lg font-bold hover:bg-slate-700">
+                Volver a la pregunta
+            </button>
+        </div>
+    </div>
+
+    <!-- Pantalla de Resultados Finales -->
+    <div id="resultScreen" class="hidden mt-8 bg-white rounded-2xl shadow-xl w-full max-w-md p-8 text-center relative z-0">
+        <h2 class="text-3xl font-bold text-slate-800 mb-2">Resultados</h2>
+        
+        <div class="relative w-40 h-40 mx-auto mb-6 flex items-center justify-center rounded-full border-8 transition-colors duration-500" id="scoreCircle">
+            <div class="text-4xl font-extrabold text-slate-700">
+                <span id="finalScore">0</span>%
+            </div>
+        </div>
+        
+        <h3 id="finalTitle" class="text-2xl font-bold mb-2"></h3>
+        <p id="finalMessage" class="text-slate-500 mb-8">Mensaje</p>
+        
+        <div class="grid grid-cols-2 gap-4 text-sm mb-8">
+            <div class="bg-green-100 p-3 rounded-lg text-green-800 font-bold">Aciertos: <span id="finalWins">0</span></div>
+            <div class="bg-red-100 p-3 rounded-lg text-red-800 font-bold">Fallos: <span id="finalLosses">0</span></div>
+        </div>
+        
+        <button onclick="goToMenu()" class="w-full py-3 rounded-xl font-bold text-white bg-slate-800 hover:bg-slate-700 shadow-lg transition">
+            Volver al Menú
+        </button>
+    </div>
+
+    <script>
+        // === DATOS CON COMENTARIOS EDUCATIVOS ("c") ===
+        const elements = [
+            // Grupo 1
+            { s: 'H', n: 'Hidrógeno', v: [1, -1], t: 'nometal', g: 1, p: 1, c: 'Usa +1 con no metales (ácidos) y -1 con metales (hidruros).' },
+            { s: 'Li', n: 'Litio', v: [1], t: 'metal', g: 1, p: 2 },
+            { s: 'Na', n: 'Sodio', v: [1], t: 'metal', g: 1, p: 3 },
+            { s: 'K', n: 'Potasio', v: [1], t: 'metal', g: 1, p: 4 },
+            { s: 'Rb', n: 'Rubidio', v: [1], t: 'metal', g: 1, p: 5 },
+            { s: 'Cs', n: 'Cesio', v: [1], t: 'metal', g: 1, p: 6 },
+            { s: 'Fr', n: 'Francio', v: [1], t: 'metal', g: 1, p: 7 },
+            
+            // Grupo 2
+            { s: 'Be', n: 'Berilio', v: [2], t: 'metal', g: 2, p: 2 },
+            { s: 'Mg', n: 'Magnesio', v: [2], t: 'metal', g: 2, p: 3 },
+            { s: 'Ca', n: 'Calcio', v: [2], t: 'metal', g: 2, p: 4 },
+            { s: 'Sr', n: 'Estroncio', v: [2], t: 'metal', g: 2, p: 5 },
+            { s: 'Ba', n: 'Bario', v: [2], t: 'metal', g: 2, p: 6 },
+            { s: 'Ra', n: 'Radio', v: [2], t: 'metal', g: 2, p: 7 },
+
+            // Transición
+            { s: 'Sc', n: 'Escandio', v: [3], t: 'metal', g: 3, p: 4 },
+            { s: 'Ti', n: 'Titanio', v: [2, 3, 4], t: 'metal', g: 4, p: 4 },
+            { s: 'V', n: 'Vanadio', v: [2, 3, 4, 5], t: 'metal', g: 5, p: 4 },
+            { s: 'Cr', n: 'Cromo', v: [2, 3, 6], t: 'metal', g: 6, p: 4, c: '¡Ojo! +2 y +3 actúa como metal (básico). +6 actúa como no metal (ácido crómico).' },
+            { s: 'Mn', n: 'Manganeso', v: [2, 3, 4, 6, 7], t: 'metal', g: 7, p: 4, c: 'Importante: Con +6 y +7 actúa como no metal formando ácidos (mangánico y permangánico).' },
+            { s: 'Fe', n: 'Hierro', v: [2, 3], t: 'metal', g: 8, p: 4 },
+            { s: 'Co', n: 'Cobalto', v: [2, 3], t: 'metal', g: 9, p: 4 },
+            { s: 'Ni', n: 'Níquel', v: [2, 3], t: 'metal', g: 10, p: 4 },
+            { s: 'Cu', n: 'Cobre', v: [1, 2], t: 'metal', g: 11, p: 4 },
+            { s: 'Zn', n: 'Zinc', v: [2], t: 'metal', g: 12, p: 4, c: 'Aunque es de transición, solo tiene +2.' },
+            
+            { s: 'Pd', n: 'Paladio', v: [2, 4], t: 'metal', g: 10, p: 5 },
+            { s: 'Ag', n: 'Plata', v: [1], t: 'metal', g: 11, p: 5 },
+            { s: 'Cd', n: 'Cadmio', v: [2], t: 'metal', g: 12, p: 5 },
+            
+            { s: 'Pt', n: 'Platino', v: [2, 4], t: 'metal', g: 10, p: 6 },
+            { s: 'Au', n: 'Oro', v: [1, 3], t: 'metal', g: 11, p: 6 },
+            { s: 'Hg', n: 'Mercurio', v: [1, 2], t: 'metal', g: 12, p: 6, c: 'El mercurio(I) suele aparecer como dímero Hg2(2+).' },
+            { s: 'Ir', n: 'Iridio', v: [3, 4], t: 'metal', g: 9, p: 6 },
+
+            // Grupo 13
+            { s: 'B', n: 'Boro', v: [3, -3], t: 'nometal', g: 13, p: 2, c: 'Usa -3 en los boranos.' },
+            { s: 'Al', n: 'Aluminio', v: [3], t: 'metal', g: 13, p: 3 },
+            { s: 'Ga', n: 'Galio', v: [3], t: 'metal', g: 13, p: 4 },
+            { s: 'In', n: 'Indio', v: [3], t: 'metal', g: 13, p: 5 },
+            { s: 'Tl', n: 'Talio', v: [1, 3], t: 'metal', g: 13, p: 6 },
+
+            // Grupo 14
+            { s: 'C', n: 'Carbono', v: [2, 4, -4], t: 'nometal', g: 14, p: 2, c: 'El +2 es muy raro (CO), lo normal es +4. Usa -4 en carburos.' },
+            { s: 'Si', n: 'Silicio', v: [4, -4], t: 'nometal', g: 14, p: 3 },
+            { s: 'Ge', n: 'Germanio', v: [2, 4], t: 'metal', g: 14, p: 4 },
+            { s: 'Sn', n: 'Estaño', v: [2, 4], t: 'metal', g: 14, p: 5 },
+            { s: 'Pb', n: 'Plomo', v: [2, 4], t: 'metal', g: 14, p: 6 },
+
+            // Grupo 15
+            { s: 'N', n: 'Nitrógeno', v: [1, 2, 3, 4, 5, -3], t: 'nometal', g: 15, p: 2, c: 'Tiene muchas valencias, pero -3 es clave en amoniaco y sales. +3 para nitroso y +5 para acido nítrico ' },
+            { s: 'P', n: 'Fósforo', v: [3, 5, -3], t: 'nometal', g: 15, p: 3, c: 'Usa -3 en la fosfina (PH3).' },
+            { s: 'As', n: 'Arsénico', v: [3, 5, -3], t: 'metal', g: 15, p: 4 },
+            { s: 'Sb', n: 'Antimonio', v: [3, 5, -3], t: 'metal', g: 15, p: 5 },
+            { s: 'Bi', n: 'Bismuto', v: [3, 5], t: 'metal', g: 15, p: 6 },
+
+            // Grupo 16
+            { s: 'O', n: 'Oxígeno', v: [-2, -1], t: 'nometal', g: 16, p: 2, c: 'Casi siempre -2. Usa -1 solo en los peróxidos.' },
+            { s: 'S', n: 'Azufre', v: [2, 4, 6, -2], t: 'nometal', g: 16, p: 3, c: 'Usa -2 cuando actúa como sal (sulfuros).' },
+            { s: 'Se', n: 'Selenio', v: [2, 4, 6, -2], t: 'nometal', g: 16, p: 4 },
+            { s: 'Te', n: 'Teluro', v: [2, 4, 6, -2], t: 'metal', g: 16, p: 5 },
+
+            // Grupo 17
+            { s: 'F', n: 'Flúor', v: [-1], t: 'nometal', g: 17, p: 2, c: 'Es el elemento más electronegativo: siempre -1.' },
+            { s: 'Cl', n: 'Cloro', v: [1, 3, 5, 7, -1], t: 'nometal', g: 17, p: 3, c: 'Usa -1 en sales (cloruros). Las positivas son para óxidos/ácidos.' },
+            { s: 'Br', n: 'Bromo', v: [1, 3, 5, 7, -1], t: 'nometal', g: 17, p: 4 },
+            { s: 'I', n: 'Yodo', v: [1, 3, 5, 7, -1], t: 'nometal', g: 17, p: 5 }
+        ];
+
+        const possibleNumbers = [-4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7];
+        
+        // === ESTADO ===
+        let gameQueue = []; 
+        let currentElement = null;
+        let selectedNumbers = new Set();
+        let wins = 0;
+        let losses = 0;
+        let isChecking = false;
+        let totalQuestions = 0;
+
+        // === INICIO ===
+        
+        // Renderizar tabla de adorno en la home
+        renderPeriodicTable('startPeriodicTable');
+
+        function startGame(mode) {
+            wins = 0;
+            losses = 0;
+            document.getElementById('wins').textContent = 0;
+            document.getElementById('losses').textContent = 0;
+            
+            // Barajar todos
+            let tempArray = [...elements];
+            shuffleArray(tempArray);
+
+            // Filtrar según modo
+            if (mode === 20) {
+                gameQueue = tempArray.slice(0, 20);
+            } else {
+                gameQueue = tempArray;
+            }
+            
+            totalQuestions = gameQueue.length;
+            document.getElementById('totalCount').textContent = totalQuestions;
+
+            // UI Transición
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+
+            renderPeriodicTable('periodicTable'); // Renderizar la del modal
+            createButtons();
+            nextElement();
+        }
+
+        // NUEVA FUNCIÓN: Volver al menú sin recargar
+        function goToMenu() {
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+            // Opcional: reiniciar estado visual si se quiere
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // === TABLA PERIÓDICA ===
+        function renderPeriodicTable(containerId) {
+            const grid = document.getElementById(containerId);
+            grid.innerHTML = ''; 
+            for (let row = 1; row <= 7; row++) {
+                for (let col = 1; col <= 18; col++) {
+                    const cell = document.createElement('div');
+                    let isValidCell = false;
+                    
+                    if (row === 1 && (col === 1 || col === 18)) isValidCell = true;
+                    else if ((row === 2 || row === 3) && (col <= 2 || col >= 13)) isValidCell = true;
+                    else if (row >= 4) isValidCell = true;
+
+                    if (isValidCell) {
+                        cell.className = 'element-cell';
+                        cell.dataset.g = col;
+                        cell.dataset.p = row;
+                    } else {
+                        cell.className = 'empty-cell';
+                    }
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        function toggleHelp() {
+            const modal = document.getElementById('helpModal');
+            const isHidden = modal.classList.contains('hidden');
+            if (isHidden) {
+                modal.classList.remove('hidden');
+                highlightCurrentElement();
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function highlightCurrentElement() {
+            document.querySelectorAll('.highlight-dot').forEach(el => el.classList.remove('highlight-dot'));
+            const g = currentElement.g;
+            const p = currentElement.p;
+            // Buscar en la tabla del modal (ID periodicTable)
+            const cell = document.querySelector(`#periodicTable .element-cell[data-g="${g}"][data-p="${p}"]`);
+            if (cell) {
+                cell.classList.add('highlight-dot');
+            }
+            document.getElementById('helpSymbol').innerText = `${currentElement.n} (${currentElement.s})`;
+        }
+
+        // === JUEGO ===
+        function createButtons() {
+            const grid = document.getElementById('buttonsGrid');
+            grid.innerHTML = '';
+            possibleNumbers.forEach(num => {
+                const btn = document.createElement('button');
+                btn.className = `btn-option h-12 rounded-lg font-bold text-lg flex items-center justify-center border-2 border-slate-200 text-slate-600 bg-white hover:bg-slate-50`;
+                btn.textContent = (num > 0 ? '+' : '') + num;
+                btn.onclick = () => toggleNumber(num, btn);
+                btn.dataset.value = num;
+                grid.appendChild(btn);
+            });
+        }
+
+        function toggleNumber(num, btn) {
+            if (isChecking) return;
+            if (selectedNumbers.has(num)) {
+                selectedNumbers.delete(num);
+                btn.className = `btn-option h-12 rounded-lg font-bold text-lg flex items-center justify-center border-2 border-slate-200 text-slate-600 bg-white hover:bg-slate-50`;
+            } else {
+                selectedNumbers.add(num);
+                btn.className = `btn-option h-12 rounded-lg font-bold text-lg flex items-center justify-center border-2 shadow-md bg-blue-600 text-white border-blue-700`;
+            }
+        }
+
+        function nextElement() {
+            if (gameQueue.length === 0) {
+                showFinalResults();
+                return;
+            }
+            isChecking = false;
+            selectedNumbers.clear();
+            const currentQuestionNum = totalQuestions - gameQueue.length + 1;
+            document.getElementById('currentCount').textContent = currentQuestionNum;
+
+            const feedback = document.getElementById('feedbackContainer');
+            // ARREGLADO: Limpiamos contenido y reseteamos clases explícitamente a su estado oculto
+            feedback.innerHTML = ''; 
+            feedback.className = 'hidden mb-4 p-3 rounded-lg text-center font-bold text-sm';
+
+            const actionBtn = document.getElementById('actionBtn');
+            actionBtn.textContent = 'Comprobar';
+            actionBtn.className = "w-full py-4 rounded-xl font-bold text-lg text-white shadow-lg transition transform hover:-translate-y-1 focus:outline-none bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30";
+
+            document.querySelectorAll('.btn-option').forEach(btn => {
+                btn.className = `btn-option h-12 rounded-lg font-bold text-lg flex items-center justify-center border-2 border-slate-200 text-slate-600 bg-white hover:bg-slate-50`;
+            });
+
+            currentElement = gameQueue.pop();
+            
+            document.getElementById('elSymbol').textContent = currentElement.s;
+            document.getElementById('elNameContainer').innerHTML = `<span class="text-slate-600">${currentElement.n}</span>`;
+
+            const badge = document.getElementById('typeBadge');
+            if (currentElement.t === 'metal') {
+                badge.className = 'absolute top-4 right-4 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider metal-bg shadow-sm';
+            } else {
+                badge.className = 'absolute top-4 right-4 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider nometal-bg shadow-sm';
+            }
+        }
+
+        function checkAnswer() {
+            if (isChecking) {
+                nextElement();
+                return;
+            }
+            const correctNumbers = new Set(currentElement.v);
+            const isCorrect = setsAreEqual(selectedNumbers, correctNumbers);
+            const feedback = document.getElementById('feedbackContainer');
+            const actionBtn = document.getElementById('actionBtn');
+
+            feedback.classList.remove('hidden');
+            
+            // === CONSTRUIR HTML DEL MENSAJE ===
+            let messageHTML = "";
+            let containerClass = "mb-4 p-4 rounded-xl text-center shadow-sm border animate-fade-in-up ";
+
+            if (isCorrect) {
+                wins++;
+                document.getElementById('wins').textContent = wins;
+                containerClass += "bg-green-50 border-green-200 text-green-800";
+                messageHTML = `<div class="font-bold text-lg">¡Correcto! 🎉</div>`;
+            } else {
+                losses++;
+                document.getElementById('losses').textContent = losses;
+                const correctStr = currentElement.v.map(n => (n>0?'+':'')+n).join(', ');
+                containerClass += "bg-red-50 border-red-200 text-red-800 shake-animation";
+                messageHTML = `<div class="font-bold text-lg">Incorrecto</div>
+                               <div class="text-sm mt-1">La solución es: <strong>${correctStr}</strong></div>`;
+            }
+
+            // === AÑADIR "EL APUNTE DEL PROFE" SI EXISTE ===
+            if (currentElement.c) {
+                messageHTML += `
+                    <div class="mt-3 pt-3 border-t border-black/10 text-left">
+                        <div class="text-xs font-bold uppercase tracking-wider opacity-70 mb-1 flex items-center gap-1">
+                            💡 El Apunte del Profe
+                        </div>
+                        <div class="text-sm italic opacity-90 leading-snug">
+                            "${currentElement.c}"
+                        </div>
+                    </div>
+                `;
+            }
+
+            feedback.innerHTML = messageHTML;
+            feedback.className = containerClass;
+
+            actionBtn.textContent = gameQueue.length === 0 ? "Ver Nota Final →" : "Siguiente Elemento →";
+            actionBtn.className = "w-full py-4 rounded-xl font-bold text-lg text-white shadow-lg transition focus:outline-none bg-slate-700 hover:bg-slate-800";
+
+            document.querySelectorAll('.btn-option').forEach(btn => {
+                const val = parseInt(btn.dataset.value);
+                let baseClass = "btn-option h-12 rounded-lg font-bold text-lg flex items-center justify-center border-2 shadow-sm transition-colors opacity-100 ";
+                if (correctNumbers.has(val)) {
+                    btn.className = baseClass + "bg-green-500 text-white border-green-600";
+                    if (!selectedNumbers.has(val)) btn.className += " ring-2 ring-green-300 ring-offset-1"; 
+                } else if (selectedNumbers.has(val)) {
+                    btn.className = baseClass + "bg-red-400 text-white border-red-500";
+                } else {
+                    btn.className = baseClass + "bg-slate-100 text-slate-300 border-slate-100";
+                }
+            });
+            isChecking = true;
+        }
+
+        function showFinalResults() {
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+            
+            // Calculo exacto con los totales jugados
+            const playedTotal = wins + losses; 
+            const percentage = Math.round((wins / playedTotal) * 100);
+            
+            document.getElementById('finalScore').textContent = percentage;
+            document.getElementById('finalWins').textContent = wins;
+            document.getElementById('finalLosses').textContent = losses;
+            
+            const circle = document.getElementById('scoreCircle');
+            const title = document.getElementById('finalTitle');
+            const msg = document.getElementById('finalMessage');
+
+            // CRITERIO: 80%
+            if (percentage >= 80) {
+                // APROBADO
+                circle.className = "relative w-40 h-40 mx-auto mb-6 flex items-center justify-center rounded-full border-8 transition-colors duration-500 border-green-500 bg-green-50 text-green-700";
+                title.textContent = "¡Enhorabuena! 🎉";
+                title.className = "text-2xl font-bold mb-2 text-green-600";
+                msg.textContent = "Has demostrado un dominio excelente. ¡Estás listo para el examen!";
+            } else {
+                // SUSPENSO
+                circle.className = "relative w-40 h-40 mx-auto mb-6 flex items-center justify-center rounded-full border-8 transition-colors duration-500 border-red-400 bg-red-50 text-red-700";
+                title.textContent = "Sigue Practicando 💪";
+                title.className = "text-2xl font-bold mb-2 text-slate-700";
+                msg.textContent = `Has obtenido un ${percentage}%. Necesitas al menos un 80% para asegurar el aprobado. ¡Repasa los fallos y vuelve a intentarlo!`;
+            }
+        }
+
+        function setsAreEqual(a, b) {
+            if (a.size !== b.size) return false;
+            for (const item of a) if (!b.has(item)) return false;
+            return true;
+        }
+    </script>
+</body>
+</html>
