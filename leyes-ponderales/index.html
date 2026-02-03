@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador del Mol Interactivo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- MathJax for nice chemical formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
+        }
+        
+        /* Asegurar que los emojis se muestren correctamente */
+        .emoji {
+            font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', sans-serif;
+        }
+        
+        .section-title-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        .transition-all-300 { transition: all 0.3s ease-in-out; }
+        
+        /* Animación suave para las barras */
+        .bar-fill { transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* Glassmorphism effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Custom range slider */
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            margin-top: -10px; 
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            border: 3px solid white;
+            transition: all 0.2s;
+        }
+        
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+        }
+        
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: linear-gradient(90deg, #e0e7ff 0%, #ddd6fe 100%);
+            border-radius: 3px;
+        }
+
+        /* Digital Display Font */
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+        .digital-font {
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        /* Animaciones */
+        @keyframes highlight-success {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(102, 126, 234, 0.6); }
+        }
+        
+        .animate-success-pulse {
+            animation: highlight-success 0.5s ease-in-out;
+        }
+        
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .glow-pulse {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        /* Card hover effects */
+        .card-interactive {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-interactive:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Footer signature */
+        .signature {
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        
+        .signature:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navbar mejorado -->
+    <nav class="glass-dark text-white p-4 shadow-2xl sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+                    <i data-lucide="flask-conical" class="w-7 h-7"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold section-title-font">Explorador del Mol</h1>
+                    <p class="text-xs text-white/70 hidden md:block">Laboratorio Virtual Interactivo</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="hidden md:flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    <span class="text-sm">Química Divertida</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow p-4 md:p-8">
+        
+        <!-- PANTALLA DE INICIO -->
+        <div id="welcome-screen" class="max-w-4xl mx-auto">
+            <div class="glass rounded-3xl shadow-2xl overflow-hidden">
+                <!-- Header de bienvenida -->
+                <div class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white p-8 md:p-12 text-center relative overflow-hidden">
+                    <!-- Decoración de fondo -->
+                    <div class="absolute inset-0 opacity-10">
+                        <div class="absolute top-10 left-10 w-32 h-32 bg-white rounded-full blur-3xl animate-pulse"></div>
+                        <div class="absolute bottom-10 right-10 w-40 h-40 bg-white rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+                    </div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex justify-center mb-6">
+                            <div class="bg-white/20 p-6 rounded-3xl backdrop-blur-sm float-animation">
+                                <span class="text-7xl emoji">⚗️</span>
+                            </div>
+                        </div>
+                        <h1 class="text-4xl md:text-6xl font-black mb-4 section-title-font">
+                            Explorador del Mol
+                        </h1>
+                        <p class="text-lg md:text-2xl text-white/90 font-semibold mb-2">
+                            Laboratorio Virtual Interactivo
+                        </p>
+                        <p class="text-sm md:text-base text-white/70">
+                            Descubre el concepto del mol de forma divertida y visual
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Contenido de bienvenida -->
+                <div class="p-8 md:p-12 bg-gradient-to-br from-slate-50 to-indigo-50">
+                    <!-- Características -->
+                    <div class="grid md:grid-cols-3 gap-6 mb-10">
+                        <div class="text-center p-6 bg-white rounded-2xl shadow-lg card-interactive">
+                            <div class="text-4xl mb-3 emoji">🎮</div>
+                            <h3 class="font-bold text-slate-800 mb-2">Interactivo</h3>
+                            <p class="text-sm text-slate-600">Aprende manipulando y experimentando</p>
+                        </div>
+                        <div class="text-center p-6 bg-white rounded-2xl shadow-lg card-interactive">
+                            <div class="text-4xl mb-3 emoji">📊</div>
+                            <h3 class="font-bold text-slate-800 mb-2">Visual</h3>
+                            <p class="text-sm text-slate-600">Observa los conceptos en acción</p>
+                        </div>
+                        <div class="text-center p-6 bg-white rounded-2xl shadow-lg card-interactive">
+                            <div class="text-4xl mb-3 emoji">🧪</div>
+                            <h3 class="font-bold text-slate-800 mb-2">Progresivo</h3>
+                            <p class="text-sm text-slate-600">Desde lo simple a lo complejo</p>
+                        </div>
+                    </div>
+
+                    <!-- Botones principales -->
+                    <div class="flex flex-col md:flex-row gap-4 justify-center items-center mb-8">
+                        <button onclick="startProgram()" class="group w-full md:w-auto px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-lg rounded-2xl shadow-xl transition-all-300 hover:scale-105 hover:shadow-2xl flex items-center justify-center gap-3">
+                            <span class="emoji text-2xl">🚀</span>
+                            <span>Comenzar Exploración</span>
+                            <i data-lucide="chevron-right" class="w-6 h-6 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                        
+                        <button onclick="openTeacherGuide()" class="group w-full md:w-auto px-8 py-4 bg-white hover:bg-slate-50 text-indigo-600 border-2 border-indigo-600 font-bold text-lg rounded-2xl shadow-lg transition-all-300 hover:scale-105 flex items-center justify-center gap-3">
+                            <span class="emoji text-2xl">👨‍🏫</span>
+                            <span>Guía para Profesores</span>
+                            <i data-lucide="external-link" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Info adicional -->
+                    <div class="bg-gradient-to-r from-blue-100 to-indigo-100 border-l-4 border-indigo-600 p-6 rounded-xl">
+                        <div class="flex items-start gap-4">
+                            <div class="text-3xl emoji">💡</div>
+                            <div>
+                                <h4 class="font-bold text-indigo-900 mb-2">¿Qué aprenderás?</h4>
+                                <ul class="text-sm text-indigo-800 space-y-1">
+                                    <li>✓ Por qué usamos moles en química</li>
+                                    <li>✓ Cómo el mol simplifica los cálculos</li>
+                                    <li>✓ La relación entre masa y cantidad de partículas</li>
+                                    <li>✓ Aplicación práctica en reacciones químicas</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Créditos en pantalla de inicio -->
+                    <div class="mt-8 text-center">
+                        <p class="text-xs text-slate-500 signature">
+                            <span class="emoji">👤</span> Creado por <strong class="text-slate-700">Javier Gijón</strong> - IES María Moliner (Segovia)
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTENIDO PRINCIPAL (inicialmente oculto) -->
+        <div id="main-content" class="max-w-6xl mx-auto hidden">
+            
+            <!-- Tabs de Navegación mejorados -->
+            <div class="flex flex-wrap justify-center mb-8 glass p-2 rounded-2xl shadow-2xl gap-1">
+                <button onclick="switchTab('analogy')" id="tab-analogy" class="tab-btn px-2 md:px-4 py-2 md:py-3 rounded-xl font-semibold text-[10px] md:text-xs transition-all-300 flex items-center gap-1 md:gap-2">
+                    <span class="hidden sm:inline text-[10px] md:text-xs">1.</span>
+                    <span class="emoji text-sm md:text-base">📦</span>
+                    <span>Docena</span>
+                </button>
+                <button onclick="switchTab('ant')" id="tab-ant" class="tab-btn px-2 md:px-4 py-2 md:py-3 rounded-xl font-semibold text-[10px] md:text-xs transition-all-300 flex items-center gap-1 md:gap-2">
+                    <span class="hidden sm:inline text-[10px] md:text-xs">2.</span>
+                    <span class="emoji text-sm md:text-base">🐜</span>
+                    <span>Hormiga</span>
+                </button>
+                <button onclick="switchTab('ant-mole')" id="tab-ant-mole" class="tab-btn px-2 md:px-4 py-2 md:py-3 rounded-xl font-semibold text-[10px] md:text-xs transition-all-300 flex items-center gap-1 md:gap-2">
+                    <span class="hidden sm:inline text-[10px] md:text-xs">3.</span>
+                    <span class="emoji text-sm md:text-base">🎯</span>
+                    <span>Mol Hormigas</span>
+                </button>
+                <button onclick="switchTab('real')" id="tab-real" class="tab-btn px-2 md:px-4 py-2 md:py-3 rounded-xl font-semibold text-[10px] md:text-xs transition-all-300 flex items-center gap-1 md:gap-2">
+                    <span class="hidden sm:inline text-[10px] md:text-xs">4.</span>
+                    <span class="emoji text-sm md:text-base">⚛️</span>
+                    <span>Mol Químico</span>
+                </button>
+                <button onclick="switchTab('reaction')" id="tab-reaction" class="tab-btn px-2 md:px-4 py-2 md:py-3 rounded-xl font-semibold text-[10px] md:text-xs transition-all-300 flex items-center gap-1 md:gap-2">
+                    <span class="hidden sm:inline text-[10px] md:text-xs">5.</span>
+                    <span class="emoji text-sm md:text-base">⚡</span>
+                    <span>Reacción</span>
+                </button>
+            </div>
+
+            <!-- SECCIÓN 1: LA ANALOGÍA & ESTEQUIOMETRÍA -->
+            <div id="section-analogy" class="transition-all-300">
+                
+                <!-- INTRODUCCIÓN 1 -->
+                <div class="glass-dark text-white p-5 rounded-t-3xl shadow-xl mb-0 flex gap-4 items-start glow-pulse">
+                    <div class="bg-white/20 p-3 rounded-2xl float-animation">
+                        <i data-lucide="lightbulb" class="w-8 h-8"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl section-title-font mb-1"><span class="emoji">💡</span> Pregunta Inicial: ¿Qué es mejor, contar o pesar?</h3>
+                        <p class="text-white/80 text-sm leading-relaxed">Si vas a comprar arroz, lo pesas. Pero si vas a comprar huevos, ¿los pesas o los cuentas? Depende de tu objetivo.</p>
+                    </div>
+                </div>
+
+                <div class="glass rounded-b-3xl shadow-2xl overflow-hidden">
+                    <!-- Parte A: Concepto Básico -->
+                    <div class="p-6 md:p-8 bg-gradient-to-br from-blue-50 to-indigo-50">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="bg-gradient-to-br from-blue-500 to-indigo-600 text-white p-2 rounded-xl">
+                                <i data-lucide="layers" class="w-6 h-6"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold gradient-text section-title-font">Parte A: Agrupando cosas</h2>
+                        </div>
+                        <p class="text-slate-700 mb-6 text-sm leading-relaxed">
+                            Usamos palabras para agrupar cantidades fijas. Una <strong class="text-indigo-600">"Docena"</strong> siempre son <strong class="text-indigo-600">12</strong> cosas, pesen lo que pesen.
+                        </p>
+                        
+                        <div class="grid md:grid-cols-2 gap-6 items-center">
+                             <!-- Controles Básicos -->
+                             <div class="glass card-interactive p-6 rounded-2xl shadow-lg">
+                                <label class="block text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                                    <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                                    Selecciona el objeto:
+                                </label>
+                                <div class="grid grid-cols-2 gap-3 mb-5">
+                                    <button onclick="setAnalogyItem('donuts')" id="btn-donuts" class="p-3 border-3 rounded-2xl flex flex-col items-center gap-1 transition-all-300 hover:scale-105">
+                                        <span class="text-3xl emoji">🍩</span>
+                                        <span class="text-xs font-semibold">Donuts</span>
+                                        <span class="text-[10px] text-slate-500">0.05kg</span>
+                                    </button>
+                                    <button onclick="setAnalogyItem('watermelons')" id="btn-watermelons" class="p-3 border-3 rounded-2xl flex flex-col items-center gap-1 transition-all-300 hover:scale-105">
+                                        <span class="text-3xl emoji">🍉</span>
+                                        <span class="text-xs font-semibold">Sandías</span>
+                                        <span class="text-[10px] text-slate-500">5kg</span>
+                                    </button>
+                                </div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2 flex items-center justify-between">
+                                    <span class="flex items-center gap-2">
+                                        <span style="font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;">📦</span>
+                                        Cantidad (Docenas):
+                                    </span>
+                                    <span id="dozen-val-display" class="text-2xl gradient-text font-black">1</span>
+                                </label>
+                                <input type="range" min="1" max="10" value="1" id="dozen-slider" oninput="updateAnalogy()" class="w-full">
+                             </div>
+
+                             <!-- Resultado Básico -->
+                             <div class="glass card-interactive p-6 rounded-2xl shadow-lg">
+                                <div class="flex gap-4 items-center justify-around">
+                                    <div class="text-center">
+                                        <div class="text-3xl mb-2" style="font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;">🔢</div>
+                                        <div class="text-3xl font-black gradient-text" id="analogy-count">12</div>
+                                        <div class="text-xs text-slate-500 font-semibold mt-1">Objetos</div>
+                                    </div>
+                                    
+                                    <div class="w-px h-24 bg-gradient-to-b from-slate-200 to-slate-400"></div>
+                                    
+                                    <div class="text-center">
+                                        <div class="text-3xl mb-2" style="font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;">⚖️</div>
+                                        <div class="relative w-16 h-20 mx-auto bg-gradient-to-b from-slate-100 to-slate-200 rounded-t-2xl overflow-hidden flex items-end shadow-inner border-2 border-slate-300">
+                                            <div id="analogy-weight-bar" class="w-full bg-gradient-to-t from-indigo-600 to-indigo-400 transition-all duration-500 rounded-t-xl" style="height: 20%"></div>
+                                        </div>
+                                        <div class="text-base font-bold mt-2 text-slate-700" id="analogy-mass">0.6 kg</div>
+                                    </div>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Parte B: El Problema de la Receta -->
+                    <div class="p-6 md:p-8 bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 text-white">
+                        <div class="flex items-start gap-4 mb-6">
+                            <div class="bg-white/10 p-3 rounded-2xl backdrop-blur-sm">
+                                <i data-lucide="chef-hat" class="w-8 h-8 text-yellow-300"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-yellow-300 section-title-font mb-1">Parte B: ¿Por qué contar y no pesar? (La Receta)</h3>
+                                <p class="text-indigo-200 text-sm leading-relaxed">
+                                    Imagina una receta: <strong>1 Dona + 1 Sandía = 1 Paquete</strong>. <br>¿Qué pasa si intentas comprar los ingredientes por kilos iguales?
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-white/5 p-5 rounded-2xl backdrop-blur-sm border border-white/10">
+                                <div class="space-y-3">
+                                    <button onclick="runRecipe('mass')" class="w-full p-4 bg-red-500/20 hover:bg-red-500/30 border-2 border-red-400/50 rounded-xl text-left flex items-center gap-3 transition-all-300 group hover:scale-102">
+                                        <div class="bg-gradient-to-br from-red-500 to-red-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg shadow-lg">A</div>
+                                        <div>
+                                            <div class="font-bold text-red-100 text-sm">Comprar por PESO (Iguales)</div>
+                                            <div class="text-xs text-red-200/80">"Dame 60kg de donuts y 60kg de sandías"</div>
+                                        </div>
+                                    </button>
+
+                                    <button onclick="runRecipe('count')" class="w-full p-4 bg-green-500/20 hover:bg-green-500/30 border-2 border-green-400/50 rounded-xl text-left flex items-center gap-3 transition-all-300 group hover:scale-102">
+                                        <div class="bg-gradient-to-br from-green-500 to-green-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg shadow-lg">B</div>
+                                        <div>
+                                            <div class="font-bold text-green-100 text-sm">Comprar por DOCENAS (Moles)</div>
+                                            <div class="text-xs text-green-200/80">"Dame 1 docena de cada uno"</div>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Resultado Receta -->
+                            <div class="glass text-slate-800 p-5 rounded-2xl relative overflow-hidden shadow-xl" id="recipe-result-panel">
+                                <div class="absolute inset-0 flex items-center justify-center text-slate-400 text-sm italic" id="recipe-placeholder">
+                                    <div class="text-center">
+                                        <i data-lucide="mouse-pointer-click" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                                        Selecciona una opción de compra...
+                                    </div>
+                                </div>
+                                <div id="recipe-content" class="hidden h-full flex flex-col">
+                                    <h4 class="font-bold border-b-2 border-slate-200 pb-3 mb-3 text-sm flex items-center gap-2" id="recipe-title">
+                                        <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+                                        Resultado
+                                    </h4>
+                                    
+                                    <div class="flex-grow space-y-3">
+                                        <div class="flex justify-between items-center text-sm bg-slate-50 p-3 rounded-xl">
+                                            <span class="flex items-center gap-2"><span class="text-xl emoji">🍩</span> Donuts:</span>
+                                            <span class="font-mono font-bold text-lg" id="res-donuts">0</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-sm bg-slate-50 p-3 rounded-xl">
+                                            <span class="flex items-center gap-2"><span class="text-xl emoji">🍉</span> Sandías:</span>
+                                            <span class="font-mono font-bold text-lg" id="res-watermelons">0</span>
+                                        </div>
+                                        
+                                        <div class="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-xl text-center mt-3 border-2 border-indigo-200">
+                                            <div class="text-xs text-slate-600 uppercase font-bold mb-1">Paquetes Creados</div>
+                                            <div class="text-4xl font-black gradient-text" id="res-packs">0</div>
+                                        </div>
+
+                                        <div class="text-xs text-center p-3 rounded-xl font-semibold" id="res-waste">
+                                            Desperdicio: 0
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: EL PROBLEMA DE LA HORMIGA -->
+            <div id="section-ant" class="hidden transition-all-300">
+                
+                <!-- INTRODUCCIÓN 2 -->
+                <div class="glass-dark text-white p-5 rounded-t-3xl shadow-xl mb-0 flex gap-4 items-start glow-pulse">
+                    <div class="bg-white/20 p-3 rounded-2xl float-animation">
+                        <i data-lucide="scale" class="w-8 h-8"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl section-title-font mb-1"><span class="emoji">🔬</span> El Reto: ¿Cómo pesas lo que es "invisible"?</h3>
+                        <p class="text-white/80 text-sm leading-relaxed">Si pones un grano de arena en tu báscula de baño, marcará cero. Lo mismo pasa con los átomos en el laboratorio.</p>
+                    </div>
+                </div>
+
+                <div class="glass rounded-b-3xl shadow-2xl overflow-hidden">
+                    <div class="p-6 md:p-8 bg-gradient-to-br from-amber-50 to-orange-50">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="bg-gradient-to-br from-orange-500 to-amber-600 text-white p-2 rounded-xl">
+                                <i data-lucide="bug" class="w-6 h-6"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold gradient-text section-title-font">Contar Pesando (El Problema)</h2>
+                        </div>
+                        <p class="text-slate-700 text-sm leading-relaxed mb-6">
+                            Intenta pesar estas hormigas. Son tan ligeras (~3mg) que la balanza no reacciona al principio. Necesitas una estrategia de grupo.
+                        </p>
+                    </div>
+                    
+                    <div class="p-6 md:p-8 grid md:grid-cols-2 gap-8">
+                         <!-- Controles Hormiga -->
+                         <div class="space-y-6">
+                            <div class="glass card-interactive p-5 rounded-2xl shadow-lg">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button onclick="addAnts(1)" class="px-4 py-3 bg-gradient-to-br from-slate-100 to-slate-200 hover:from-slate-200 hover:to-slate-300 text-slate-700 rounded-xl text-sm font-bold transition-all-300 hover:scale-105 shadow-md">
+                                        <i data-lucide="plus" class="w-4 h-4 inline mr-1"></i>1 Hormiga
+                                    </button>
+                                    <button onclick="addAnts(500)" class="px-4 py-3 bg-gradient-to-br from-orange-100 to-amber-100 hover:from-orange-200 hover:to-amber-200 text-orange-700 rounded-xl text-sm font-bold transition-all-300 hover:scale-105 shadow-md">
+                                        <i data-lucide="plus-circle" class="w-4 h-4 inline mr-1"></i>+500
+                                    </button>
+                                    <button onclick="resetAnts()" class="col-span-2 px-4 py-3 bg-gradient-to-br from-red-50 to-pink-50 hover:from-red-100 hover:to-pink-100 text-red-600 rounded-xl text-sm font-bold flex justify-center items-center gap-2 transition-all-300 hover:scale-105 shadow-md">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i> Vaciar Balanza
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="text-sm text-orange-900 bg-gradient-to-br from-orange-100 to-amber-100 p-4 rounded-xl border-l-4 border-orange-500 shadow-md">
+                                <strong class="flex items-center gap-2 mb-1">
+                                    <i data-lucide="info" class="w-4 h-4"></i>
+                                    Dato importante:
+                                </strong>
+                                <p class="text-xs leading-relaxed">1 Hormiga ≈ 3 mg (0.003 g). La balanza digital solo empieza a marcar a partir de 1.00 g.</p>
+                            </div>
+                        </div>
+
+                        <!-- Balanza -->
+                        <div class="glass card-interactive rounded-2xl p-8 flex flex-col items-center justify-center shadow-xl">
+                            <div class="w-40 h-40 bg-gradient-to-br from-white to-slate-50 rounded-full border-4 border-slate-300 shadow-2xl flex items-center justify-center mb-6 text-2xl relative overflow-hidden">
+                                <div id="ant-container" class="text-xs text-slate-500 text-center p-4 break-all leading-tight">Vacío</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-slate-800 to-slate-900 border-4 border-slate-700 rounded-xl p-3 px-8 shadow-2xl mb-3">
+                                <div class="digital-font text-4xl text-green-400 text-right tracking-wider" id="scale-display">0.00 g</div>
+                            </div>
+                            <div class="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full">
+                                <i data-lucide="bug" class="w-4 h-4 text-slate-500"></i>
+                                <span class="text-sm text-slate-600 font-semibold">Cantidad: <span id="ant-count-display" class="text-orange-600 font-bold">0</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3: EL MOL DE HORMIGAS -->
+            <div id="section-ant-mole" class="hidden transition-all-300">
+                
+                <!-- INTRODUCCIÓN 3 -->
+                <div class="glass-dark text-white p-5 rounded-t-3xl shadow-xl mb-0 flex gap-4 items-start glow-pulse">
+                    <div class="bg-white/20 p-3 rounded-2xl float-animation">
+                        <i data-lucide="sparkles" class="w-8 h-8"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl section-title-font mb-1"><span class="emoji">✨</span> La Solución: ¿Existe un "número mágico"?</h3>
+                        <p class="text-white/80 text-sm leading-relaxed">Queremos encontrar un número que haga que el peso en la balanza (en gramos) sea idéntico al peso de una sola hormiga (en miligramos).</p>
+                    </div>
+                </div>
+
+                <div class="glass rounded-b-3xl shadow-2xl overflow-hidden">
+                    <div class="p-6 md:p-8 bg-gradient-to-br from-purple-50 to-pink-50">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="bg-gradient-to-br from-pink-500 to-purple-600 text-white p-2 rounded-xl">
+                                <i data-lucide="target" class="w-6 h-6"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold gradient-text section-title-font">El Secreto: Convertir unidades con Cantidad</h2>
+                        </div>
+                        <p class="text-slate-700 text-sm leading-relaxed mb-6">
+                            Sabemos que 1 hormiga pesa <strong class="text-pink-600">3 mg</strong>. <br>
+                            Mueve el deslizador hasta que la balanza marque exactamente <strong class="text-pink-600">3 gramos</strong>. ¡Ese número de hormigas es tu "Mol"!
+                        </p>
+                    </div>
+
+                    <div class="p-6 md:p-8 grid md:grid-cols-2 gap-8">
+                        <div class="space-y-6">
+                            <div class="glass card-interactive p-6 rounded-2xl shadow-lg border-2 border-pink-200">
+                                <p class="text-sm text-pink-700 mb-3 font-bold flex items-center gap-2">
+                                    <i data-lucide="search" class="w-4 h-4"></i>
+                                    Busca el número mágico:
+                                </p>
+                                <input type="range" min="0" max="1500" step="10" value="0" id="ant-mole-slider" oninput="updateAntMoleLogic()" class="w-full mb-3">
+                                <div class="flex justify-between items-center text-sm font-medium bg-gradient-to-r from-pink-50 to-purple-50 p-3 rounded-xl">
+                                    <span class="text-slate-500">0</span>
+                                    <span id="ant-mole-count-display" class="text-3xl gradient-text font-black">0</span>
+                                    <span class="text-slate-500">1500</span>
+                                </div>
+                                <button onclick="setExactAntMole()" class="mt-4 w-full py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700 rounded-xl text-sm font-bold shadow-lg transition-all-300 hover:scale-105 flex items-center justify-center gap-2">
+                                    <i data-lucide="zap" class="w-4 h-4"></i>
+                                    ¡Saltar al "Mol Exacto"!
+                                </button>
+                            </div>
+                            <div id="success-message" class="opacity-0 transition-all duration-500 bg-gradient-to-br from-green-100 to-emerald-100 p-4 rounded-2xl border-2 border-green-300 text-green-800 text-sm flex gap-3 items-start shadow-lg">
+                                <i data-lucide="check-circle" class="w-8 h-8 flex-shrink-0 text-green-600"></i>
+                                <div>
+                                    <strong class="text-lg block mb-1">¡EUREKA! 🎉</strong>
+                                    Con <strong class="text-xl">1000</strong> hormigas, el valor (3) es igual. <br>
+                                    El "Mol" convierte mg → g.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass card-interactive rounded-2xl p-8 flex flex-col items-center justify-center shadow-xl">
+                            <div class="flex items-center gap-6 mb-8 w-full justify-center">
+                                <div class="text-center">
+                                    <div class="text-5xl mb-3 float-animation">🐜</div>
+                                    <div class="text-xs font-bold text-slate-600 mb-2">1 Hormiga</div>
+                                    <div class="bg-gradient-to-br from-slate-100 to-slate-200 px-4 py-2 rounded-xl text-sm font-bold border-2 border-slate-300 shadow-md">3 mg</div>
+                                </div>
+                                <div class="text-3xl text-slate-400 font-black">=</div>
+                                <div class="text-center">
+                                    <div class="w-20 h-20 rounded-full bg-gradient-to-br from-pink-100 to-purple-100 border-3 border-pink-300 flex items-center justify-center text-sm text-pink-400 mb-3 transition-all duration-300 shadow-lg" id="mole-circle">🐜...</div>
+                                    <div class="text-xs font-bold text-pink-600 mb-2" id="mole-label">0 Hormigas</div>
+                                    <div class="bg-gradient-to-br from-slate-400 to-slate-500 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 shadow-md border-2 border-slate-500" id="mole-weight-display">0.00 g</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- SECCIÓN 4: EL MOL REAL -->
+            <div id="section-real" class="hidden transition-all-300">
+                
+                <!-- INTRODUCCIÓN 4 -->
+                <div class="glass-dark text-white p-5 rounded-t-3xl shadow-xl mb-0 flex gap-4 items-start glow-pulse">
+                    <div class="bg-white/20 p-3 rounded-2xl float-animation">
+                        <i data-lucide="microscope" class="w-8 h-8"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl section-title-font mb-1"><span class="emoji">⚗️</span> Aplicación: ¿Por qué el Mol es la balanza del químico?</h3>
+                        <p class="text-white/80 text-sm leading-relaxed">Necesitamos contar átomos para las reacciones, pero solo tenemos balanzas. El Mol es nuestro traductor universal.</p>
+                    </div>
+                </div>
+
+                <div class="glass rounded-b-3xl shadow-2xl overflow-hidden">
+                    <div class="p-6 md:p-8 bg-gradient-to-br from-emerald-50 to-teal-50">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-2 rounded-xl">
+                                <i data-lucide="atom" class="w-6 h-6"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold gradient-text section-title-font">El Mol Químico en Acción</h2>
+                        </div>
+                        <p class="text-slate-700 text-sm leading-relaxed mb-6">
+                            Prueba diferentes elementos. Observa que aunque la <strong class="text-emerald-600">masa cambia</strong> (como donuts vs sandías), la <strong class="text-emerald-600">cantidad de partículas es CONSTANTE</strong> (el Mol).
+                        </p>
+                    </div>
+
+                    <div class="p-6 md:p-8 grid md:grid-cols-2 gap-8">
+                        <!-- Controles -->
+                        <div class="space-y-6">
+                            <div class="glass card-interactive p-5 rounded-2xl shadow-lg border-2 border-emerald-200">
+                                <label class="block text-sm font-bold text-emerald-800 mb-3 flex items-center gap-2">
+                                    <i data-lucide="flask-conical" class="w-4 h-4"></i>
+                                    1. Selecciona el Átomo:
+                                </label>
+                                <select id="element-select" onchange="updateReal()" class="w-full p-4 border-2 border-emerald-300 rounded-xl bg-white focus:ring-4 focus:ring-emerald-200 outline-none text-lg font-semibold shadow-md cursor-pointer hover:bg-emerald-50 transition-all-300">
+                                    <option value="H"><span class="emoji">⚪</span> Hidrógeno (Ligero)</option>
+                                    <option value="C" selected><span class="emoji">⚫</span> Carbono (Vida)</option>
+                                    <option value="Fe"><span class="emoji">🔴</span> Hierro (Metal)</option>
+                                    <option value="Au"><span class="emoji">🟡</span> Oro (Pesado)</option>
+                                </select>
+                            </div>
+
+                            <div class="glass card-interactive p-5 rounded-2xl shadow-lg">
+                                <label class="block text-sm font-bold text-slate-700 mb-3 flex items-center justify-between">
+                                    <span class="flex items-center gap-2">
+                                        <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+                                        2. Cantidad de Moles:
+                                    </span>
+                                    <span id="mole-val-display" class="text-3xl gradient-text font-black">1.0</span>
+                                </label>
+                                <input type="range" min="0.1" max="5.0" step="0.1" value="1.0" id="mole-slider" oninput="updateReal()" class="w-full h-3 bg-gradient-to-r from-emerald-200 to-teal-200 rounded-lg appearance-none cursor-pointer">
+                            </div>
+
+                            <!-- Display de Constancia -->
+                            <div class="bg-gradient-to-br from-slate-800 to-slate-900 text-white p-5 rounded-2xl shadow-2xl flex items-center justify-between border-l-4 border-yellow-400">
+                                <div class="flex-grow">
+                                    <div class="text-xs text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                        <i data-lucide="lock" class="w-4 h-4"></i> 
+                                        Partículas (Constante)
+                                    </div>
+                                    <div class="font-mono text-2xl md:text-3xl text-yellow-400 font-bold" id="real-atom-count">
+                                        6.022 × 10<sup>23</sup>
+                                    </div>
+                                    <div class="text-[10px] text-slate-500 mt-1 font-semibold">Número de Avogadro</div>
+                                </div>
+                                <div class="text-5xl opacity-20">⚛️</div>
+                            </div>
+                        </div>
+
+                        <!-- Resultados Visuales -->
+                        <div class="glass card-interactive rounded-2xl p-6 border-2 border-slate-200 flex flex-col justify-end relative overflow-hidden h-80 shadow-xl">
+                            <!-- Background grid -->
+                            <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+                            <!-- Info Elemento -->
+                            <div class="absolute top-6 left-6 right-6 flex justify-between items-start">
+                                <div class="flex items-center gap-4">
+                                    <div id="element-symbol" class="w-20 h-20 flex items-center justify-center bg-white rounded-2xl border-3 border-emerald-500 text-4xl font-black text-emerald-700 shadow-lg">
+                                        C
+                                    </div>
+                                    <div>
+                                        <div class="text-xs uppercase text-slate-500 font-bold mb-1">Masa Molar</div>
+                                        <div id="molar-mass-display" class="font-bold text-xl text-slate-800">12.01 g/mol</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Balanza Real -->
+                            <div class="relative w-full flex flex-col items-center z-10">
+                                <div class="w-40 bg-gradient-to-t from-emerald-600 to-emerald-400 rounded-t-2xl bar-fill flex items-end justify-center text-white font-bold text-sm shadow-2xl transition-all duration-500 relative group border-2 border-emerald-700" id="real-weight-bar" style="height: 20%;">
+                                    <div class="mb-3 drop-shadow-lg whitespace-nowrap px-3 py-1 bg-black/30 rounded-lg backdrop-blur-sm group-hover:bg-black/50 transition-colors text-lg">
+                                        <span id="real-total-mass">12.01 g</span>
+                                    </div>
+                                </div>
+                                <div class="h-2 w-56 bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 rounded-full mt-2 shadow-md"></div>
+                                <div class="text-center mt-3 text-xs text-slate-600 uppercase font-bold tracking-wider bg-slate-100 px-4 py-1 rounded-full">Masa Total (Gramos)</div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+             <!-- SECCIÓN 5: REACCIÓN (NUEVA) -->
+             <div id="section-reaction" class="hidden transition-all-300">
+                
+                <!-- INTRODUCCIÓN 5 -->
+                <div class="glass-dark text-white p-5 rounded-t-3xl shadow-xl mb-0 flex gap-4 items-start glow-pulse">
+                    <div class="bg-white/20 p-3 rounded-2xl float-animation">
+                        <i data-lucide="zap" class="w-8 h-8"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl section-title-font mb-1"><span class="emoji">⚡</span> Prueba Final: Síntesis de Amoniaco</h3>
+                        <p class="text-white/80 text-sm leading-relaxed">La razón definitiva para usar moles: simplificar las ecuaciones químicas.</p>
+                    </div>
+                </div>
+
+                <div class="glass rounded-b-3xl shadow-2xl overflow-hidden">
+                    <div class="p-6 md:p-8 bg-gradient-to-br from-cyan-50 to-blue-50">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="bg-gradient-to-br from-cyan-500 to-blue-600 text-white p-2 rounded-xl">
+                                <i data-lucide="beaker" class="w-6 h-6"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold gradient-text section-title-font">Paso 1: Ajusta la Receta</h2>
+                        </div>
+                        
+                        <!-- Challenge Area -->
+                        <div class="glass card-interactive p-6 rounded-2xl shadow-lg mb-6 text-center border-2 border-cyan-200" id="reaction-challenge">
+                            <p class="mb-5 text-cyan-800 text-sm font-semibold flex items-center justify-center gap-2">
+                                <i data-lucide="help-circle" class="w-5 h-5"></i>
+                                ¿Cuál es la proporción correcta para crear Amoniaco ($NH_3$)?
+                            </p>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <button onclick="checkReaction(false)" class="p-5 border-3 border-slate-200 hover:border-slate-400 hover:bg-slate-50 rounded-2xl transition-all-300 group hover:scale-105 shadow-md">
+                                    <div class="text-xl font-mono text-slate-600 mb-3 group-hover:scale-110 transition-transform">
+                                        \( 1 N_2 + 1 H_2 \rightarrow 1 NH_3 \)
+                                    </div>
+                                    <span class="text-xs text-slate-500 group-hover:text-slate-700 font-semibold bg-slate-100 px-3 py-1 rounded-full">Opción A</span>
+                                </button>
+                                <button onclick="checkReaction(true)" class="p-5 border-3 border-slate-200 hover:border-cyan-400 hover:bg-cyan-50 rounded-2xl transition-all-300 group hover:scale-105 shadow-md">
+                                    <div class="text-xl font-mono text-slate-600 group-hover:text-cyan-800 mb-3 group-hover:scale-110 transition-transform">
+                                        \( 1 N_2 + 3 H_2 \rightarrow 2 NH_3 \)
+                                    </div>
+                                    <span class="text-xs text-slate-500 group-hover:text-cyan-700 font-semibold bg-cyan-100 px-3 py-1 rounded-full">Opción B</span>
+                                </button>
+                            </div>
+                            <div id="reaction-feedback" class="mt-5 hidden font-bold text-lg"></div>
+                        </div>
+
+                        <!-- Success Area (Initially Hidden) -->
+                        <div id="reaction-success-area" class="hidden animate-success-pulse">
+                            
+                            <!-- Micro View -->
+                            <div class="mb-6 p-5 bg-gradient-to-r from-slate-800 to-slate-900 text-slate-200 rounded-2xl text-sm font-mono border-l-4 border-red-400 shadow-xl">
+                                <div class="font-bold text-red-400 mb-2 flex items-center gap-2">
+                                    <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                                    PROBLEMA DE ESCALA (MICRO):
+                                </div>
+                                <p class="leading-relaxed">1 molécula de \(N_2\) pesa: <span class="text-white font-bold">0.000000000000000000000000046 kg</span></p>
+                                <p class="text-xs text-slate-500 mt-2 italic">¡Demasiado pequeño para trabajar!</p>
+                            </div>
+
+                            <!-- Macro View Interactive -->
+                            <div class="glass p-3 rounded-2xl shadow-lg border-2 border-cyan-200">
+                                <div class="bg-gradient-to-r from-cyan-100 to-blue-100 p-4 rounded-xl mb-5 text-cyan-900 text-center border-2 border-cyan-200">
+                                    <strong class="flex items-center justify-center gap-2 text-lg">
+                                        <i data-lucide="lightbulb" class="w-5 h-5"></i>
+                                        SOLUCIÓN (MACRO):
+                                    </strong>
+                                    <p class="text-sm mt-1">Usamos Moles para trabajar con cantidades visibles.</p>
+                                </div>
+
+                                <div class="mb-5 px-5">
+                                    <label class="block text-sm font-bold text-slate-700 mb-3 flex items-center justify-between">
+                                        <span class="flex items-center gap-2">
+                                            <i data-lucide="repeat" class="w-4 h-4"></i>
+                                            Moles de Reacción:
+                                        </span>
+                                        <span id="rxn-mole-val" class="text-3xl gradient-text font-black">1</span>
+                                    </label>
+                                    <input type="range" min="1" max="10" value="1" id="rxn-slider" oninput="updateReactionTable()" class="w-full">
+                                    <p class="text-xs text-slate-500 mt-2 text-center italic">(Veces que repetimos la receta)</p>
+                                </div>
+
+                                <!-- The Table -->
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-center text-sm bg-white rounded-xl overflow-hidden shadow-md">
+                                        <thead>
+                                            <tr class="text-slate-500 border-b-2 border-slate-200 bg-slate-50">
+                                                <th class="pb-3 pt-3 text-left pl-5 font-bold">Concepto</th>
+                                                <th class="pb-3 pt-3 w-1/4 font-bold">Nitrógeno<br>\(N_2\)</th>
+                                                <th class="pb-3 pt-3 w-10 text-slate-300 font-light text-xl">+</th>
+                                                <th class="pb-3 pt-3 w-1/4 font-bold">Hidrógeno<br>\(H_2\)</th>
+                                                <th class="pb-3 pt-3 w-10 text-slate-300 font-light text-xl">\(\rightarrow\)</th>
+                                                <th class="pb-3 pt-3 w-1/4 font-bold">Amoniaco<br>\(NH_3\)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="font-mono">
+                                            <!-- Row: Moles -->
+                                            <tr class="bg-gradient-to-r from-cyan-50 to-blue-50 border-b border-slate-100">
+                                                <td class="py-4 text-left pl-5 font-bold text-cyan-800">
+                                                    <div class="flex items-center gap-2">
+                                                        <i data-lucide="hash" class="w-4 h-4"></i>
+                                                        MOLES
+                                                    </div>
+                                                    <span class="text-[10px] font-normal uppercase text-slate-500">Lo que contamos</span>
+                                                </td>
+                                                <td class="py-4 font-bold text-xl text-cyan-700" id="td-mol-n2">1</td>
+                                                <td></td>
+                                                <td class="py-4 font-bold text-xl text-cyan-700" id="td-mol-h2">3</td>
+                                                <td></td>
+                                                <td class="py-4 font-bold text-xl text-cyan-700" id="td-mol-nh3">2</td>
+                                            </tr>
+                                            <!-- Row: Mass -->
+                                            <tr class="bg-slate-50">
+                                                <td class="py-4 text-left pl-5 font-bold text-slate-600">
+                                                    <div class="flex items-center gap-2">
+                                                        <i data-lucide="weight" class="w-4 h-4"></i>
+                                                        MASA (g)
+                                                    </div>
+                                                    <span class="text-[10px] font-normal uppercase text-slate-400">Lo que pesamos</span>
+                                                </td>
+                                                <td class="py-4 text-slate-600 font-semibold" id="td-mass-n2">28.02 g</td>
+                                                <td></td>
+                                                <td class="py-4 text-slate-600 font-semibold" id="td-mass-h2">6.05 g</td>
+                                                <td></td>
+                                                <td class="py-4 text-slate-600 font-semibold" id="td-mass-nh3">34.06 g</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="mt-5 text-center text-xs text-slate-600 italic bg-gradient-to-r from-yellow-50 to-amber-50 p-3 rounded-xl border border-yellow-200">
+                                    <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
+                                    Nota lo "limpios" que son los números de Moles vs los decimales de Masa. ¡Por eso preferimos Moles!
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conclusion footer mejorado -->
+            <div class="mt-12 mb-8">
+                <div class="glass card-interactive p-6 rounded-2xl shadow-xl max-w-3xl mx-auto border-2 border-indigo-200">
+                    <div class="flex items-start gap-4">
+                        <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-3 rounded-2xl">
+                            <i data-lucide="book-open" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg gradient-text section-title-font mb-2">📚 Resumen Final</h3>
+                            <p class="text-slate-700 text-sm leading-relaxed">
+                                En una reacción química, los átomos se combinan uno a uno (como la receta), por eso usamos el <strong class="text-indigo-600">Mol</strong> para contarlos, aunque en la balanza veamos gramos diferentes.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- Fin del contenido principal -->
+    </main>
+
+    <!-- Footer con crédito discreto -->
+    <footer class="glass-dark text-white/60 py-4 mt-8">
+        <div class="max-w-6xl mx-auto px-4 flex justify-center items-center">
+            <p class="text-xs signature flex items-center gap-2">
+                <i data-lucide="user" class="w-3 h-3"></i>
+                Este programa ha sido realizado por <strong class="text-white/80">Javier Gijón</strong>, 
+                profesor del <strong class="text-white/80">IES María Moliner (Segovia)</strong>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        // --- DATOS ---
+        const analogyData = {
+            donuts: { name: 'Donuts', massPerDozen: 0.6, emoji: '🍩', singleWeight: 0.05 },
+            watermelons: { name: 'Sandías', massPerDozen: 60.0, emoji: '🍉', singleWeight: 5.0 }
+        };
+
+        const realData = {
+            H: { name: 'Hidrógeno', molarMass: 1.008, symbol: 'H' },
+            C: { name: 'Carbono', molarMass: 12.011, symbol: 'C' },
+            Fe: { name: 'Hierro', molarMass: 55.845, symbol: 'Fe' },
+            Au: { name: 'Oro', molarMass: 196.967, symbol: 'Au' }
+        };
+
+        const AVOGADRO = 6.022;
+
+        // --- ESTADO ---
+        let currentAnalogyItem = 'donuts';
+        let currentElement = 'C';
+        let antCount = 0;
+        const ANT_WEIGHT_G = 0.003; 
+
+        // --- LÓGICA TAB 1: ANALOGÍA ---
+        function setAnalogyItem(item) {
+            currentAnalogyItem = item;
+            updateAnalogyUI();
+        }
+
+        function updateAnalogyUI() {
+            ['donuts', 'watermelons'].forEach(key => {
+                const btn = document.getElementById(`btn-${key}`);
+                if (key === currentAnalogyItem) {
+                    btn.className = "p-4 border-3 border-indigo-500 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl flex flex-col items-center gap-2 transition-all-300 shadow-lg scale-105";
+                } else {
+                    btn.className = "p-4 border-3 border-transparent bg-slate-50 hover:bg-white rounded-2xl flex flex-col items-center gap-2 transition-all-300 opacity-60 hover:opacity-100";
+                }
+            });
+            updateAnalogy();
+        }
+
+        function updateAnalogy() {
+            const dozens = document.getElementById('dozen-slider').value;
+            document.getElementById('dozen-val-display').innerText = dozens;
+
+            const totalItems = dozens * 12;
+            const massPerDozen = analogyData[currentAnalogyItem].massPerDozen;
+            const totalMass = (dozens * massPerDozen).toFixed(1);
+
+            document.getElementById('analogy-count').innerText = totalItems;
+            document.getElementById('analogy-mass').innerText = totalMass + " kg";
+
+            let visualHeight = 0;
+            
+            if(currentAnalogyItem === 'donuts') {
+                visualHeight = (dozens / 10) * 15; 
+            } else {
+                visualHeight = (dozens / 10) * 90; 
+            }
+            
+            const bar = document.getElementById('analogy-weight-bar');
+            bar.style.height = Math.max(5, visualHeight) + "%";
+            bar.className = currentAnalogyItem === 'donuts' 
+                ? "w-full bg-gradient-to-t from-indigo-600 to-indigo-400 transition-all duration-500 rounded-t-xl"
+                : "w-full bg-gradient-to-t from-red-600 to-red-400 transition-all duration-500 rounded-t-xl";
+        }
+
+        // --- LÓGICA TAB 1B: RECETA ---
+        function runRecipe(mode) {
+            const placeholder = document.getElementById('recipe-placeholder');
+            const content = document.getElementById('recipe-content');
+            const wasteEl = document.getElementById('res-waste');
+            
+            placeholder.classList.add('hidden');
+            content.classList.remove('hidden');
+
+            let donutsCount = 0;
+            let melonsCount = 0;
+            let wasteText = "";
+            let packs = 0;
+
+            if (mode === 'mass') {
+                donutsCount = 1200;
+                melonsCount = 12;
+                packs = 12;
+                const leftoverDonuts = 1200 - 12;
+                wasteText = `¡Desastre! Sobran ${leftoverDonuts} donuts. Faltan sandías.`;
+                document.getElementById('recipe-title').innerHTML = "<i data-lucide='x-circle' class='w-4 h-4 inline'></i> Compra por <span class='text-red-500'>PESO</span>";
+                wasteEl.className = "text-xs text-center p-3 rounded-xl bg-gradient-to-r from-red-100 to-pink-100 text-red-700 border-2 border-red-200 font-bold";
+            } else {
+                donutsCount = 12;
+                melonsCount = 12;
+                packs = 12;
+                wasteText = "¡Perfecto! 0 desperdicio. Relación 1:1 exacta.";
+                document.getElementById('recipe-title').innerHTML = "<i data-lucide='check-circle' class='w-4 h-4 inline'></i> Compra por <span class='text-green-500'>MOLES (Docenas)</span>";
+                wasteEl.className = "text-xs text-center p-3 rounded-xl bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border-2 border-green-200 font-bold";
+            }
+
+            lucide.createIcons();
+            document.getElementById('res-donuts').innerText = donutsCount;
+            document.getElementById('res-watermelons').innerText = melonsCount;
+            document.getElementById('res-packs').innerText = packs;
+            wasteEl.innerText = wasteText;
+        }
+
+
+        // --- LÓGICA TAB 2 & 3: HORMIGAS ---
+        function addAnts(amount) {
+            antCount += amount;
+            updateAntDisplay();
+        }
+        function resetAnts() {
+            antCount = 0;
+            updateAntDisplay();
+        }
+        function updateAntDisplay() {
+            document.getElementById('ant-count-display').innerText = antCount;
+            const container = document.getElementById('ant-container');
+            const weight = antCount * ANT_WEIGHT_G;
+            
+            if (antCount === 0) container.innerText = "Vacío";
+            else {
+                const max = 40;
+                container.innerText = '🐜'.repeat(Math.min(antCount, max)) + (antCount > max ? '...' : '');
+            }
+
+            const display = document.getElementById('scale-display');
+            if(weight < 1.0 && antCount > 0) {
+                display.innerHTML = "0.00 <span class='text-lg text-green-700'>g</span>";
+                display.classList.remove('text-green-400');
+                display.classList.add('text-slate-600');
+            } else {
+                display.innerHTML = weight.toFixed(2) + " <span class='text-lg'>g</span>";
+                display.classList.add('text-green-400');
+                display.classList.remove('text-slate-600');
+            }
+        }
+
+        // Tab 3 Mole Logic
+        function setExactAntMole() {
+            document.getElementById('ant-mole-slider').value = 1000;
+            updateAntMoleLogic();
+        }
+        function updateAntMoleLogic() {
+            const count = document.getElementById('ant-mole-slider').value;
+            const weight = (count * 0.003).toFixed(2);
+            
+            document.getElementById('ant-mole-count-display').innerText = count;
+            document.getElementById('mole-label').innerText = count + " Hormigas";
+            
+            const wDisplay = document.getElementById('mole-weight-display');
+            wDisplay.innerText = weight + " g";
+            
+            const circle = document.getElementById('mole-circle');
+            const msg = document.getElementById('success-message');
+
+            const scale = 1 + (count/2000);
+            circle.style.transform = `scale(${scale})`;
+
+            if(parseInt(count) === 1000) {
+                wDisplay.classList.remove('bg-gradient-to-br', 'from-slate-400', 'to-slate-500', 'border-slate-500');
+                wDisplay.classList.add('bg-gradient-to-br', 'from-green-500', 'to-emerald-600', 'animate-success-pulse', 'border-green-600');
+                msg.classList.remove('opacity-0');
+                circle.classList.add('border-green-400', 'bg-gradient-to-br', 'from-green-50', 'to-emerald-50');
+                circle.classList.remove('border-pink-300', 'from-pink-100', 'to-purple-100');
+            } else {
+                wDisplay.classList.add('bg-gradient-to-br', 'from-slate-400', 'to-slate-500', 'border-slate-500');
+                wDisplay.classList.remove('from-green-500', 'to-emerald-600', 'animate-success-pulse', 'border-green-600');
+                msg.classList.add('opacity-0');
+                circle.classList.remove('border-green-400', 'from-green-50', 'to-emerald-50');
+                circle.classList.add('border-pink-300', 'bg-gradient-to-br', 'from-pink-100', 'to-purple-100');
+            }
+        }
+
+
+        // --- LÓGICA TAB 4: MOL REAL ---
+        function updateReal() {
+            const moles = parseFloat(document.getElementById('mole-slider').value);
+            currentElement = document.getElementById('element-select').value;
+            const elementData = realData[currentElement];
+
+            document.getElementById('mole-val-display').innerText = moles.toFixed(1);
+            document.getElementById('element-symbol').innerText = elementData.symbol;
+            document.getElementById('molar-mass-display').innerText = elementData.molarMass + " g/mol";
+
+            const totalMass = (moles * elementData.molarMass).toFixed(2);
+            const totalAtomsCoef = (moles * AVOGADRO).toFixed(3);
+
+            document.getElementById('real-total-mass').innerText = totalMass + " g";
+            document.getElementById('real-atom-count').innerHTML = `${totalAtomsCoef} × 10<sup>23</sup>`;
+
+            const maxMassRef = 5.0 * realData.Au.molarMass;
+            const currentMassRaw = moles * elementData.molarMass;
+            const percentage = (currentMassRaw / maxMassRef) * 100;
+            
+            const bar = document.getElementById('real-weight-bar');
+            bar.style.height = Math.max(10, percentage) + "%";
+
+            bar.className = "w-40 rounded-t-2xl bar-fill flex items-end justify-center text-white font-bold text-sm shadow-2xl transition-all duration-500 relative group border-2";
+            if (currentElement === 'H') bar.classList.add('bg-gradient-to-t', 'from-blue-500', 'to-blue-300', 'border-blue-600');
+            else if (currentElement === 'C') bar.classList.add('bg-gradient-to-t', 'from-slate-800', 'to-slate-600', 'border-slate-900');
+            else if (currentElement === 'Fe') bar.classList.add('bg-gradient-to-t', 'from-orange-700', 'to-orange-500', 'border-orange-800');
+            else if (currentElement === 'Au') bar.classList.add('bg-gradient-to-t', 'from-yellow-600', 'to-yellow-400', 'border-yellow-700');
+        }
+
+        // --- LÓGICA TAB 5: REACCIÓN ---
+        function checkReaction(isCorrect) {
+            const feedback = document.getElementById('reaction-feedback');
+            const successArea = document.getElementById('reaction-success-area');
+            
+            feedback.classList.remove('hidden');
+            
+            if (isCorrect) {
+                feedback.innerHTML = "<i data-lucide='check-circle' class='w-5 h-5 inline mr-2'></i>¡CORRECTO! 1 : 3 : 2 es la proporción perfecta.";
+                feedback.className = "mt-5 font-bold text-lg text-green-600 bg-gradient-to-r from-green-100 to-emerald-100 p-4 rounded-xl border-2 border-green-300";
+                successArea.classList.remove('hidden');
+            } else {
+                feedback.innerHTML = "<i data-lucide='x-circle' class='w-5 h-5 inline mr-2'></i>Incorrecto. Cuenta los hidrógenos: a la izquierda hay 2, a la derecha 3. Inténtalo de nuevo.";
+                feedback.className = "mt-5 font-bold text-lg text-red-600 bg-gradient-to-r from-red-100 to-pink-100 p-4 rounded-xl border-2 border-red-300";
+                successArea.classList.add('hidden');
+            }
+            lucide.createIcons();
+        }
+
+        function updateReactionTable() {
+            const n = document.getElementById('rxn-slider').value;
+            document.getElementById('rxn-mole-val').innerText = n;
+
+            const molN2 = 1 * n;
+            const molH2 = 3 * n;
+            const molNH3 = 2 * n;
+
+            document.getElementById('td-mol-n2').innerText = molN2;
+            document.getElementById('td-mol-h2').innerText = molH2;
+            document.getElementById('td-mol-nh3').innerText = molNH3;
+
+            const massN2 = (molN2 * 28.014).toFixed(2);
+            const massH2 = (molH2 * 2.016).toFixed(2);
+            const massNH3 = (molNH3 * 17.031).toFixed(2);
+
+            document.getElementById('td-mass-n2').innerText = massN2 + " g";
+            document.getElementById('td-mass-h2').innerText = massH2 + " g";
+            document.getElementById('td-mass-nh3').innerText = massNH3 + " g";
+        }
+
+
+        // --- NAV TABS ---
+        function switchTab(tab) {
+            const tabs = ['analogy', 'ant', 'ant-mole', 'real', 'reaction'];
+            tabs.forEach(t => {
+                const section = document.getElementById(`section-${t}`);
+                const btn = document.getElementById(`tab-${t}`);
+                
+                if(t === tab) {
+                    section.classList.remove('hidden');
+                    btn.className = "tab-btn px-2 md:px-4 py-2 md:py-3 rounded-xl font-semibold text-[10px] md:text-xs transition-all-300 flex items-center gap-1 md:gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg scale-105";
+                } else {
+                    section.classList.add('hidden');
+                    btn.className = "tab-btn px-2 md:px-4 py-2 md:py-3 rounded-xl font-semibold text-[10px] md:text-xs transition-all-300 flex items-center gap-1 md:gap-2 text-slate-600 hover:bg-white/50";
+                }
+            });
+            
+            lucide.createIcons();
+            
+            if(tab === 'real') updateReal();
+            if(tab === 'analogy') updateAnalogyUI();
+            if(tab === 'reaction') updateReactionTable();
+        }
+
+        // Init
+        updateAnalogyUI();
+        updateReal();
+        updateReactionTable();
+        
+        // --- FUNCIONES DE PANTALLA DE INICIO ---
+        function startProgram() {
+            const welcomeScreen = document.getElementById('welcome-screen');
+            const mainContent = document.getElementById('main-content');
+            
+            // Animación de salida
+            welcomeScreen.style.opacity = '0';
+            welcomeScreen.style.transform = 'scale(0.95)';
+            welcomeScreen.style.transition = 'all 0.5s ease-out';
+            
+            setTimeout(() => {
+                welcomeScreen.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+                
+                // Animación de entrada
+                mainContent.style.opacity = '0';
+                mainContent.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    mainContent.style.transition = 'all 0.5s ease-out';
+                    mainContent.style.opacity = '1';
+                    mainContent.style.transform = 'translateY(0)';
+                }, 50);
+                
+                // Reiniciar iconos de Lucide
+                lucide.createIcons();
+            }, 500);
+        }
+        
+        function openTeacherGuide() {
+            // Abrir la guía didáctica HTML en una nueva pestaña
+            window.open('guia_didactica_profesores.html', '_blank');
+        }
+    </script>
+</body>
+</html>
