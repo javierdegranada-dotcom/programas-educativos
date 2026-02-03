@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master de Física: DCL y Componentes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Roboto:wght@400;500;700&family=Fira+Code&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f0f4f8;
+            --text: #2c3e50;
+            --primary: #3498db;
+            --secondary: #2ecc71;
+            --accent: #e67e22;
+            --danger: #e74c3c;
+            --dark: #34495e;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            /* Evitar comportamientos táctiles por defecto como refresh */
+            overscroll-behavior: none;
+        }
+
+        /* MENÚ */
+        #main-menu {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 2000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; overflow-y: auto;
+        }
+        .menu-title { font-family: 'Comic Neue', cursive; font-size: 2.5rem; color: var(--primary); margin-bottom: 5px; text-align: center; }
+        .menu-subtitle { color: #7f8c8d; margin-bottom: 30px; font-size: 1.1rem; }
+        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 800px; width: 100%; }
+        .menu-card {
+            background: #fff; border: 2px solid #e0e6ed; border-radius: 15px; padding: 25px;
+            text-align: center; transition: all 0.2s; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; overflow: hidden;
+        }
+        .menu-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 20px rgba(52, 152, 219, 0.15); }
+        .menu-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; }
+        .card-type-1::before { background: #3498db; } .card-type-2::before { background: #e67e22; }
+        .card-type-3::before { background: #9b59b6; } .card-type-4::before { background: #e74c3c; }
+        .card-type-5::before { background: #16a085; } .card-type-6::before { background: #e91e63; }
+        .card-icon { font-size: 2.5rem; margin-bottom: 5px; }
+        .card-title { font-weight: bold; font-size: 1.3rem; color: #34495e; }
+        .card-desc { font-size: 0.95rem; color: #7f8c8d; }
+
+        /* JUEGO */
+        #game-screen { display: none; flex-direction: column; align-items: center; height: 100%; padding: 10px; overflow-y: auto; }
+        
+        .game-header {
+            width: 100%; max-width: 900px; display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px; background: white; padding: 10px 20px; border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .scenario-info h2 { margin: 0; font-size: 1.2rem; color: var(--primary); }
+        .scenario-tags { display: flex; gap: 10px; font-size: 1.1rem; font-weight: bold; color: #e67e22; }
+        .btn-back { background: #ecf0f1; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #7f8c8d; }
+        .btn-back:hover { background: #bdc3c7; color: white; }
+
+        .workspace { display: flex; gap: 20px; flex-grow: 1; width: 100%; max-width: 1000px; justify-content: center; align-items: flex-start; }
+
+        /* TOOLBOX */
+        .toolbox {
+            background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            width: 140px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; flex-shrink: 0;
+        }
+        .toolbox h3 { font-size: 0.75rem; margin: 0; text-align: center; color: #bdc3c7; text-transform: uppercase; letter-spacing: 1px; }
+        .force-token {
+            width: 100%; height: 34px; background: #fff; border: 1px solid #dee2e6; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center; cursor: grab; font-weight: bold; font-size: 0.85rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative;
+            /* Mejorar toque en móvil */
+            touch-action: none;
+        }
+        .force-token:active { cursor: grabbing; transform: scale(0.98); }
+        .force-token.used { opacity: 0.5; filter: grayscale(1); pointer-events: none; }
+        .token-v { color: var(--secondary); border-left: 4px solid var(--secondary); background: #f0fdf4; }
+        .token-p { color: #8e44ad; border-left: 4px solid #8e44ad; }
+        .token-n { color: #2980b9; border-left: 4px solid #2980b9; }
+        .token-fr { color: #d35400; border-left: 4px solid #d35400; }
+        .token-t { color: #34495e; border-left: 4px solid #34495e; }
+        .token-fake { color: #27ae60; border-left: 4px solid #27ae60; }
+
+        /* CONTROLES DESLIZANTES */
+        .control-box { background: #f8f9fa; padding: 10px; border-radius: 8px; text-align: center; margin-top: auto; border: 1px solid #eee; }
+        .control-box.disabled { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
+        .slider-row { display: flex; align-items: center; gap: 5px; margin-top: 5px; }
+        input[type=range] { width: 100%; cursor: pointer; }
+        .val-display { font-weight:bold; color:var(--primary); width:30px; text-align:right; font-size: 0.9rem; }
+        .btn-zero { width: 100%; background: #ecf0f1; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 0.8rem; cursor: pointer; margin-top: 5px; }
+
+        /* COLUMNA CENTRAL */
+        .main-stage { display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative; width: 700px; }
+        
+        /* ESCENA */
+        .scene-container {
+            position: relative; width: 100%; height: 450px;
+            background: linear-gradient(to bottom, #ebf5fb 0%, #ffffff 100%);
+            border: 2px solid #cbd5e0; border-radius: 15px; overflow: hidden;
+            /* Evitar scroll al tocar la escena */
+            touch-action: none;
+        }
+        .ground {
+            position: absolute; width: 1500px; height: 800px; background: #95a5a6; top: 310px; left: -400px;
+            transform-origin: 750px 0; border-top: 6px solid #7f8c8d; transition: transform 0.3s;
+        }
+        .block {
+            position: absolute; width: 100px; height: 60px; background: #f1c40f; border: 3px solid #d35400; border-radius: 4px;
+            top: 250px; left: 300px; display: flex; justify-content: center; align-items: center; transition: transform 0.3s; z-index: 2;
+        }
+        .rope-visual {
+            position: absolute; height: 6px; background: repeating-linear-gradient(45deg, #8d6e63, #8d6e63 5px, #6d4c41 5px, #6d4c41 10px);
+            border-radius: 3px; top: 50%; margin-top: -3px; width: 100px; transform-origin: 0 50%; z-index: 1; display: none;
+        }
+        .center-mass {
+            width: 14px; height: 14px; background: var(--danger); border-radius: 50%; border: 2px solid white;
+            position: absolute; top: 273px; left: 343px; z-index: 10; pointer-events: none;
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
+        }
+
+        /* SISTEMA DE REFERENCIA (EJES) MEJORADO */
+        #axes-overlay {
+            position: absolute; top: 280px; left: 350px; width: 0; height: 0;
+            z-index: 5; display: none; pointer-events: none;
+        }
+        .axis-x, .axis-y { position: absolute; background: var(--dark); opacity: 0.8; }
+        
+        .axis-x { width: 600px; height: 1px; left: -300px; top: 0; border-top: 2px dashed var(--dark); }
+        .axis-x::after {
+            content: ''; position: absolute; right: -8px; top: -5px;
+            border-width: 5px 0 5px 8px; border-style: solid; 
+            border-color: transparent transparent transparent var(--dark);
+        }
+        
+        .axis-y { width: 1px; height: 600px; left: 0; top: -300px; border-left: 2px dashed var(--dark); }
+        .axis-y::after {
+            content: ''; position: absolute; top: -8px; left: -5px;
+            border-width: 0 5px 8px 5px; border-style: solid;
+            border-color: transparent transparent var(--dark) transparent;
+        }
+
+        .axis-label { 
+            position: absolute; font-family: 'Fira Code', monospace; font-weight: bold; 
+            color: var(--dark); font-size: 16px; background: rgba(255,255,255,0.8);
+            border-radius: 3px; padding: 0 2px;
+        }
+
+        #angles-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 4; pointer-events: none; }
+
+        /* EJES PEQUEÑOS DE REFERENCIA (esquina superior derecha) */
+        #mini-axes {
+            position: absolute; top: 12px; right: 12px;
+            width: 60px; height: 60px; z-index: 6;
+            display: none; pointer-events: none;
+            background: rgba(255,255,255,0.85);
+            border-radius: 6px; border: 1px solid #cbd5e0;
+        }
+        #mini-axes-svg {
+            width: 100%; height: 100%;
+            transition: transform 0.3s;
+        }
+
+        /* FLECHAS */
+        .arrow { position: absolute; height: 0; width: 0; z-index: 20; transform-origin: 0 0; pointer-events: none; }
+        .arrow-line { position: absolute; top: -3px; left: 0; height: 6px; border-radius: 3px; }
+        .arrow[data-type="velocity"] .arrow-line { height: 4px; top: -2px; border-style: dashed; }
+        .arrow-head-zone { position: absolute; width: 40px; height: 40px; top: -20px; cursor: grab; pointer-events: auto; display: flex; align-items: center; z-index: 50; }
+        .arrow-head-zone:active { cursor: grabbing; }
+        .arrow-triangle { width: 0; height: 0; border: 10px solid transparent; border-left: 18px solid; margin-left: -2px; transition: transform 0.2s; }
+        .arrow-label { position: absolute; font-weight: bold; font-size: 14px; background: rgba(255,255,255,0.9); padding: 2px 6px; border-radius: 4px; top: -12px; }
+        .angle-badge { position: absolute; left: 20px; top: -35px; background: rgba(0,0,0,0.85); color: white; padding: 4px 8px; border-radius: 4px; font-size: 13px; z-index: 100; display: none; }
+        
+        .correct .arrow-line { background: var(--secondary) !important; box-shadow: 0 0 8px var(--secondary); }
+        .correct .arrow-triangle { border-left-color: var(--secondary) !important; }
+        .wrong .arrow-line { background: var(--danger) !important; }
+        .wrong .arrow-triangle { border-left-color: var(--danger) !important; }
+        .ghost { opacity: 0.5; z-index: 5; pointer-events: none !important; }
+        .ghost .arrow-line { border: 2px dashed rgba(0,0,0,0.5); background: none !important; }
+
+        /* UI BOTTOM */
+        .footer-ui { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; margin-top: 10px; padding-bottom: 30px; }
+        .btn-row { display: flex; gap: 10px; }
+        .btn { padding: 8px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; box-shadow: 0 3px 0 rgba(0,0,0,0.1); transition: 0.2s; }
+        .btn:active { transform: translateY(3px); box-shadow: none; }
+        .btn-check { background: var(--primary); color: white; }
+        .btn-axes { background: var(--dark); color: white; display: none; }
+        .btn-calc { background: var(--secondary); color: white; display: none; }
+        .btn-retry { background: var(--accent); color: white; display: none; }
+        .btn-reset { background: #95a5a6; color: white; }
+        .btn-new { background: #34495e; color: white; }
+        #feedback { font-weight: bold; min-height: 24px; text-align: center; color: #333; max-width: 700px; padding: 5px; }
+
+        /* RESULTADOS EN PANEL (NO MODAL) */
+        #results-panel {
+            width: 100%; max-width: 700px;
+            background: white; border: 2px solid var(--secondary); border-radius: 12px;
+            padding: 15px; margin-top: 10px;
+            display: none; flex-direction: column; gap: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        #results-panel h3 { margin: 0; color: var(--text); border-bottom: 1px solid #eee; padding-bottom: 5px; font-size: 1rem; }
+        
+        .angles-info {
+            background: #f8f9fa; border-radius: 8px; padding: 12px; margin-bottom: 10px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;
+        }
+        .angle-item {
+            display: flex; align-items: center; gap: 8px; padding: 6px;
+            background: white; border-radius: 6px; border-left: 3px solid;
+        }
+        .angle-item-label { font-size: 0.85rem; font-weight: bold; }
+        .angle-item-value { 
+            font-family: 'Fira Code', monospace; font-size: 0.9rem; 
+            background: #e8f4f8; padding: 2px 8px; border-radius: 4px; margin-left: auto;
+        }
+        
+        .results-table { width: 100%; border-collapse: collapse; font-family: 'Fira Code', monospace; font-size: 0.95rem; }
+        .results-table th { text-align: left; color: #7f8c8d; padding: 5px; border-bottom: 1px solid #eee; font-size: 0.8rem; }
+        .results-table td { padding: 8px 5px; border-bottom: 1px solid #f9f9f9; }
+        
+        .vec-symbol { position: relative; display: inline-block; font-style: italic; font-weight: bold; margin-right: 5px; }
+        .vec-symbol::after { content: '→'; position: absolute; top: -9px; left: 0; width: 100%; text-align: center; font-size: 0.9em; font-style: normal; }
+        
+        .mag-symbol { font-style: italic; font-weight: bold; }
+        
+        .unit-vec { color: #e67e22; font-weight: bold; }
+        .close-panel { align-self: center; background: #ecf0f1; border: none; padding: 5px 20px; cursor: pointer; border-radius: 4px; font-weight: bold; color: #7f8c8d; }
+
+        .credits { margin-top: 20px; text-align: center; font-size: 0.75rem; color: #95a5a6; padding-bottom: 10px; }
+
+        /* BOTÓN DE INSTRUCCIONES */
+        .btn-instructions {
+            margin-top: 15px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .btn-instructions:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* MODAL DE INSTRUCCIONES */
+        #instructions-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e6ed;
+        }
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .btn-close-modal {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-close-modal:hover {
+            background: #c0392b;
+            transform: rotate(90deg);
+        }
+        .instructions-section {
+            margin-bottom: 20px;
+        }
+        .instructions-section h3 {
+            color: #3498db;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .instructions-section p, .instructions-section ul {
+            color: #34495e;
+            line-height: 1.6;
+            margin: 8px 0;
+        }
+        .instructions-section ul {
+            padding-left: 20px;
+        }
+        .instructions-section li {
+            margin: 5px 0;
+        }
+        .device-warning {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #e17055;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+        .device-warning strong {
+            color: #d63031;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="main-menu">
+        <div class="menu-title">🧪 Laboratorio de Fuerzas</div>
+        <div class="menu-subtitle">Generador de Problemas de Dinámica</div>
+        <div class="menu-grid">
+            <div class="menu-card card-type-5" onclick="generateScenario('horizontal')">
+                <div class="card-icon">🧵➡️</div> <div class="card-title">Horizontal + Cuerda</div>
+            </div>
+            <div class="menu-card card-type-6" onclick="generateScenario('horizontal_fric')">
+                <div class="card-icon">🧵📦</div> <div class="card-title">Horizontal + Cuerda + Rozamiento</div>
+            </div>
+            <div class="menu-card card-type-1" onclick="generateScenario('no_fric')">
+                <div class="card-icon">🧊</div> <div class="card-title">Sin Rozamiento</div>
+            </div>
+            <div class="menu-card card-type-2" onclick="generateScenario('fric')">
+                <div class="card-icon">📦</div> <div class="card-title">Con Rozamiento</div>
+            </div>
+            <div class="menu-card card-type-3" onclick="generateScenario('rope')">
+                <div class="card-icon">🧵</div> <div class="card-title">Cuerdas</div>
+            </div>
+            <div class="menu-card card-type-4" onclick="generateScenario('rope_angle')">
+                <div class="card-icon">📐</div> <div class="card-title">Cuerda + Ángulo</div>
+            </div>
+        </div>
+        <button class="btn-instructions" onclick="showInstructions()">📖 Cómo usar este programa</button>
+        <div class="credits">Este programa está realizado por Javier Gijón. Prof de IES María Moliner (Segovia)</div>
+    </div>
+
+    <!-- MODAL DE INSTRUCCIONES -->
+    <div id="instructions-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">📖 Instrucciones de Uso</div>
+                <button class="btn-close-modal" onclick="closeInstructions()">✕</button>
+            </div>
+
+            <div class="device-warning">
+                <strong>⚠️ Recomendación:</strong> Esta aplicación funciona mejor en <strong>tablets y ordenadores</strong>, ya que requiere arrastrar, rotar y manipular vectores con precisión. En móviles puede resultar complicado debido al tamaño de la pantalla.
+            </div>
+
+            <div class="instructions-section">
+                <h3>🎯 Objetivo del Programa</h3>
+                <p>Este programa genera problemas aleatorios de dinámica para que practiques el análisis de fuerzas en diferentes situaciones físicas.</p>
+            </div>
+
+            <div class="instructions-section">
+                <h3>🎮 Cómo Empezar</h3>
+                <ul>
+                    <li>Elige un tipo de problema en el menú principal (sin rozamiento, con rozamiento, cuerdas, etc.)</li>
+                    <li>Lee cuidadosamente el enunciado que aparece en la parte superior</li>
+                    <li>Analiza la situación física presentada (rampa, movimiento, fuerzas)</li>
+                </ul>
+            </div>
+
+            <div class="instructions-section">
+                <h3>✋ Colocar Vectores</h3>
+                <ul>
+                    <li><strong>Velocidad:</strong> Arrastra fuera del bloque, en la dirección del movimiento</li>
+                    <li><strong>Fuerzas:</strong> Arrastra al punto rojo del centro del bloque</li>
+                    <li><strong>Girar vectores:</strong> Haz clic y arrastra la punta de la flecha para rotarla</li>
+                    <li>El ángulo se actualiza en tiempo real mientras giras</li>
+                </ul>
+            </div>
+
+            <div class="instructions-section">
+                <h3>🔧 Controles Disponibles</h3>
+                <ul>
+                    <li><strong>Rampa:</strong> Ajusta el ángulo de inclinación con el deslizador</li>
+                    <li><strong>Definir Ejes:</strong> Activa el sistema de referencia para rotar los ejes X e Y</li>
+                    <li><strong>Verificar:</strong> Comprueba si has colocado correctamente las fuerzas</li>
+                    <li><strong>Calcular Componentes:</strong> Descompone las fuerzas según los ejes definidos</li>
+                    <li><strong>Reiniciar Fuerzas:</strong> Elimina todos los vectores para empezar de nuevo</li>
+                    <li><strong>Nuevo Ejercicio:</strong> Genera un problema diferente del mismo tipo</li>
+                </ul>
+            </div>
+
+            <div class="instructions-section">
+                <h3>📐 Sistema de Referencia</h3>
+                <ul>
+                    <li>Tras colocar las fuerzas, pulsa "Definir Ejes" para activar el sistema de referencia</li>
+                    <li>Rota los ejes con el deslizador para alinearlos como prefieras</li>
+                    <li>Los mini-ejes en la esquina superior derecha muestran la orientación actual</li>
+                    <li>Pulsa "Calcular Componentes" para ver la descomposición vectorial</li>
+                    <li>Todos los ángulos mostrados son siempre menores de 90°</li>
+                </ul>
+            </div>
+
+            <div class="instructions-section">
+                <h3>💡 Consejos</h3>
+                <ul>
+                    <li>Analiza primero la dirección del movimiento antes de colocar vectores</li>
+                    <li>Las fuerzas deben estar aplicadas en el centro de masa (punto rojo)</li>
+                    <li>Alinea los ejes con la rampa para facilitar los cálculos</li>
+                    <li>Usa los colores para distinguir cada tipo de fuerza</li>
+                    <li>Si te equivocas, usa "Reiniciar Fuerzas" para volver a empezar</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-screen">
+        <div class="game-header">
+            <div class="scenario-info">
+                <h2 id="sc-title">Título</h2>
+                <div class="scenario-tags" id="sc-tags">Desc</div>
+            </div>
+            <button class="btn-back" onclick="goMenu()">⬅ Menú</button>
+        </div>
+
+        <div class="workspace">
+            <div class="toolbox">
+                <h3>Vectores</h3>
+                <div class="force-token token-v" draggable="true" data-type="velocity" data-color="#2ecc71" data-label="v">Velocidad</div>
+                <div class="separator"></div>
+                <div class="force-token token-p" draggable="true" data-type="peso" data-color="#8e44ad" data-label="P">Peso</div>
+                <div class="force-token token-n" draggable="true" data-type="normal" data-color="#2980b9" data-label="N">Normal</div>
+                <div class="force-token token-fr" draggable="true" data-type="rozamiento" data-color="#d35400" data-label="Fr">Rozamiento</div>
+                <div class="force-token token-t" draggable="true" data-type="tension" data-color="#34495e" data-label="T">Tensión</div>
+                <div class="force-token token-fake" draggable="true" data-type="fake" data-color="#27ae60" data-label="Fm">F. Motor</div>
+                <div class="separator"></div>
+                
+                <div class="control-box" id="incline-box">
+                    <div style="font-size:0.7rem; font-weight:bold;">RAMPA</div>
+                    <div class="slider-row">
+                        <input type="range" id="angle-slider" min="15" max="75" step="5" value="45">
+                        <span id="angle-val" class="val-display">45°</span>
+                    </div>
+                </div>
+
+                <div class="control-box" id="axes-box" style="display:none; background:#e8f6f3; border-color:#2ecc71;">
+                    <div style="font-size:0.7rem; font-weight:bold; color:#16a085;">ROTAR EJES</div>
+                    <div class="slider-row">
+                        <input type="range" id="axes-slider" min="-180" max="180" step="5" value="0">
+                        <span id="axes-val" class="val-display" style="color:#16a085;">0°</span>
+                    </div>
+                    <button class="btn-zero" onclick="setAxesToIncline()">Alinear con Rampa</button>
+                </div>
+            </div>
+
+            <div class="main-stage">
+                <div class="scene-container" id="scene">
+                    <svg id="angles-svg" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:4;"></svg>
+
+                    <div id="axes-overlay">
+                        <div class="axis-x"><span class="axis-label" style="right:10px; top:-25px;">X</span></div>
+                        <div class="axis-y"><span class="axis-label" style="left:10px; top:10px;">Y</span></div>
+                    </div>
+
+                    <!-- EJES PEQUEÑOS DE REFERENCIA -->
+                    <div id="mini-axes">
+                        <svg id="mini-axes-svg" viewBox="0 0 60 60">
+                            <defs>
+                                <marker id="arrowhead-x" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                                    <polygon points="0 0, 6 3, 0 6" fill="#2c3e50" />
+                                </marker>
+                                <marker id="arrowhead-y" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                                    <polygon points="0 0, 6 3, 0 6" fill="#2c3e50" />
+                                </marker>
+                            </defs>
+                            <g id="mini-axes-group">
+                                <!-- Eje X -->
+                                <line x1="15" y1="30" x2="48" y2="30" stroke="#2c3e50" stroke-width="2" marker-end="url(#arrowhead-x)" />
+                                <text x="52" y="33" font-size="10" font-weight="bold" fill="#2c3e50" font-family="Fira Code, monospace">X</text>
+                                <!-- Eje Y -->
+                                <line x1="30" y1="45" x2="30" y2="12" stroke="#2c3e50" stroke-width="2" marker-end="url(#arrowhead-y)" />
+                                <text x="34" y="10" font-size="10" font-weight="bold" fill="#2c3e50" font-family="Fira Code, monospace">Y</text>
+                            </g>
+                        </svg>
+                    </div>
+
+                    <div class="ground" id="ground"></div>
+                    <div class="block" id="block">
+                        <div class="rope-visual" id="rope"></div>
+                    </div>
+                    <div class="center-mass" id="cm"></div>
+                </div>
+
+                <div class="footer-ui">
+                    <div class="btn-row">
+                        <button class="btn btn-check" onclick="checkDiagram()">Verificar</button>
+                        <button class="btn btn-retry" onclick="retry()">Corregir</button>
+                        <button class="btn btn-axes" onclick="enableAxesMode()">Definir Ejes</button>
+                        <button class="btn btn-calc" onclick="calculateComponents()">Calcular Componentes</button>
+                        <button class="btn btn-reset" onclick="resetArrows()">Reiniciar Fuerzas</button> 
+                        <button class="btn btn-new" onclick="regenerateCurrent()">Nuevo Ejercicio</button>
+                    </div>
+                    <div id="feedback">Analiza el movimiento y coloca las fuerzas.</div>
+
+                    <!-- PANEL DE RESULTADOS (INLINE) -->
+                    <div id="results-panel">
+                        <h3>📐 Ángulos con los Ejes</h3>
+                        <div id="angles-info" class="angles-info"></div>
+                        
+                        <h3>Expresión Vectorial</h3>
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Fuerza</th>
+                                    <th>Componentes (î, ĵ)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="results-body"></tbody>
+                        </table>
+                        <button class="close-panel" onclick="document.getElementById('results-panel').style.display='none'">Ocultar Tabla</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="credits">Este programa está realizado por Javier Gijón. Prof de IES María Moliner (Segovia)</div>
+    </div>
+
+    <script>
+        let activeScenario = null; 
+        let arrows = [];
+        let axesAngle = 0;
+        const TOLERANCE = 0;
+
+        // Elements
+        const menu = document.getElementById('main-menu');
+        const game = document.getElementById('game-screen');
+        const scene = document.getElementById('scene');
+        const block = document.getElementById('block');
+        const ground = document.getElementById('ground');
+        const rope = document.getElementById('rope');
+        const slider = document.getElementById('angle-slider');
+        const angleVal = document.getElementById('angle-val');
+        const inclineBox = document.getElementById('incline-box');
+        const axesBox = document.getElementById('axes-box');
+        const axesSlider = document.getElementById('axes-slider');
+        const axesVal = document.getElementById('axes-val');
+        const axesOverlay = document.getElementById('axes-overlay');
+        const feedback = document.getElementById('feedback');
+        const titleEl = document.getElementById('sc-title');
+        const tagsEl = document.getElementById('sc-tags');
+        const svgLayer = document.getElementById('angles-svg');
+        const resultsPanel = document.getElementById('results-panel');
+
+        // MAPA DE SÍMBOLOS GRIEGOS ÚNICOS
+        const angleSymbols = {
+            'peso': 'α',        // Alpha
+            'normal': 'β',      // Beta
+            'rozamiento': 'γ',  // Gamma
+            'tension': 'φ',     // Phi
+            'fake': 'δ'         // Delta
+        };
+
+        // --- UTILIDADES ANGULARES ---
+        function normalizeAngle(angle) {
+            let a = angle % 360;
+            if (a < 0) a += 360;
+            return a;
+        }
+
+        function shortestAngularDistance(from, to) {
+            let diff = normalizeAngle(to - from);
+            if (diff > 180) diff -= 360;
+            return diff;
+        }
+
+        // --- CORE GENERATOR ---
+        function generateScenario(type) {
+            // Generar ángulos entre 15 y 75 grados (menores de 90 para mejor comprensión)
+            let incline = (Math.floor(Math.random() * 13) * 5) + 15; // 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75
+            let moveDir = 'right';
+            moveDir = (Math.random() > 0.5) ? 'down-slope' : 'up-slope';
+
+            let config = {
+                type, incline, moveDir,
+                friction: false, rope: false, ropeAngle: 0, ropeSide: 'right', isBraking: false
+            };
+
+            switch(type) {
+                case 'horizontal': 
+                    config.title="Plano Horizontal con Cuerda"; 
+                    config.incline = 0; 
+                    config.moveDir = (Math.random() > 0.5) ? 'right' : 'left'; // Aleatorio derecha o izquierda
+                    config.friction = false; 
+                    config.rope = true;
+                    config.ropeAngle = -(Math.floor(Math.random()*5)*10+20); // Ángulo negativo entre -20 y -60
+                    config.isBraking = (Math.random() > 0.5); // Aleatorio frenando o arrastrando
+                    break;
+                case 'horizontal_fric': 
+                    config.title="Plano Horizontal Cuerda + Rozamiento"; 
+                    config.incline = 0; 
+                    config.moveDir = (Math.random() > 0.5) ? 'right' : 'left'; // Aleatorio derecha o izquierda
+                    config.friction = true; 
+                    config.rope = true;
+                    config.ropeAngle = -(Math.floor(Math.random()*5)*10+20); // Ángulo negativo entre -20 y -60
+                    config.isBraking = (Math.random() > 0.5); // Aleatorio frenando o arrastrando
+                    break;
+                case 'no_fric': config.title="Superficie Lisa"; config.friction=false; break;
+                case 'fric': config.title="Superficie Rugosa"; config.friction=true; break;
+                case 'rope': 
+                    config.title="Cuerda"; config.rope=true; config.friction=(Math.random()>0.5); config.isBraking=(Math.random()>0.5); 
+                    break;
+                case 'rope_angle': 
+                    config.title="Cuerda Ángulo"; config.friction=true; config.rope=true; config.ropeAngle=-(Math.floor(Math.random()*5)*10+20); config.isBraking=(Math.random()>0.5); 
+                    break;
+            }
+
+            if (config.rope) {
+                let movingRight = false;
+                if (config.moveDir === 'right') movingRight = true;
+                else if (config.moveDir === 'left') movingRight = false;
+                else if (config.moveDir === 'down-slope') movingRight = (incline >= 0);
+                else if (config.moveDir === 'up-slope') movingRight = (incline < 0);
+
+                if (config.isBraking) config.ropeSide = movingRight ? 'left' : 'right';
+                else config.ropeSide = movingRight ? 'right' : 'left';
+            }
+
+            let desc = "";
+            let action = "";
+            if (config.incline === 0) desc = (config.moveDir === 'right') ? "Mueve a DERECHA" : "Mueve a IZQUIERDA";
+            else desc = (config.moveDir === 'down-slope') ? "BAJA deslizando" : "SUBE por rampa";
+            if (config.rope) action = config.isBraking ? " (Frenado)" : " (Arrastrado)";
+            config.desc = desc + action + (config.friction ? " • Con Rozamiento" : " • Liso");
+            
+            loadGame(config);
+        }
+
+        function regenerateCurrent() { if (activeScenario) generateScenario(activeScenario.type); }
+
+        function loadGame(config) {
+            activeScenario = config;
+            titleEl.textContent = config.title;
+            tagsEl.textContent = config.desc;
+            slider.value = config.incline;
+            updateWorldRotation();
+            inclineBox.classList.add('disabled'); 
+            
+            // UI Reset
+            axesBox.style.display = 'none';
+            axesOverlay.style.display = 'none';
+            document.getElementById('mini-axes').style.display = 'none';
+            svgLayer.innerHTML = '';
+            resultsPanel.style.display = 'none';
+            document.querySelector('.btn-axes').style.display = 'none';
+            document.querySelector('.btn-calc').style.display = 'none';
+            document.querySelector('.btn-check').style.display = 'block';
+
+            if (config.rope) {
+                rope.style.display = 'block';
+                rope.style.left = 'auto'; rope.style.right = 'auto';
+                
+                if (config.ropeSide === 'right') {
+                    // Cuerda sale por la derecha del bloque
+                    rope.style.left = '50%'; 
+                    rope.style.transformOrigin = '0 50%'; 
+                    rope.style.transform = `rotate(${config.ropeAngle}deg)`;
+                } else {
+                    // Cuerda sale por la izquierda del bloque
+                    rope.style.right = '50%'; 
+                    rope.style.transformOrigin = '100% 50%'; 
+                    // El ángulo se invierte porque está en el lado opuesto
+                    rope.style.transform = `rotate(${-config.ropeAngle}deg)`;
+                }
+            } else { rope.style.display = 'none'; }
+
+            resetArrows();
+            menu.style.display = 'none'; game.style.display = 'flex';
+        }
+
+        function goMenu() { game.style.display = 'none'; menu.style.display = 'flex'; }
+
+        // --- MODAL DE INSTRUCCIONES ---
+        function showInstructions() {
+            document.getElementById('instructions-modal').style.display = 'flex';
+        }
+
+        function closeInstructions() {
+            document.getElementById('instructions-modal').style.display = 'none';
+        }
+
+        // Cerrar modal al hacer clic fuera del contenido
+        document.getElementById('instructions-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeInstructions();
+            }
+        });
+
+        function updateWorldRotation() {
+            const deg = activeScenario.incline;
+            angleVal.textContent = deg + "°";
+            ground.style.transform = `rotate(${deg}deg)`;
+            block.style.transform = `rotate(${deg}deg)`;
+        }
+
+        // --- AXES & COMPONENTS ---
+        slider.addEventListener('input', (e) => updateIncline(parseInt(e.target.value)));
+        axesSlider.addEventListener('input', (e) => updateAxes(parseInt(e.target.value)));
+
+        function updateIncline(deg) { activeScenario.incline = deg; updateWorldRotation(); retry(); }
+
+        function enableAxesMode() {
+            feedback.textContent = "Gira el sistema de referencia para alinearlo con el movimiento.";
+            feedback.style.color = "#34495e";
+            axesBox.style.display = 'block';
+            axesOverlay.style.display = 'block';
+            document.getElementById('mini-axes').style.display = 'block';
+            document.querySelector('.btn-axes').style.display = 'none';
+            document.querySelector('.btn-calc').style.display = 'block';
+            setAxesToIncline();
+        }
+
+        function setAxesToIncline() {
+            axesSlider.value = activeScenario.incline;
+            updateAxes(activeScenario.incline);
+        }
+
+        function updateAxes(deg) {
+            axesAngle = deg;
+            axesVal.textContent = deg + "°";
+            axesOverlay.style.transform = `rotate(${deg}deg)`;
+            document.getElementById('mini-axes-group').setAttribute('transform', `rotate(${deg} 30 30)`);
+            svgLayer.innerHTML = ''; 
+        }
+
+        function drawAngleArc(startAngle, endAngle, radius, color, labelText) {
+            const cx = 350; const cy = 280; 
+            
+            // Normalizar ángulos
+            let start = normalizeAngle(startAngle);
+            let end = normalizeAngle(endAngle);
+            
+            // Calcular diferencia por el camino más corto
+            let diff = shortestAngularDistance(start, end);
+            
+            // Convertir a radianes para SVG
+            const startRad = (start * Math.PI) / 180;
+            const endRad = ((start + diff) * Math.PI) / 180;
+            
+            const x1 = cx + radius * Math.cos(startRad);
+            const y1 = cy + radius * Math.sin(startRad);
+            const x2 = cx + radius * Math.cos(endRad);
+            const y2 = cy + radius * Math.sin(endRad);
+            
+            const largeArcFlag = Math.abs(diff) > 180 ? 1 : 0;
+            const sweepFlag = diff > 0 ? 1 : 0;
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${x2} ${y2}`);
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke", color);
+            path.setAttribute("stroke-width", "2.5");
+            path.setAttribute("stroke-dasharray", "3,2");
+            svgLayer.appendChild(path);
+
+            const midAngle = start + diff/2;
+            const midRad = midAngle * Math.PI / 180;
+            const lx = cx + (radius + 25) * Math.cos(midRad);
+            const ly = cy + (radius + 25) * Math.sin(midRad);
+            
+            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            text.setAttribute("x", lx);
+            text.setAttribute("y", ly);
+            text.setAttribute("fill", color);
+            text.setAttribute("font-size", "16px");
+            text.setAttribute("font-weight", "bold");
+            text.setAttribute("text-anchor", "middle");
+            text.setAttribute("alignment-baseline", "middle");
+            text.setAttribute("style", "text-shadow: 0 0 3px white, 0 0 3px white;");
+            text.textContent = labelText;
+            svgLayer.appendChild(text);
+        }
+
+        function calculateComponents() {
+            // VERIFICAR PRIMERO QUE TODAS LAS FUERZAS ESTÁN CORRECTAMENTE COLOCADAS
+            const inc = activeScenario.incline;
+            const aV = arrows.find(a => a.type === 'velocity');
+            const tV = aV ? aV.angle : 0;
+            
+            let tTension = null;
+            if(activeScenario.rope) {
+                if(activeScenario.ropeSide === 'right') {
+                    tTension = inc + activeScenario.ropeAngle;
+                } else {
+                    tTension = inc + 180 - activeScenario.ropeAngle;
+                }
+            }
+
+            const EXPECTED = { peso: 90, normal: inc - 90, rozamiento: (tV + 180) % 360, tension: tTension };
+            const req = ['peso', 'normal'];
+            if(activeScenario.friction) req.push('rozamiento');
+            if(activeScenario.rope) req.push('tension');
+
+            // Verificar que todas las fuerzas requeridas existen y están correctas
+            let hasErrors = false;
+            let errorMsg = "";
+            
+            req.forEach(t => {
+                const a = arrows.find(ar => ar.type === t);
+                const exp = EXPECTED[t];
+                if(!a) { 
+                    hasErrors = true;
+                    errorMsg += `Falta ${t}. `;
+                } else if(!checkAngle(a.angle, exp)) { 
+                    hasErrors = true;
+                    let aNorm = ((a.angle % 360) + 360) % 360;
+                    let expNorm = ((exp % 360) + 360) % 360;
+                    errorMsg += `${t} incorrecta (tiene ${aNorm}°, debe ser ${expNorm}°). `;
+                }
+            });
+
+            // Verificar que no sobren fuerzas
+            arrows.forEach(a => {
+                if(a.type !== 'velocity' && !req.includes(a.type)) {
+                    hasErrors = true;
+                    errorMsg += `Sobra ${a.type}. `;
+                }
+            });
+
+            if(hasErrors) {
+                feedback.innerHTML = `<strong>⚠️ No se pueden calcular componentes:</strong> ${errorMsg}<br>Usa "Verificar" para ver los errores y corrígelos antes de continuar.`;
+                feedback.style.color = "var(--danger)";
+                return; // NO permitir cálculo si hay errores
+            }
+
+            // SI TODO ESTÁ CORRECTO, PROCEDER CON EL CÁLCULO
+            const tbody = document.getElementById('results-body');
+            const anglesInfo = document.getElementById('angles-info');
+            tbody.innerHTML = '';
+            anglesInfo.innerHTML = '';
+            svgLayer.innerHTML = '';
+            
+            const forces = arrows.filter(a => a.type !== 'velocity');
+            
+            // Ángulos de referencia del sistema de ejes (normalizados)
+            const axisXAngle = normalizeAngle(axesAngle);
+            // El eje Y visual apunta perpendicular a X, 90° en sentido ANTIHORARIO en el plano matemático
+            // Pero en pantalla, arriba es 270°, así que Y está a -90° respecto a X
+            const axisYAngle = normalizeAngle(axesAngle - 90);
+            
+            forces.forEach((f, index) => {
+                const forceAngle = normalizeAngle(f.angle);
+                
+                // Las 4 direcciones de los ejes
+                const dirs = {
+                    '+X': axisXAngle,
+                    '-X': normalizeAngle(axisXAngle + 180),
+                    '+Y': axisYAngle,
+                    '-Y': normalizeAngle(axisYAngle + 180)
+                };
+                
+                // Calcular ángulo desde cada dirección hasta la fuerza
+                let bestDir = '+X';
+                let bestAngle = 999;
+                for (const [name, dirAngle] of Object.entries(dirs)) {
+                    const diff = Math.abs(shortestAngularDistance(dirAngle, forceAngle));
+                    if (diff < bestAngle) {
+                        bestAngle = diff;
+                        bestDir = name;
+                    }
+                }
+                
+                // Corregir ángulos muy pequeños
+                let theta = bestAngle;
+                if (theta < 3) theta = 0;
+                
+                // Determinar eje de referencia y signo
+                const useXasReference = bestDir.includes('X');
+                const referenceAxis = useXasReference ? 'X' : 'Y';
+                
+                // El ángulo con signo desde la dirección del eje elegido hasta la fuerza
+                const refDirAngle = dirs[bestDir];
+                const thetaSigned = shortestAngularDistance(refDirAngle, forceAngle);
+                
+                // Calcular componentes REALES usando el ángulo con cada eje
+                const forceRad = forceAngle * Math.PI / 180;
+                const xAxisRad = axisXAngle * Math.PI / 180;
+                const yAxisRad = axisYAngle * Math.PI / 180;
+                
+                // Proyección sobre eje X: F·cos(ángulo_con_X)
+                let compX = Math.cos(forceRad - xAxisRad);
+                // Proyección sobre eje Y: F·cos(ángulo_con_Y)
+                let compY = Math.cos(forceRad - yAxisRad);
+                
+                // Redondear valores muy cercanos a 0, 1, -1
+                if(Math.abs(compX) < 0.01) compX = 0;
+                if(Math.abs(compX - 1) < 0.01) compX = 1;
+                if(Math.abs(compX + 1) < 0.01) compX = -1;
+                if(Math.abs(compY) < 0.01) compY = 0;
+                if(Math.abs(compY - 1) < 0.01) compY = 1;
+                if(Math.abs(compY + 1) < 0.01) compY = -1;
+
+                const label = document.querySelector(`.force-token[data-type="${f.type}"]`).dataset.label;
+                const color = document.querySelector(`.force-token[data-type="${f.type}"]`).dataset.color;
+                
+                // Radio escalonado para múltiples arcos
+                let radius = 45 + (index * 18);
+                
+                // Obtener símbolo único para esta fuerza
+                const uniqueSymbol = angleSymbols[f.type] || 'θ';
+                
+                // CASO ESPECIAL: PESO con ejes alineados a la rampa
+                const isWeightWithInclinedAxes = (f.type === 'peso' && Math.abs(normalizeAngle(axesAngle) - normalizeAngle(activeScenario.incline)) < 3);
+                
+                let actualSymbol = uniqueSymbol;
+                if (isWeightWithInclinedAxes) {
+                    actualSymbol = 'α'; // Siempre alfa para el peso en rampa
+                }
+                
+                // MOSTRAR ÁNGULOS EN LA INTERFAZ
+                // Redondear theta, pero valores muy pequeños (< 3°) los consideramos 0°
+                let angleDisplay = Math.round(theta);
+                if (theta < 3) angleDisplay = 0; // Si theta original es < 3°, mostrar 0°
+                
+                anglesInfo.innerHTML += `
+                    <div class="angle-item" style="border-left-color: ${color}">
+                        <span class="angle-item-label" style="color: ${color}">${label} con ${referenceAxis}:</span>
+                        <span class="angle-item-value">${actualSymbol} = ${angleDisplay}°</span>
+                    </div>
+                `;
+                
+                // Función para generar término trigonométrico
+                const getTerm = (component, axisName) => {
+                    if (component === 0) return "";
+                    
+                    const absComp = Math.abs(component);
+                    const sign = component > 0 ? "+" : "-";
+                    
+                    // Si la componente es prácticamente 1 o -1 (fuerza alineada con el eje)
+                    if (Math.abs(absComp - 1) < 0.01) {
+                        return `${sign}<span class="mag-symbol">${label}</span>${axisName}`;
+                    }
+                    
+                    // Determinar función trigonométrica correctamente
+                    let trigFunc;
+                    
+                    // La componente en el eje de referencia usa COSENO
+                    // La componente en el eje perpendicular usa SENO
+                    
+                    if (axisName === "î") {
+                        // Componente X
+                        if (useXasReference) {
+                            // X es el eje de referencia → cos
+                            trigFunc = "cos";
+                        } else {
+                            // Y es el eje de referencia, X es perpendicular → sen
+                            trigFunc = "sen";
+                        }
+                    } else {
+                        // Componente Y (ĵ)
+                        if (useXasReference) {
+                            // X es el eje de referencia, Y es perpendicular → sen
+                            trigFunc = "sen";
+                        } else {
+                            // Y es el eje de referencia → cos
+                            trigFunc = "cos";
+                        }
+                    }
+                    
+                    return `${sign}<span class="mag-symbol">${label}</span>·${trigFunc}(${actualSymbol})${axisName}`;
+                };
+                
+                // Generar términos
+                let strX = getTerm(compX, "î");
+                let strY = getTerm(compY, "ĵ");
+                
+                // Limpiar signos iniciales del primer término
+                if(strX.startsWith("+")) strX = strX.substring(1);
+                if(!strX && strY.startsWith("+")) strY = strY.substring(1);
+                
+                // Combinar términos correctamente
+                let combined = "";
+                if(strX && strY) {
+                    // Ambos términos presentes
+                    if(strY.startsWith("-")) {
+                        // Si strY es negativo, ya tiene su signo
+                        combined = `= ${strX} ${strY}`;
+                    } else {
+                        // Si strY es positivo, quitamos el + inicial y añadimos espacio +
+                        const cleanStrY = strY.startsWith("+") ? strY.substring(1) : strY;
+                        combined = `= ${strX} + ${cleanStrY}`;
+                    }
+                } else if (strX) {
+                    combined = `= ${strX}`;
+                } else if (strY) {
+                    combined = `= ${strY}`;
+                } else {
+                    combined = `= 0`;
+                }
+                
+                // Aplicar estilo a vectores unitarios
+                combined = combined.replace(/î/g, '<span class="unit-vec">î</span>');
+                combined = combined.replace(/ĵ/g, '<span class="unit-vec">ĵ</span>');
+                
+                // DIBUJAR ARCO del ángulo
+                if (theta > 2 && theta < 88) {
+                    // Dibujar desde la dirección del eje más cercana hasta la fuerza
+                    drawAngleArc(refDirAngle, forceAngle, radius, color, actualSymbol);
+                }
+                
+                // Agregar fila a la tabla
+                const row = `<tr>
+                    <td><span class="vec-symbol" style="color:${color}">${label}</span></td>
+                    <td>${combined}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+
+            resultsPanel.style.display = 'flex';
+        }
+
+        // --- ARROWS & TOUCH SUPPORT ---
+        let touchGhost = null;
+        let activeTokenData = null;
+
+        document.querySelectorAll('.force-token').forEach(t => {
+            // Mouse Drag
+            t.addEventListener('dragstart', e => {
+                e.dataTransfer.setData('type', t.dataset.type);
+                e.dataTransfer.setData('color', t.dataset.color);
+                e.dataTransfer.setData('label', t.dataset.label);
+            });
+
+            // Touch Drag
+            t.addEventListener('touchstart', (e) => {
+                if(t.classList.contains('used')) return;
+                e.preventDefault(); // Prevenir scroll
+                const touch = e.touches[0];
+                const rect = t.getBoundingClientRect();
+                
+                // Guardar datos
+                activeTokenData = {
+                    type: t.dataset.type,
+                    color: t.dataset.color,
+                    label: t.dataset.label
+                };
+
+                // Crear elemento fantasma
+                touchGhost = t.cloneNode(true);
+                touchGhost.style.position = 'fixed';
+                touchGhost.style.width = rect.width + 'px';
+                touchGhost.style.height = rect.height + 'px';
+                touchGhost.style.opacity = '0.8';
+                touchGhost.style.zIndex = '9999';
+                touchGhost.style.pointerEvents = 'none'; // Que el touch lo atraviese
+                document.body.appendChild(touchGhost);
+
+                updateGhostPos(touch.clientX, touch.clientY);
+            }, {passive: false});
+        });
+
+        // Eventos Globales Touch para el movimiento del fantasma
+        document.addEventListener('touchmove', (e) => {
+            if (touchGhost) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                updateGhostPos(touch.clientX, touch.clientY);
+            }
+        }, {passive: false});
+
+        document.addEventListener('touchend', (e) => {
+            if (touchGhost) {
+                const touch = e.changedTouches[0];
+                const sceneRect = scene.getBoundingClientRect();
+
+                // Verificar si se soltó dentro de la escena
+                if (touch.clientX >= sceneRect.left && touch.clientX <= sceneRect.right &&
+                    touch.clientY >= sceneRect.top && touch.clientY <= sceneRect.bottom) {
+                    
+                    // Calcular coords relativas
+                    const x = touch.clientX - sceneRect.left;
+                    const y = touch.clientY - sceneRect.top;
+                    
+                    processNewArrow(activeTokenData.type, x, y, activeTokenData.color);
+                }
+
+                // Limpieza
+                touchGhost.remove();
+                touchGhost = null;
+                activeTokenData = null;
+            }
+        });
+
+        function updateGhostPos(x, y) {
+            if(touchGhost) {
+                touchGhost.style.left = (x - touchGhost.offsetWidth / 2) + 'px';
+                touchGhost.style.top = (y - touchGhost.offsetHeight / 2) + 'px';
+            }
+        }
+
+        scene.addEventListener('dragover', e => e.preventDefault());
+        scene.addEventListener('drop', handleDrop);
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const type = e.dataTransfer.getData('type');
+            if(!type) return;
+            const rect = scene.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            processNewArrow(type, x, y);
+        }
+
+        // Lógica unificada para crear flecha (Mouse y Touch)
+        function processNewArrow(type, x, y, color) {
+            const dist = Math.hypot(x - 350, y - 280);
+
+            if (type === 'velocity') {
+                if(dist < 60) { feedback.style.color = "#e74c3c"; feedback.textContent = "La velocidad va fuera."; return; }
+                addArrow(type, x, y, 0, false, color);
+            } else {
+                if(dist > 60) { feedback.style.color = "#e74c3c"; feedback.textContent = "Al punto rojo."; return; }
+                if(arrows.find(a => a.type === type)) return;
+                addArrow(type, 350, 280, 0, false, color);
+            }
+            // Mapeo correcto de tipos a clases de tokens
+            const tokenClassMap = {
+                'velocity': 'token-v',
+                'peso': 'token-p',
+                'normal': 'token-n',
+                'rozamiento': 'token-fr',
+                'tension': 'token-t',
+                'fake': 'token-fake'
+            };
+            document.querySelector(`.${tokenClassMap[type]}`)?.classList.add('used');
+            feedback.textContent = ""; feedback.style.color = "#333";
+        }
+
+        function addArrow(type, x, y, angle, isGhost, color) {
+            const c = color || document.querySelector(`.force-token[data-type="${type}"]`).dataset.color;
+            const l = document.querySelector(`.force-token[data-type="${type}"]`).dataset.label;
+            const len = (type === 'velocity') ? 60 : 100;
+            const div = document.createElement('div');
+            div.className = isGhost ? 'arrow ghost' : 'arrow';
+            div.dataset.type = type;
+            div.style.left = x + 'px'; div.style.top = y + 'px';
+            div.style.transform = `rotate(${angle}deg)`;
+            div.innerHTML = `
+                <div class="arrow-line" style="width:${len}px; background:${c}"></div>
+                <div class="arrow-head-zone" style="left:${len}px">
+                    <div class="arrow-triangle" style="border-left-color:${c}"></div>
+                    ${!isGhost ? '<div class="angle-badge">0°</div>' : ''}
+                </div>
+                <div class="arrow-label" style="left:${len+15}px; color:${c}; transform:rotate(${-angle}deg)">${l}</div>
+            `;
+            scene.appendChild(div);
+            if(!isGhost) {
+                const obj = { id: Date.now(), type, el: div, angle, x, y };
+                arrows.push(obj);
+                
+                // Mouse event
+                const head = div.querySelector('.arrow-head-zone');
+                head.addEventListener('mousedown', ev => startRotate(ev, obj));
+                
+                // Touch event (para rotar en móvil)
+                head.addEventListener('touchstart', ev => startRotateTouch(ev, obj), {passive: false});
+            }
+        }
+
+        // Rotación con Ratón
+        function startRotate(e, obj) {
+            e.preventDefault(); e.stopPropagation();
+            const rect = scene.getBoundingClientRect();
+            const cx = rect.left + obj.x; const cy = rect.top + obj.y;
+            const badge = obj.el.querySelector('.angle-badge');
+            const lbl = obj.el.querySelector('.arrow-label');
+            document.body.style.cursor = 'grabbing'; badge.style.display='block';
+
+            function move(ev) {
+                let deg = Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI;
+                deg = Math.round(deg/5)*5;
+                obj.angle = deg;
+                obj.el.style.transform = `rotate(${deg}deg)`;
+                badge.textContent = deg + "°";
+                lbl.style.transform = `rotate(${-deg}deg)`;
+                badge.style.transform = `rotate(${-deg}deg)`;
+            }
+            function up() {
+                document.body.style.cursor = 'default'; badge.style.display='none';
+                document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up);
+            }
+            document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
+        }
+
+        // Rotación con Táctil (Móvil)
+        function startRotateTouch(e, obj) {
+            e.preventDefault(); e.stopPropagation();
+            const rect = scene.getBoundingClientRect();
+            const cx = rect.left + obj.x; const cy = rect.top + obj.y;
+            const badge = obj.el.querySelector('.angle-badge');
+            const lbl = obj.el.querySelector('.arrow-label');
+            badge.style.display='block';
+
+            function move(ev) {
+                ev.preventDefault(); // Evitar scroll mientras se rota
+                const touch = ev.touches[0];
+                let deg = Math.atan2(touch.clientY - cy, touch.clientX - cx) * 180 / Math.PI;
+                deg = Math.round(deg/5)*5;
+                obj.angle = deg;
+                obj.el.style.transform = `rotate(${deg}deg)`;
+                badge.textContent = deg + "°";
+                lbl.style.transform = `rotate(${-deg}deg)`;
+                badge.style.transform = `rotate(${-deg}deg)`;
+            }
+            function end() {
+                badge.style.display='none';
+                document.removeEventListener('touchmove', move); 
+                document.removeEventListener('touchend', end);
+            }
+            document.addEventListener('touchmove', move, {passive: false}); 
+            document.addEventListener('touchend', end);
+        }
+
+        // VERIFICAR
+        function checkDiagram() {
+            document.querySelectorAll('.ghost').forEach(e => e.remove());
+            const vel = arrows.find(a => a.type === 'velocity');
+            let errors = [];
+            const inc = activeScenario.incline;
+            
+            // Como ahora solo usamos ángulos positivos, simplificamos
+            let sDown = inc;  // Bajando por la rampa = ángulo de la rampa
+            let sUp = (inc + 180) % 360;  // Subiendo por la rampa = opuesto al ángulo de la rampa
+            
+            let tV = 0;
+            if(activeScenario.moveDir === 'right') tV = 0;
+            else if(activeScenario.moveDir === 'left') tV = 180;
+            else if(activeScenario.moveDir === 'down-slope') tV = sDown;
+            else tV = sUp;
+
+            if(!vel) { errors.push("Falta Velocidad."); addArrow('velocity', 450, 120, tV, true, '#2ecc71'); }
+            else if(!checkAngle(vel.angle, tV)) { errors.push("Dirección V mal."); vel.el.classList.add('wrong'); addArrow('velocity', vel.x, vel.y, tV, true, '#2ecc71'); }
+            else vel.el.classList.add('correct');
+
+            let tTension = null;
+            if(activeScenario.rope) {
+                // La tensión debe apuntar en la dirección de la cuerda visual
+                if(activeScenario.ropeSide === 'right') {
+                    // Cuerda sale por la derecha: inc + ropeAngle
+                    tTension = inc + activeScenario.ropeAngle;
+                } else {
+                    // Cuerda sale por la izquierda: inc + 180° - ropeAngle
+                    // (porque visualmente la cuerda se dibuja con -ropeAngle desde el lado izquierdo)
+                    tTension = inc + 180 - activeScenario.ropeAngle;
+                }
+            }
+
+            const EXPECTED = { peso: 90, normal: inc - 90, rozamiento: (tV + 180) % 360, tension: tTension };
+            const req = ['peso', 'normal'];
+            if(activeScenario.friction) req.push('rozamiento');
+            if(activeScenario.rope) req.push('tension');
+
+            req.forEach(t => {
+                const a = arrows.find(ar => ar.type === t);
+                const exp = EXPECTED[t];
+                if(!a) { errors.push(`Falta ${t}`); addArrow(t, 350, 280, exp, true, '#95a5a6'); }
+                else if(!checkAngle(a.angle, exp)) { 
+                    let aNorm = ((a.angle % 360) + 360) % 360;
+                    let expNorm = ((exp % 360) + 360) % 360;
+                    errors.push(`${t} incorrecta (tiene ${aNorm}°, debe ser ${expNorm}°)`); 
+                    a.el.classList.add('wrong'); 
+                    addArrow(t, 350, 280, exp, true, '#95a5a6'); 
+                } else a.el.classList.add('correct');
+            });
+
+            arrows.forEach(a => {
+                if(a.type !== 'velocity' && !req.includes(a.type)) {
+                    errors.push(`Sobra ${a.type}`); a.el.classList.add('wrong');
+                }
+            });
+
+            if(errors.length === 0) {
+                feedback.textContent = "✓ ¡PERFECTO! Todas las fuerzas están correctamente colocadas. Ahora define los ejes.";
+                feedback.style.color = "var(--secondary)";
+                document.querySelector('.btn-check').style.display='none';
+                document.querySelector('.btn-axes').style.display='block';
+            } else {
+                feedback.innerHTML = errors.join(", ");
+                feedback.style.color = "var(--danger)";
+                document.querySelector('.btn-retry').style.display='block';
+                document.querySelector('.btn-check').style.display='none';
+            }
+        }
+
+        function checkAngle(a, b) { 
+            // Normalizar ambos ángulos
+            a = ((a % 360) + 360) % 360;
+            b = ((b % 360) + 360) % 360;
+            // Calcular diferencia mínima
+            let d = Math.abs(a - b);
+            if(d > 180) d = 360 - d;
+            return d <= TOLERANCE;
+        }
+        function retry() { 
+            document.querySelectorAll('.ghost').forEach(e => e.remove());
+            document.querySelectorAll('.arrow').forEach(e => e.classList.remove('correct','wrong'));
+            feedback.textContent=""; 
+            document.querySelector('.btn-retry').style.display='none'; 
+            document.querySelector('.btn-check').style.display='block';
+        }
+        function resetArrows() { 
+            retry(); scene.querySelectorAll('.arrow').forEach(e=>e.remove()); arrows=[];
+            document.querySelectorAll('.force-token').forEach(t=>t.classList.remove('used'));
+            document.querySelector('.btn-axes').style.display='none';
+            document.querySelector('.btn-calc').style.display='none';
+            axesBox.style.display='none'; axesOverlay.style.display='none'; document.getElementById('mini-axes').style.display='none'; svgLayer.innerHTML='';
+            resultsPanel.style.display = 'none';
+        }
+
+    </script>
+</body>
+</html>
