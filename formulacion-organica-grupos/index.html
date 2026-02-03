@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Química IES María Moliner</title>
+    <title>Orgánica IES María Moliner</title>
     <style>
         :root {
-            /* Misma paleta moderna Indigo/Rosa que los programas */
+            /* Misma paleta moderna Indigo/Rosa */
             --primary: #6366f1;
             --secondary: #ec4899;
             --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -32,7 +32,7 @@
         .container {
             background: var(--surface);
             width: 100%;
-            max-width: 500px;
+            max-width: 800px; /* Más ancho para acomodar la parrilla */
             border-radius: var(--radius);
             box-shadow: 0 20px 40px rgba(0,0,0,0.25);
             overflow: hidden;
@@ -80,9 +80,10 @@
             font-size: 1rem;
         }
 
+        /* Grid adaptativo */
         .menu-grid {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 20px;
             padding: 30px;
         }
@@ -94,7 +95,7 @@
             background: white;
             border: 2px solid #f1f5f9;
             border-radius: 20px;
-            padding: 20px;
+            padding: 15px 20px;
             text-decoration: none;
             color: var(--text);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -110,27 +111,29 @@
         }
 
         .icon-box {
-            width: 60px;
-            height: 60px;
-            border-radius: 15px;
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
-            margin-right: 20px;
+            font-size: 1.5rem;
+            margin-right: 15px;
             flex-shrink: 0;
+            background: #f8fafc;
         }
 
-        /* Colores específicos para cada botón */
-        .link-binarios .icon-box { background: #ecfdf5; color: #059669; }
-        .link-ternarios .icon-box { background: #eff6ff; color: #6366f1; }
+        /* Colores sutiles para diferenciar grupos */
+        .link-hidro .icon-box { background: #ecfdf5; color: #059669; } /* Verde */
+        .link-oxy .icon-box { background: #eff6ff; color: #3b82f6; } /* Azul */
+        .link-nitro .icon-box { background: #fdf2f8; color: #db2777; } /* Rosa */
 
         .text-box { text-align: left; }
-        .text-box h2 { margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--text); }
-        .text-box p { margin: 5px 0 0; font-size: 0.85rem; color: var(--text-light); }
+        .text-box h2 { margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text); }
+        .text-box p { margin: 3px 0 0; font-size: 0.8rem; color: var(--text-light); }
 
         .footer-credits {
-            margin-top: 20px;
+            margin-top: 10px;
             font-size: 0.8rem;
             color: #94a3b8;
             border-top: 1px solid #f1f5f9;
@@ -146,28 +149,69 @@
 
     <div class="container">
         <header>
-            <div class="badge">Aprenderás todas las nomenclaturas</div>
-            <h1>Formulación Inorgánica</h1>
-            <p class="subtitle">Selecciona el nivel de entrenamiento</p>
+            <div class="badge">Química del Carbono</div>
+            <h1>Entrenador de Orgánica</h1>
+            <p class="subtitle">Selecciona la familia de compuestos</p>
         </header>
 
         <div class="menu-grid">
             
-            <!-- ENLACE AL PROGRAMA DE BINARIOS -->
-            <a href="binarios.html" target="_blank" class="app-link link-binarios">
-                <div class="icon-box">⚛️</div>
+            <!-- GRUPO 1: HIDROCARBUROS -->
+            <a href="saturados.html" target="_blank" class="app-link link-hidro">
+                <div class="icon-box">🧱</div>
                 <div class="text-box">
-                    <h2>Compuestos Binarios</h2>
-                    <p>Óxidos, Hidruros, Sales Binarias e Hidróxidos.</p>
+                    <h2>Saturados</h2>
+                    <p>Alcanos lineales y ramificados</p>
                 </div>
             </a>
 
-            <!-- ENLACE AL PROGRAMA DE TERNARIOS -->
-            <a href="ternarios.html" target="_blank" class="app-link link-ternarios">
-                <div class="icon-box">🧪</div>
+            <a href="insaturados.html" target="_blank" class="app-link link-hidro">
+                <div class="icon-box">⛓️</div>
                 <div class="text-box">
-                    <h2>Compuestos Ternarios</h2>
-                    <p>Oxoácidos, Oxisales y Sales Ácidas.</p>
+                    <h2>Insaturados</h2>
+                    <p>Alquenos y Alquinos</p>
+                </div>
+            </a>
+
+            <a href="ciclos.html" target="_blank" class="app-link link-hidro">
+                <div class="icon-box">🔄</div>
+                <div class="text-box">
+                    <h2>Cíclicos</h2>
+                    <p>Cicloalcanos y aromáticos</p>
+                </div>
+            </a>
+
+            <!-- GRUPO 2: OXIGENADOS -->
+            <a href="oxigenados.html" target="_blank" class="app-link link-oxy">
+                <div class="icon-box">🍺</div>
+                <div class="text-box">
+                    <h2>Oxigenados I</h2>
+                    <p>Alcoholes, Aldehídos y Cetonas</p>
+                </div>
+            </a>
+
+            <a href="eteres.html" target="_blank" class="app-link link-oxy">
+                <div class="icon-box">🔗</div>
+                <div class="text-box">
+                    <h2>Éteres</h2>
+                    <p>Derivados alcoxi</p>
+                </div>
+            </a>
+
+            <a href="acidos.html" target="_blank" class="app-link link-oxy">
+                <div class="icon-box">🍋</div>
+                <div class="text-box">
+                    <h2>Ácidos y Ésteres</h2>
+                    <p>Ácidos carboxílicos y derivados</p>
+                </div>
+            </a>
+
+            <!-- GRUPO 3: NITROGENADOS -->
+            <a href="nitrogenados.html" target="_blank" class="app-link link-nitro">
+                <div class="icon-box">🧬</div>
+                <div class="text-box">
+                    <h2>Nitrogenados</h2>
+                    <p>Aminas, Amidas, Nitrilos y Nitro</p>
                 </div>
             </a>
 
