@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio de Cinemática - IES María Moliner</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body style="margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;">
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Iconos SVG
+        const Play = ({ size = 16 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{display:'inline-block',verticalAlign:'middle'}}>
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+        );
+        const Pause = ({ size = 16 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{display:'inline-block',verticalAlign:'middle'}}>
+                <rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+        );
+        const RotateCcw = ({ size = 16 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{display:'inline-block',verticalAlign:'middle'}}>
+                <polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+            </svg>
+        );
+        const TrendingUp = ({ size = 12 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{display:'inline-block',verticalAlign:'middle'}}>
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline>
+            </svg>
+        );
+
+        const App = () => {
+            const MAX_TIME = 20;
+            const [initialR, setInitialR] = useState(0);
+            const [initialV, setInitialV] = useState(1);
+            const [initialA, setInitialA] = useState(0);
+            const [rBase, setRBase] = useState(0);
+            const [vBase, setVBase] = useState(1);
+            const [acc, setAcc] = useState(0);
+            const [status, setStatus] = useState('idle');
+            const [time, setTime] = useState(0);
+            const [lastCheckTime, setLastCheckTime] = useState(0);
+            const [intervalId, setIntervalId] = useState(0);
+            const [history, setHistory] = useState([]);
+            const [changeMarkers, setChangeMarkers] = useState([]);
+            const [editV, setEditV] = useState(1);
+            const [editA, setEditA] = useState(0);
+
+            const requestRef = useRef();
+            const lastTimeRef = useRef();
+
+            const tTramo = time - lastCheckTime;
+            const currentPos = rBase + vBase * tTramo + 0.5 * acc * Math.pow(tTramo, 2);
+            const currentVel = vBase + acc * tTramo;
+
+            const animate = (t) => {
+                if (status === 'running') {
+                    if (lastTimeRef.current !== undefined) {
+                        const dt = (t - lastTimeRef.current) / 1000;
+                        setTime(prev => {
+                            const nextTime = Math.min(prev + dt, MAX_TIME);
+                            const deltaT = nextTime - lastCheckTime;
+                            if (nextTime >= MAX_TIME) setStatus('paused');
+                            if (Math.floor(t / 30) % 2 === 0 || nextTime === MAX_TIME) {
+                                setHistory(h => [...h, {
+                                    t: nextTime,
+                                    r: rBase + vBase * deltaT + 0.5 * acc * Math.pow(deltaT, 2),
+                                    v: vBase + acc * deltaT,
+                                    a: acc,
+                                    segment: intervalId
+                                }]);
+                            }
+                            return nextTime;
+                        });
+                    }
+                    lastTimeRef.current = t;
+                }
+                requestRef.current = requestAnimationFrame(animate);
+            };
+
+            useEffect(() => {
+                requestRef.current = requestAnimationFrame(animate);
+                return () => {
+                    if (requestRef.current) cancelAnimationFrame(requestRef.current);
+                };
+            }, [status, rBase, vBase, acc, time, lastCheckTime, intervalId]);
+
+            const handleToggle = () => {
+                if (status === 'idle') {
+                    setRBase(initialR);
+                    setVBase(initialV);
+                    setAcc(initialA);
+                    setEditV(initialV);
+                    setEditA(initialA);
+                    setStatus('running');
+                    setChangeMarkers([0]);
+                } else if (status === 'running') {
+                    setStatus('paused');
+                    setEditV(Math.round(currentVel));
+                    setEditA(acc);
+                } else {
+                    if (time >= MAX_TIME) return;
+                    setChangeMarkers(prev => [...prev, time]);
+                    setRBase(currentPos);
+                    setVBase(editV);
+                    setAcc(editA);
+                    setLastCheckTime(time);
+                    setIntervalId(prev => prev + 1);
+                    lastTimeRef.current = undefined;
+                    setStatus('running');
+                }
+            };
+
+            const handleReset = () => {
+                setStatus('idle');
+                setTime(0);
+                setLastCheckTime(0);
+                setIntervalId(0);
+                setHistory([]);
+                setChangeMarkers([]);
+                lastTimeRef.current = undefined;
+            };
+
+            const renderGraph = (data, key, color, label, unit) => {
+                const width = 100, height = 40;
+                if (data.length === 0) {
+                    return (
+                        <div style={{height:'176px',background:'rgba(255,255,255,0.4)',borderRadius:'24px',border:'2px solid #d1d5db',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'10px',color:'#64748b',textTransform:'uppercase',fontFamily:'monospace',fontStyle:'italic',flex:1,minWidth:'300px'}}>
+                            Sin datos
+                        </div>
+                    );
+                }
+
+                const values = data.map(d => d[key]);
+                let minVal = Math.min(...values), maxVal = Math.max(...values);
+                const diff = maxVal - minVal, padding = diff === 0 ? 1 : diff * 0.2;
+                minVal -= padding; maxVal += padding;
+                const range = maxVal - minVal, zeroY = height - ((0 - minVal) / range) * height;
+
+                const segments = [];
+                let currentSegment = [], lastSegmentId = data[0].segment;
+                data.forEach((d) => {
+                    if (d.segment !== lastSegmentId) {
+                        segments.push(currentSegment);
+                        currentSegment = [d];
+                        lastSegmentId = d.segment;
+                    } else {
+                        currentSegment.push(d);
+                    }
+                });
+                segments.push(currentSegment);
+
+                const getColor = () => color.includes('indigo') ? '#6366f1' : color.includes('emerald') ? '#10b981' : '#ef4444';
+
+                const zeroCrossings = [];
+                if (key === 'r' || key === 'v') {
+                    for (let i = 1; i < data.length; i++) {
+                        const prev = data[i - 1], curr = data[i];
+                        const hasCrossing = (prev[key] < -0.05 && curr[key] > 0.05) || (prev[key] > 0.05 && curr[key] < -0.05);
+                        if (hasCrossing) {
+                            const ratio = Math.abs(prev[key]) / (Math.abs(prev[key]) + Math.abs(curr[key]));
+                            const crossTime = prev.t + (curr.t - prev.t) * ratio;
+                            const isNearChange = changeMarkers.some(mTime => Math.abs(mTime - crossTime) < 0.2);
+                            if (!isNearChange) zeroCrossings.push(crossTime);
+                        }
+                    }
+                }
+
+                return (
+                    <div style={{background:'white',padding:'20px',borderRadius:'24px',border:'2px solid #d1d5db',flex:1,boxShadow:'0 4px 6px rgba(0,0,0,0.1)',display:'flex',flexDirection:'column',minWidth:'300px'}}>
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'24px'}}>
+                            <span style={{fontSize:'14px',fontWeight:'bold',color:getColor(),textTransform:'uppercase',letterSpacing:'0.05em'}}>{label} ({unit})</span>
+                            <span style={{color:getColor(),fontFamily:'monospace',fontSize:'12px',fontWeight:'bold',background:'#f3f4f6',padding:'4px 12px',borderRadius:'8px',border:'1px solid #d1d5db'}}>
+                                {data[data.length-1][key].toFixed(2)} {unit}
+                            </span>
+                        </div>
+                        <div style={{position:'relative',flexGrow:1,minHeight:'150px',width:'100%'}}>
+                            <svg style={{width:'100%',height:'100%',overflow:'visible'}} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+                                <line x1="0" y1="0" x2="0" y2={height} stroke="#94a3b8" strokeWidth="0.5" />
+                                <line x1="0" y1={height} x2={width} y2={height} stroke="#94a3b8" strokeWidth="0.5" />
+                                {zeroY >= 0 && zeroY <= height && <line x1="0" y1={zeroY} x2={width} y2={zeroY} stroke="#cbd5e1" strokeWidth="0.4" />}
+                                <text x={width / 2} y={height + 4} fontSize="2.5" fill="#64748b" textAnchor="middle" fontWeight="bold">t (s)</text>
+                                
+                                {zeroCrossings.map((crossTime, idx) => {
+                                    const xPos = (crossTime / MAX_TIME) * width;
+                                    return (
+                                        <g key={`cross-${idx}`}>
+                                            <line x1={xPos} y1="0" x2={xPos} y2={height} stroke="#9333ea" strokeWidth="0.4" strokeDasharray="0.8,0.8" opacity="0.6" />
+                                            <circle cx={xPos} cy={zeroY} r="1.5" fill="#9333ea" stroke="white" strokeWidth="0.3" />
+                                            <text x={xPos} y="-1" fontSize="2.2" fill="#9333ea" textAnchor="middle" fontWeight="bold">{crossTime.toFixed(1)}s</text>
+                                        </g>
+                                    );
+                                })}
+                                
+                                {changeMarkers.map((mTime, idx) => {
+                                    const xPos = (mTime / MAX_TIME) * width;
+                                    const dataAtTime = data.find(d => Math.abs(d.t - mTime) < 0.1);
+                                    const yPos = dataAtTime ? height - ((dataAtTime[key] - minVal) / range) * height : height/2;
+                                    return (
+                                        <g key={idx}>
+                                            <line x1={xPos} y1="0" x2={xPos} y2={height} stroke="#64748b" strokeWidth="0.3" strokeDasharray="1,1" opacity="0.5" />
+                                            <circle cx={xPos} cy={yPos} r="1.2" fill={getColor()} stroke="white" strokeWidth="0.3" />
+                                            <text x={xPos} y="-1" fontSize="2.2" fill="#64748b" textAnchor="middle" fontWeight="bold">{mTime.toFixed(1)}s</text>
+                                            {dataAtTime && (
+                                                <text x={xPos} y={yPos < height / 2 ? yPos + 3 : yPos - 1.5} fontSize="2.2" fill={getColor()} textAnchor="middle" fontWeight="bold">
+                                                    {dataAtTime[key].toFixed(1)}
+                                                </text>
+                                            )}
+                                        </g>
+                                    );
+                                })}
+
+                                {segments.map((seg, segIdx) => {
+                                    const points = seg.map(d => {
+                                        const x = (d.t / MAX_TIME) * width;
+                                        const y = height - ((d[key] - minVal) / range) * height;
+                                        return `${x},${y}`;
+                                    }).join(' ');
+                                    let connectionPoint = null;
+                                    if (segIdx > 0 && segments[segIdx - 1].length > 0) {
+                                        const lastPrevPoint = segments[segIdx - 1][segments[segIdx - 1].length - 1];
+                                        const firstCurrPoint = seg[0];
+                                        const x1 = (lastPrevPoint.t / MAX_TIME) * width;
+                                        const y1 = height - ((lastPrevPoint[key] - minVal) / range) * height;
+                                        const x2 = (firstCurrPoint.t / MAX_TIME) * width;
+                                        const y2 = height - ((firstCurrPoint[key] - minVal) / range) * height;
+                                        connectionPoint = { x1, y1, x2, y2 };
+                                    }
+                                    return (
+                                        <g key={segIdx}>
+                                            {connectionPoint && (
+                                                <line x1={connectionPoint.x1} y1={connectionPoint.y1} x2={connectionPoint.x2} y2={connectionPoint.y2} stroke={getColor()} strokeWidth="0.2" strokeDasharray="0.5,0.5" opacity="0.4" />
+                                            )}
+                                            <polyline points={points} fill="none" stroke={getColor()} strokeWidth="0.6" strokeLinejoin="round" strokeLinecap="round" />
+                                        </g>
+                                    );
+                                })}
+                            </svg>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div style={{minHeight:'100vh',background:'linear-gradient(to bottom right, #eff6ff, #ffffff, #eff6ff)',color:'#1e293b',padding:'24px'}}>
+                    <div style={{maxWidth:'1800px',margin:'0 auto'}}>
+                        <div style={{textAlign:'center',marginBottom:'40px'}}>
+                            <h1 style={{fontSize:'48px',fontWeight:'900',background:'linear-gradient(to right, #4f46e5, #9333ea, #ec4899)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',marginBottom:'12px'}}>
+                                Laboratorio de Cinemática
+                            </h1>
+                            <p style={{color:'#64748b',fontSize:'14px'}}>
+                                Movimiento rectilíneo uniformemente acelerado con escenario móvil y gráficas suavizadas
+                            </p>
+                        </div>
+
+                        <div style={{display:'grid',gridTemplateColumns:'repeat(12, 1fr)',gap:'24px'}}>
+                            <div style={{gridColumn:'span 3'}}>
+                                <div style={{marginBottom:'24px'}}>
+                                    <section style={{background:'linear-gradient(to bottom right, #ffffff, #eff6ff)',border:'2px solid #bfdbfe',padding:'24px',borderRadius:'24px',boxShadow:'0 4px 6px rgba(0,0,0,0.1)'}}>
+                                        <div style={{fontSize:'12px',fontWeight:'bold',color:'#64748b',textTransform:'uppercase',marginBottom:'24px',textAlign:'center',letterSpacing:'0.1em'}}>Panel de Control</div>
+                                        <div style={{display:'flex',gap:'12px',marginBottom:'24px'}}>
+                                            <button onClick={handleToggle} style={{flex:1,padding:'16px 24px',borderRadius:'16px',fontWeight:'bold',fontSize:'14px',textTransform:'uppercase',transition:'all 0.2s',boxShadow:'0 4px 6px rgba(0,0,0,0.1)',background:status === 'running' ? '#ea580c' : '#10b981',color:'white',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
+                                                {status === 'running' ? <><Pause size={16} /> Pausar</> : <><Play size={16} /> {status === 'idle' ? 'Iniciar' : 'Reanudar'}</>}
+                                            </button>
+                                            <button onClick={handleReset} style={{padding:'16px 20px',borderRadius:'16px',fontWeight:'bold',fontSize:'14px',textTransform:'uppercase',transition:'all 0.2s',boxShadow:'0 4px 6px rgba(0,0,0,0.1)',background:'#3b82f6',color:'white',border:'none',cursor:'pointer'}}>
+                                                <RotateCcw size={16} />
+                                            </button>
+                                        </div>
+
+                                        <div style={{display:'flex',flexDirection:'column',gap:'20px'}}>
+                                            <div>
+                                                <div style={{display:'flex',justifyContent:'space-between',fontSize:'12px',marginBottom:'12px',color:'#334155',fontWeight:'bold'}}>
+                                                    <span>Posición Inicial (r₀)</span>
+                                                    <span style={{color:'#4f46e5',fontFamily:'monospace',background:'#e0e7ff',padding:'4px 8px',borderRadius:'4px',fontWeight:'900'}}>
+                                                        {status === 'idle' ? initialR : currentPos.toFixed(1)}m
+                                                    </span>
+                                                </div>
+                                                <input type="range" min="-30" max="80" step="1" value={status === 'idle' ? initialR : currentPos} onChange={(e) => {setInitialR(parseInt(e.target.value));setRBase(parseInt(e.target.value));}} disabled={status !== 'idle'} style={{width:'100%',accentColor:'#4f46e5'}} />
+                                            </div>
+
+                                            <div style={{opacity:(status === 'paused' && acc !== 0) ? 0.3 : 1}}>
+                                                <div style={{display:'flex',justifyContent:'space-between',fontSize:'12px',marginBottom:'12px',color:'#334155',fontWeight:'bold'}}>
+                                                    <span>Velocidad (v)</span>
+                                                    <span style={{color:'#10b981',fontFamily:'monospace',background:'#d1fae5',padding:'4px 8px',borderRadius:'4px',fontWeight:'900'}}>
+                                                        {(status === 'paused' ? editV : (status === 'idle' ? initialV : currentVel)).toFixed(1)} m/s
+                                                    </span>
+                                                </div>
+                                                <input type="range" min="-4" max="4" step="1" value={status === 'paused' ? editV : initialV} onChange={(e) => status === 'paused' ? setEditV(parseInt(e.target.value)) : setInitialV(parseInt(e.target.value))} disabled={status === 'running' || (status === 'paused' && acc !== 0)} style={{width:'100%',accentColor:'#10b981'}} />
+                                                {status === 'paused' && acc !== 0 && (
+                                                    <p style={{fontSize:'9px',color:'#dc2626',marginTop:'8px',textTransform:'uppercase',fontWeight:'bold',fontStyle:'italic'}}>
+                                                        V bloqueada: Hay aceleración activa
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <div>
+                                                <div style={{display:'flex',justifyContent:'space-between',fontSize:'12px',marginBottom:'12px',color:'#334155',fontWeight:'bold'}}>
+                                                    <span>Aceleración (a)</span>
+                                                    <span style={{color:'#dc2626',fontFamily:'monospace',background:'#fee2e2',padding:'4px 8px',borderRadius:'4px',fontWeight:'900'}}>
+                                                        {status === 'paused' ? editA : (status === 'idle' ? initialA : acc)} m/s²
+                                                    </span>
+                                                </div>
+                                                <input type="range" min="-4" max="4" step="1" value={status === 'paused' ? editA : initialA} onChange={(e) => status === 'paused' ? setEditA(parseInt(e.target.value)) : setInitialA(parseInt(e.target.value))} disabled={status === 'running'} style={{width:'100%',accentColor:'#dc2626'}} />
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
+                            </div>
+
+                            <div style={{gridColumn:'span 9'}}>
+                                <div style={{display:'flex',flexDirection:'column',gap:'24px'}}>
+                                    
+                                    <div style={{background:'linear-gradient(to bottom, #bae6fd, #e0f2fe, #dcfce7)',border:'2px solid #93c5fd',borderRadius:'24px',padding:'32px',position:'relative',overflow:'hidden',height:'320px',display:'flex',alignItems:'center',boxShadow:'0 4px 6px rgba(0,0,0,0.1)'}}>
+                                        
+                                        <div style={{position:'absolute',top:0,left:0,width:'100%',height:'50%',background:'linear-gradient(to bottom, rgba(186,230,253,0.3), transparent)'}}></div>
+                                        
+                                        <div style={{position:'absolute',bottom:'160px',left:0,width:'100%',height:'128px',opacity:0.3,transition:'transform 0.1s',transform:`translateX(${-currentPos * 1.5}px)`}}>
+                                            <svg viewBox="0 0 1200 100" style={{width:'100%',height:'100%'}} preserveAspectRatio="none">
+                                                <polygon points="0,100 200,20 400,60 600,10 800,50 1000,30 1200,70 1200,100" fill="#94a3b8" />
+                                            </svg>
+                                        </div>
+
+                                        <div style={{position:'absolute',bottom:0,left:0,width:'100%',height:'128px',background:'linear-gradient(to top, #bbf7d0, transparent)'}}></div>
+                                        <div style={{position:'absolute',width:'100%',height:'12px',background:'#9ca3af',bottom:'112px',left:0}}></div>
+                                        <div style={{position:'absolute',width:'100%',height:'4px',background:'#6b7280',bottom:'112px',left:0}}></div>
+                                        
+                                        <div style={{position:'absolute',bottom:'112px',left:0,width:'100%',height:'2px',display:'flex',gap:'48px',transition:'transform 0.1s',transform:`translateX(${-currentPos * 5.5}px)`}}>
+                                            {Array.from({length:50}).map((_,i) => <div key={i} style={{width:'32px',height:'2px',background:'#fbbf24'}}></div>)}
+                                        </div>
+
+                                        <div style={{position:'absolute',left:0,width:'100%',transition:'transform 0.1s',transform:`translateX(${-currentPos * 2}px)`,bottom:'112px',zIndex:25}}>
+                                            {Array.from({length:1}).map((_,i) => {
+                                                const xPos = 200;
+                                                return (
+                                                    <div key={`far-${i}`} style={{position:'absolute',display:'flex',flexDirection:'column',alignItems:'center',opacity:0.3,left:`calc(50% + ${xPos}px)`}}>
+                                                        <div style={{position:'relative'}}>
+                                                            <div style={{width:'8px',height:'48px',background:'#065f46',borderRadius:'4px 4px 0 0'}}></div>
+                                                            <div style={{position:'absolute',top:'-24px',left:'-16px',width:'40px',height:'40px',background:'#047857',borderRadius:'50%'}}></div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+
+                                        <div style={{position:'absolute',left:0,width:'100%',transition:'transform 0.1s',transform:`translateX(${-currentPos * 5.5}px)`,bottom:'112px',zIndex:30}}>
+                                            {Array.from({length:2}).map((_,i) => {
+                                                const positions = [-50, 25];
+                                                const pos = positions[i];
+                                                const isMarker = pos % 25 === 0;
+                                                return (
+                                                    <div key={i} style={{position:'absolute',display:'flex',flexDirection:'column',alignItems:'center',opacity:isMarker ? 0.9 : 0.6,left:`calc(50% + ${pos * 5.5}px)`}}>
+                                                        <div style={{position:'relative'}}>
+                                                            <div style={{width:'12px',height:'80px',background:'linear-gradient(to bottom, #b45309, #78350f)',borderRadius:'2px 2px 0 0'}}></div>
+                                                            <div style={{position:'absolute',top:'-32px',left:'-24px',width:'56px',height:'64px',background:'linear-gradient(to bottom right, #10b981, #047857)',borderRadius:'50%'}}></div>
+                                                            <div style={{position:'absolute',top:'-40px',left:'-16px',width:'40px',height:'48px',background:'linear-gradient(to bottom right, #34d399, #059669)',borderRadius:'50%'}}></div>
+                                                            <div style={{position:'absolute',top:'-24px',left:'-8px',width:'24px',height:'32px',background:'linear-gradient(to bottom right, #6ee7b7, #10b981)',borderRadius:'50%'}}></div>
+                                                        </div>
+                                                        {isMarker && (
+                                                            <div style={{display:'flex',flexDirection:'column',alignItems:'center',marginTop:'8px'}}>
+                                                                <div style={{width:'2px',height:'16px',background:'#4b5563'}}></div>
+                                                                <span style={{fontSize:'9px',fontFamily:'monospace',marginTop:'4px',color:'#334155',background:'rgba(255,255,255,0.9)',padding:'2px 8px',borderRadius:'4px',fontWeight:'bold',border:'1px solid #d1d5db'}}>
+                                                                    {pos}m
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+
+                                        <div style={{position:'absolute',left:'50%',transform:'translateX(-50%)',display:'flex',flexDirection:'column',alignItems:'center',zIndex:20,bottom:'120px'}}>
+                                            
+                                            {/* Flecha de Velocidad */}
+                                            <div style={{position:'absolute',top:'-64px',transition:'all 0.15s'}}>
+                                                {/* Texto siempre legible arriba */}
+                                                <div style={{position:'absolute',top:'-10px',left:'50%',transform:'translateX(-50%)',whiteSpace:'nowrap',fontSize:'13px',color:'#10b981',fontWeight:'bold'}}>
+                                                    v={currentVel.toFixed(1)} m/s
+                                                </div>
+                                                {/* Flecha que cambia de dirección */}
+                                                <svg width={Math.abs(currentVel) * 12 + 15} height="35" style={{overflow:'visible',position:'relative',left:currentVel >= 0 ? '0' : `-${Math.abs(currentVel) * 12 + 15}px`}}>
+                                                    <defs>
+                                                        <marker id="arrowhead-v" markerWidth="8" markerHeight="8" refX="7" refY="2.5" orient="auto">
+                                                            <polygon points="0 0, 8 2.5, 0 5" fill="#10b981" />
+                                                        </marker>
+                                                    </defs>
+                                                    {Math.abs(currentVel) > 0.1 && (
+                                                        <line 
+                                                            x1={currentVel >= 0 ? "5" : String(Math.abs(currentVel) * 12 + 10)} 
+                                                            y1="25" 
+                                                            x2={currentVel >= 0 ? String(Math.abs(currentVel) * 12 + 8) : "7"} 
+                                                            y2="25" 
+                                                            stroke="#10b981" 
+                                                            strokeWidth="2.5" 
+                                                            markerEnd="url(#arrowhead-v)" 
+                                                        />
+                                                    )}
+                                                </svg>
+                                            </div>
+
+                                            {/* Flecha de Aceleración */}
+                                            <div style={{position:'absolute',top:'70px',transition:'all 0.15s'}}>
+                                                {/* Flecha que cambia de dirección */}
+                                                <svg width={Math.abs(acc) * 12 + 15} height="35" style={{overflow:'visible',position:'relative',left:acc >= 0 ? '0' : `-${Math.abs(acc) * 12 + 15}px`}}>
+                                                    <defs>
+                                                        <marker id="arrowhead-a" markerWidth="8" markerHeight="8" refX="7" refY="2.5" orient="auto">
+                                                            <polygon points="0 0, 8 2.5, 0 5" fill="#ef4444" />
+                                                        </marker>
+                                                    </defs>
+                                                    {Math.abs(acc) > 0.1 && (
+                                                        <line 
+                                                            x1={acc >= 0 ? "5" : String(Math.abs(acc) * 12 + 10)} 
+                                                            y1="10" 
+                                                            x2={acc >= 0 ? String(Math.abs(acc) * 12 + 8) : "7"} 
+                                                            y2="10" 
+                                                            stroke="#ef4444" 
+                                                            strokeWidth="2.5" 
+                                                            markerEnd="url(#arrowhead-a)" 
+                                                        />
+                                                    )}
+                                                </svg>
+                                                {/* Texto siempre legible abajo */}
+                                                <div style={{position:'absolute',bottom:'-20px',left:'50%',transform:'translateX(-50%)',whiteSpace:'nowrap',fontSize:'13px',color:'#ef4444',fontWeight:'bold'}}>
+                                                    a={acc} m/s²
+                                                </div>
+                                            </div>
+
+                                            <svg width="100" height="50" viewBox="0 0 100 50" style={{filter:'drop-shadow(0 10px 20px rgba(0,0,0,0.3))'}}>
+                                                <ellipse cx="50" cy="48" rx="35" ry="4" fill="#000" opacity="0.3" />
+                                                <path d="M15 38 L85 38 L80 20 L70 18 L30 18 L20 20 Z" fill="#3b82f6" stroke="#1e40af" strokeWidth="1.5" />
+                                                <path d="M30 18 L35 12 L65 12 L70 18" fill="#60a5fa" stroke="#1e40af" strokeWidth="1.5" />
+                                                <rect x="32" y="15" width="14" height="10" fill="#7dd3fc" opacity="0.6" stroke="#1e40af" strokeWidth="0.5" />
+                                                <rect x="54" y="15" width="14" height="10" fill="#7dd3fc" opacity="0.6" stroke="#1e40af" strokeWidth="0.5" />
+                                                <circle cx="78" cy="33" r="2.5" fill="#fef08a" stroke="#fbbf24" strokeWidth="1" />
+                                                <circle cx="22" cy="33" r="2.5" fill="#fca5a5" />
+                                                <g>
+                                                    <circle cx="28" cy="40" r="7" fill="#1f2937" stroke="#374151" strokeWidth="2" />
+                                                    <circle cx="28" cy="40" r="5" fill="#111827" style={{transformOrigin:'28px 40px',animation:status === 'running' ? `spin-wheel ${Math.abs(currentVel) > 0.1 ? 2 / Math.max(0.3, Math.abs(currentVel)) : 999}s linear infinite` : 'none'}} />
+                                                    <line x1="28" y1="35" x2="28" y2="45" stroke="#4b5563" strokeWidth="1" />
+                                                    <line x1="23" y1="40" x2="33" y2="40" stroke="#4b5563" strokeWidth="1" />
+                                                </g>
+                                                <g>
+                                                    <circle cx="72" cy="40" r="7" fill="#1f2937" stroke="#374151" strokeWidth="2" />
+                                                    <circle cx="72" cy="40" r="5" fill="#111827" style={{transformOrigin:'72px 40px',animation:status === 'running' ? `spin-wheel ${Math.abs(currentVel) > 0.1 ? 2 / Math.max(0.3, Math.abs(currentVel)) : 999}s linear infinite` : 'none'}} />
+                                                    <line x1="72" y1="35" x2="72" y2="45" stroke="#4b5563" strokeWidth="1" />
+                                                    <line x1="67" y1="40" x2="77" y2="40" stroke="#4b5563" strokeWidth="1" />
+                                                </g>
+                                            </svg>
+                                        </div>
+
+                                        <div style={{position:'absolute',top:'16px',left:'50%',transform:'translateX(-50%)',background:'rgba(255,255,255,0.95)',padding:'8px 16px',borderRadius:'12px',border:'2px solid #93c5fd',boxShadow:'0 4px 6px rgba(0,0,0,0.1)',display:'flex',gap:'16px',alignItems:'center'}}>
+                                            <div style={{textAlign:'center'}}>
+                                                <span style={{fontSize:'8px',color:'#64748b',textTransform:'uppercase',fontWeight:'bold',display:'block'}}>Tiempo</span>
+                                                <div style={{fontSize:'16px',fontWeight:'900',color:'#1e293b',fontFamily:'monospace'}}>{time.toFixed(2)}<span style={{fontSize:'12px'}}>s</span></div>
+                                            </div>
+                                            <div style={{width:'1px',height:'32px',background:'#d1d5db'}}></div>
+                                            <div style={{textAlign:'center'}}>
+                                                <span style={{fontSize:'7px',color:'#4f46e5',textTransform:'uppercase',fontWeight:'bold',display:'block'}}>Posición</span>
+                                                <div style={{fontSize:'14px',fontWeight:'900',color:'#4f46e5',fontFamily:'monospace'}}>{currentPos.toFixed(1)}<span style={{fontSize:'10px'}}>m</span></div>
+                                            </div>
+                                            <div style={{width:'1px',height:'32px',background:'#d1d5db'}}></div>
+                                            <div style={{textAlign:'center'}}>
+                                                <span style={{fontSize:'7px',color:'#10b981',textTransform:'uppercase',fontWeight:'bold',display:'block'}}>Velocidad</span>
+                                                <div style={{fontSize:'14px',fontWeight:'900',color:'#10b981',fontFamily:'monospace'}}>{currentVel.toFixed(1)}<span style={{fontSize:'10px'}}>m/s</span></div>
+                                            </div>
+                                            <div style={{width:'1px',height:'32px',background:'#d1d5db'}}></div>
+                                            <div style={{textAlign:'center'}}>
+                                                <span style={{fontSize:'7px',color:'#dc2626',textTransform:'uppercase',fontWeight:'bold',display:'block'}}>Aceleración</span>
+                                                <div style={{fontSize:'14px',fontWeight:'900',color:'#dc2626',fontFamily:'monospace'}}>{acc}<span style={{fontSize:'10px'}}>m/s²</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style={{display:'flex',flexDirection:'row',gap:'24px',flexWrap:'wrap'}}>
+                                        {renderGraph(history, 'r', 'text-indigo-600', 'Posición', 'm')}
+                                        {renderGraph(history, 'v', 'text-emerald-600', 'Velocidad', 'm/s')}
+                                        {renderGraph(history, 'a', 'text-rose-600', 'Aceleración', 'm/s²')}
+                                    </div>
+
+                                    <footer style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'20px 32px',borderTop:'2px solid #d1d5db',background:'#f9fafb',borderRadius:'24px',fontSize:'9px',fontWeight:'bold',color:'#64748b',textTransform:'uppercase',letterSpacing:'0.1em'}}>
+                                        <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                                            <TrendingUp size={12} style={{color:'#4f46e5'}} /> Datos en cambios
+                                        </div>
+                                        <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                                            <div style={{width:'16px',height:'2px',borderTop:'1px dashed #6b7280'}}></div>
+                                            Vectores direccionales
+                                        </div>
+                                    </footer>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <style>{`
+                        @keyframes spin-wheel {
+                            from { transform: rotate(0deg); }
+                            to { transform: rotate(360deg); }
+                        }
+                    `}</style>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
