@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Cinemática: Signos y Referencia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* ==================== ESTILOS CANVAS ==================== */
+        canvas {
+            touch-action: none;
+            cursor: grab;
+        }
+        
+        canvas:active {
+            cursor: grabbing;
+        }
+        
+        /* ==================== ESTILOS MATEMÁTICOS ==================== */
+        .math-font {
+            font-family: 'Times New Roman', Times, serif;
+            font-style: italic;
+        }
+        
+        /* Vector con flecha superior */
+        .vec {
+            position: relative;
+            display: inline-block;
+            font-style: italic;
+        }
+        
+        .vec::after {
+            content: "→";
+            position: absolute;
+            top: -0.7em;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.65em;
+            font-style: normal;
+            font-weight: normal;
+        }
+        
+        /* ==================== COMPONENTES UI ==================== */
+        .eq-box {
+            @apply bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-inner flex flex-col justify-center min-h-[140px];
+        }
+        
+        .label-style {
+            @apply text-slate-500 uppercase tracking-widest text-[9px] font-bold mb-2;
+        }
+        
+        .var-t {
+            @apply text-orange-400 font-bold italic;
+            font-size: 1.1em;
+            line-height: 0;
+        }
+        
+        .graph-container {
+            @apply bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2;
+        }
+        
+        .graph-label {
+            @apply text-[10px] font-bold uppercase tracking-tighter mb-1;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 min-h-screen p-4 md:p-8 font-sans text-slate-900 text-pretty">
+    <div class="max-w-6xl mx-auto space-y-6">
+        
+        <!-- ==================== ENCABEZADO ==================== -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-800 tracking-tight text-balance">
+                    Cinemática: Signos y Sistema de Referencia
+                </h1>
+                <p class="text-slate-600 mt-1 italic text-sm">
+                    Análisis dinámico del movimiento con notación vectorial 
+                    <span class="vec">r</span>(t) y <span class="vec">v</span>(t).
+                </p>
+            </div>
+            <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 flex flex-col items-center min-w-[110px] shadow-inner text-center text-white">
+                <span class="text-[9px] font-bold text-slate-400 mb-1 uppercase leading-tight">
+                    Eje de<br>Referencia
+                </span>
+                <canvas id="miniAxis" width="80" height="50" class="w-16 h-10"></canvas>
+            </div>
+        </div>
+
+        <!-- ==================== ÁREA DE SIMULACIÓN ==================== -->
+        <div class="relative bg-white p-4 rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+            <canvas id="mainCanvas" height="320" class="w-full bg-slate-100 rounded-lg"></canvas>
+            
+            <!-- Panel de Control Izquierdo -->
+            <div class="absolute top-6 left-6 bg-white/90 p-3 rounded-lg border border-slate-200 shadow-sm space-y-3 backdrop-blur-sm text-pretty">
+                <div class="flex items-center gap-2 text-xs">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_5px_red]"></div>
+                    <span class="font-bold text-red-600 italic text-[10px]">Arrastra el eje rojo (SR)</span>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-tighter">
+                        Sentido POSITIVO
+                    </label>
+                    <div class="flex bg-slate-200 rounded-md p-1 gap-1 border border-slate-300 shadow-inner">
+                        <button id="dir_right" 
+                                class="flex-1 text-[10px] py-1.5 px-3 rounded bg-white shadow-sm font-bold transition-all text-slate-800">
+                            Derecha (+)
+                        </button>
+                        <button id="dir_left" 
+                                class="flex-1 text-[10px] py-1.5 px-3 rounded text-slate-500 font-bold hover:bg-slate-300 transition-all">
+                            Izquierda (+)
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Panel de Control Derecho -->
+            <div class="absolute top-6 right-6 flex items-center gap-3">
+                <button id="btn_set_origin" 
+                        class="bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold px-4 py-2.5 rounded-full shadow-xl border border-slate-600 transition-all active:scale-95 flex items-center gap-2">
+                    <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                    Fijar SR en Origen
+                </button>
+                <div class="bg-slate-900 text-white px-5 py-2 rounded-full font-mono text-xl shadow-xl border border-slate-700">
+                    t = <span id="val_time" class="text-orange-400">0.00</span> s
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== PANEL MATEMÁTICO ==================== -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            
+            <!-- Panel de Parámetros -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                <h3 class="font-bold text-slate-700 text-xs uppercase tracking-wider border-b pb-2">
+                    Parámetros
+                </h3>
+                <div class="space-y-4">
+                    <!-- Control de Velocidad Inicial -->
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-[10px] font-semibold text-slate-500 italic">v₀ física (→)</label>
+                            <span class="text-xs font-bold text-amber-500" id="v0_display">10 m/s</span>
+                        </div>
+                        <input type="range" id="v0_input" min="-30" max="30" value="10" 
+                               class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500">
+                    </div>
+                    
+                    <!-- Control de Aceleración -->
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-[10px] font-semibold text-slate-500 italic">a física (→)</label>
+                            <span class="text-xs font-bold text-emerald-600" id="a_display">2 m/s²</span>
+                        </div>
+                        <input type="range" id="a_input" min="-10" max="10" step="0.5" value="2" 
+                               class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600">
+                    </div>
+                </div>
+                
+                <!-- Botones de Control -->
+                <div class="flex flex-col gap-2 pt-2 text-white">
+                    <button id="btn_start" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg active:scale-95 text-xs uppercase tracking-widest">
+                        Lanzar
+                    </button>
+                    <button id="btn_reset" 
+                            class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2 rounded-xl transition-all text-[10px] uppercase tracking-tighter">
+                        Reiniciar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel de Ecuaciones -->
+            <div class="lg:col-span-3 bg-slate-900 p-6 rounded-2xl shadow-xl space-y-6 border-t-4 border-red-500">
+                
+                <!-- Ecuación de Posición -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-end border-b border-slate-800 pb-1">
+                        <span class="text-blue-400 font-bold text-sm tracking-widest uppercase">
+                            Ecuación de la Posición <span class="vec">r</span>(t)
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-[1.5fr_2fr] gap-4 text-white">
+                        <div class="eq-box bg-slate-800/40">
+                            <div class="label-style text-center text-slate-400">Planteamiento</div>
+                            <div class="math-font flex flex-col items-center text-center">
+                                <div id="r_gen_text_display" class="text-sm text-white/90 italic leading-none mb-3">
+                                    r(t) = r₀ + v₀t + 0.5at²
+                                </div>
+                                <div id="r_spec_text" class="text-xl md:text-2xl font-bold text-blue-300/90 tracking-tight"></div>
+                            </div>
+                        </div>
+                        <div class="eq-box bg-slate-800 border-blue-900/30 text-center">
+                            <div class="label-style text-center text-blue-500 font-bold uppercase">
+                                Sustitución y Resultado
+                            </div>
+                            <div id="r_live_text" 
+                                 class="text-white math-font text-lg md:text-xl lg:text-[24px] flex items-center justify-center h-full whitespace-nowrap overflow-hidden">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ecuación de Velocidad -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-end border-b border-slate-800 pb-1">
+                        <span class="text-amber-400 font-bold text-sm tracking-widest uppercase">
+                            Ecuación de la Velocidad <span class="vec">v</span>(t)
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-[1.5fr_2fr] gap-4 text-white">
+                        <div class="eq-box bg-slate-800/40">
+                            <div class="label-style text-center text-slate-400">Planteamiento</div>
+                            <div class="math-font flex flex-col items-center text-center">
+                                <div class="text-sm text-white/90 italic leading-none mb-3">v(t) = v₀ + at</div>
+                                <div id="v_spec_text" class="text-xl md:text-2xl font-bold text-amber-300/90 tracking-tight"></div>
+                            </div>
+                        </div>
+                        <div class="eq-box bg-slate-800 border-amber-900/30 text-center">
+                            <div class="label-style text-center text-amber-500 font-bold uppercase">
+                                Sustitución y Resultado
+                            </div>
+                            <div id="v_live_text" 
+                                 class="text-white math-font text-lg md:text-xl lg:text-[24px] flex items-center justify-center h-full whitespace-nowrap overflow-hidden">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ecuación de Aceleración -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-end border-b border-slate-800 pb-1">
+                        <span class="text-emerald-400 font-bold text-sm tracking-widest uppercase">
+                            Aceleración <span class="vec">a</span>(t)
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-[1.5fr_2fr] gap-4 text-white">
+                        <div class="eq-box bg-slate-800/40">
+                            <div class="label-style text-center text-slate-400">Planteamiento</div>
+                            <div class="math-font flex flex-col items-center text-center">
+                                <div class="text-sm text-white/90 italic leading-none mb-3">a(t) = constante</div>
+                                <div id="a_spec_text" class="text-xl md:text-2xl font-bold text-emerald-300/90 tracking-tight"></div>
+                            </div>
+                        </div>
+                        <div class="eq-box bg-slate-800 border-emerald-900/30 text-center">
+                            <div class="label-style text-center text-emerald-500 font-bold uppercase">
+                                Valor Constante
+                            </div>
+                            <div id="a_live_text" 
+                                 class="text-white math-font text-lg md:text-xl lg:text-[24px] flex items-center justify-center h-full whitespace-nowrap overflow-hidden">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== GRÁFICAS ==================== -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Gráfica de Posición -->
+            <div class="graph-container">
+                <div class="graph-label text-blue-600">Posición r(t)</div>
+                <canvas id="graph_r" class="w-full" height="200"></canvas>
+            </div>
+            
+            <!-- Gráfica de Velocidad -->
+            <div class="graph-container">
+                <div class="graph-label text-amber-600">Velocidad v(t)</div>
+                <canvas id="graph_v" class="w-full" height="200"></canvas>
+            </div>
+            
+            <!-- Gráfica de Aceleración -->
+            <div class="graph-container">
+                <div class="graph-label text-emerald-600">Aceleración a(t)</div>
+                <canvas id="graph_a" class="w-full" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        // ==================== CONFIGURACIÓN INICIAL ====================
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const miniCanvas = document.getElementById('miniAxis');
+        const miniCtx = miniCanvas.getContext('2d');
+        
+        // Canvas de gráficas
+        const gR = document.getElementById('graph_r');
+        const gV = document.getElementById('graph_v');
+        const gA = document.getElementById('graph_a');
+
+        // ==================== ESTADO GLOBAL ====================
+        const state = {
+            // Posición del sistema de referencia
+            originX: 200,
+            
+            // Dirección del eje X (1 = derecha positiva, -1 = izquierda positiva)
+            xAxisDirection: 1,
+            
+            // Parámetros físicos
+            v0_physical: 10,      // Velocidad inicial (m/s)
+            a_physical: 2,        // Aceleración (m/s²)
+            
+            // Escala de visualización
+            scale: 5,             // Píxeles por metro
+            
+            // Estado de la simulación
+            isRunning: false,
+            time: 0,
+            carX_initial: 200,    // Posición inicial del coche
+            carX_current: 200,    // Posición actual del coche
+            
+            // Historial para gráficas
+            history: [],
+            
+            // Control de arrastre
+            isDragging: false
+        };
+
+        // ==================== FUNCIONES DE FORMATO ====================
+        
+        /**
+         * Formatea un número con signo explícito
+         * @param {number} val - Valor a formatear
+         * @returns {string} Número formateado con signo
+         */
+        function formatWithSign(val) {
+            return val >= 0 ? `+${val.toFixed(2)}` : val.toFixed(2);
+        }
+
+        /**
+         * Convierte valor físico a coordenada vectorial según el sistema de referencia
+         * @param {number} physicalValue - Valor en el sistema físico
+         * @returns {number} Valor en el sistema de coordenadas del SR
+         */
+        function toVectorValue(physicalValue) {
+            return physicalValue * state.xAxisDirection;
+        }
+
+        // ==================== ACTUALIZACIÓN DE INTERFAZ ====================
+        
+        /**
+         * Actualiza las ecuaciones matemáticas en la UI
+         * @returns {number} Posición actual en metros
+         */
+        function updateMathUI() {
+            const t = state.time;
+            
+            // Conversión a valores vectoriales según el SR
+            const r0_vec = 0;  // El origen siempre es cero
+            const v0_vec = toVectorValue(state.v0_physical);
+            const a_vec = toVectorValue(state.a_physical);
+            
+            // Cálculos
+            const r_vec = r0_vec + v0_vec * t + 0.5 * a_vec * t * t;
+            const v_vec = v0_vec + a_vec * t;
+            
+            // === POSICIÓN ===
+            const r_spec = `r(<span class="var-t">t</span>) = 0 ${formatWithSign(v0_vec)}<span class="var-t">t</span> ${formatWithSign(0.5 * a_vec)}<span class="var-t">t</span>²`;
+            document.getElementById('r_spec_text').innerHTML = r_spec;
+            
+            const r_live = t === 0 
+                ? `r(0) = 0 m`
+                : `r(${t.toFixed(2)}) = ${formatWithSign(v0_vec)}(${t.toFixed(2)}) ${formatWithSign(0.5 * a_vec)}(${t.toFixed(2)})² = <span class="text-blue-400 font-black">${r_vec.toFixed(2)} m</span>`;
+            document.getElementById('r_live_text').innerHTML = r_live;
+            
+            // === VELOCIDAD ===
+            const v_spec = `v(<span class="var-t">t</span>) = ${formatWithSign(v0_vec)} ${formatWithSign(a_vec)}<span class="var-t">t</span>`;
+            document.getElementById('v_spec_text').innerHTML = v_spec;
+            
+            const v_live = t === 0
+                ? `v(0) = ${formatWithSign(v0_vec)} m/s`
+                : `v(${t.toFixed(2)}) = ${formatWithSign(v0_vec)} ${formatWithSign(a_vec)}(${t.toFixed(2)}) = <span class="text-amber-400 font-black">${v_vec.toFixed(2)} m/s</span>`;
+            document.getElementById('v_live_text').innerHTML = v_live;
+            
+            // === ACELERACIÓN ===
+            const a_spec = `a(<span class="var-t">t</span>) = ${formatWithSign(a_vec)} m/s²`;
+            document.getElementById('a_spec_text').innerHTML = a_spec;
+            document.getElementById('a_live_text').innerHTML = `<span class="text-emerald-400 font-black">${a_vec.toFixed(2)} m/s²</span>`;
+            
+            // Actualizar display de tiempo
+            document.getElementById('val_time').innerText = t.toFixed(2);
+            
+            // Guardar en historial
+            if (state.isRunning) {
+                state.history.push({ t, r: r_vec, v: v_vec, a: a_vec });
+            }
+            
+            // Actualizar gráficas
+            updateGraphs();
+            
+            return r_vec;
+        }
+
+        // ==================== SISTEMA DE GRÁFICAS ====================
+        
+        /**
+         * Actualiza las tres gráficas (posición, velocidad, aceleración)
+         */
+        function updateGraphs() {
+            const graphs = [
+                { canvas: gR, key: 'r', color: '#3b82f6', label: 'r(t)' },
+                { canvas: gV, key: 'v', color: '#f59e0b', label: 'v(t)' },
+                { canvas: gA, key: 'a', color: '#10b981', label: 'a(t)' }
+            ];
+
+            graphs.forEach(data => {
+                const c = data.canvas.getContext('2d');
+                const w = data.canvas.width / 2;
+                const h = data.canvas.height / 2;
+                
+                // Limpiar canvas
+                c.clearRect(0, 0, w, h);
+                
+                // Configuración
+                const leftMargin = 40;
+                const bottomMargin = 25;
+                const plotW = w - leftMargin - 10;
+                const maxT = Math.max(10, state.time + 2);
+                
+                // Calcular rangos
+                let rangeY_min = 0, rangeY_max = 1;
+                if (state.history.length > 0) {
+                    const values = state.history.map(p => p[data.key]);
+                    rangeY_min = Math.min(...values, 0);
+                    rangeY_max = Math.max(...values, 0);
+                    const padding = Math.abs(rangeY_max - rangeY_min) * 0.1 || 1;
+                    rangeY_min -= padding;
+                    rangeY_max += padding;
+                }
+                
+                const totalRange = Math.abs(rangeY_max - rangeY_min) || 1;
+                const zeroY = (h - bottomMargin) - ((0 - rangeY_min) / totalRange) * (h - bottomMargin);
+                
+                // Dibujar ejes
+                c.strokeStyle = '#cbd5e1';
+                c.lineWidth = 1;
+                
+                // Eje Y
+                c.beginPath();
+                c.moveTo(leftMargin, 10);
+                c.lineTo(leftMargin, h - bottomMargin);
+                c.stroke();
+                
+                // Eje X
+                c.beginPath();
+                c.moveTo(leftMargin, h - bottomMargin);
+                c.lineTo(w - 5, h - bottomMargin);
+                c.stroke();
+                
+                // Línea de cero
+                c.strokeStyle = '#94a3b8';
+                c.lineWidth = 1;
+                c.setLineDash([3, 3]);
+                c.beginPath();
+                c.moveTo(leftMargin, zeroY);
+                c.lineTo(w - 5, zeroY);
+                c.stroke();
+                c.setLineDash([]);
+                
+                // Etiquetas
+                c.fillStyle = '#64748b';
+                c.font = '10px sans-serif';
+                c.textAlign = 'right';
+                c.fillText(Math.round(rangeY_max), leftMargin - 5, 15);
+                c.fillText('0', leftMargin - 5, zeroY + 4);
+                c.fillText(Math.round(rangeY_min), leftMargin - 5, h - bottomMargin - 5);
+                
+                c.textAlign = 'center';
+                for (let i = 0; i <= maxT; i += 5) {
+                    const x = leftMargin + (i / maxT) * plotW;
+                    if (x <= w) {
+                        c.fillText(i + "s", x, h - 10);
+                    }
+                }
+                
+                // Dibujar datos
+                if (state.history.length > 0) {
+                    // Área bajo la curva (gradiente)
+                    const gradient = c.createLinearGradient(0, 0, 0, h);
+                    gradient.addColorStop(0, data.color + '33');
+                    gradient.addColorStop(1, data.color + '00');
+                    c.fillStyle = gradient;
+                    
+                    c.beginPath();
+                    c.moveTo(leftMargin + (state.history[0].t / maxT) * plotW, zeroY);
+                    
+                    state.history.forEach(p => {
+                        const x = leftMargin + (p.t / maxT) * plotW;
+                        const y = (h - bottomMargin) - ((p[data.key] - rangeY_min) / totalRange) * (h - bottomMargin);
+                        c.lineTo(x, y);
+                    });
+                    
+                    c.lineTo(leftMargin + (state.history[state.history.length - 1].t / maxT) * plotW, zeroY);
+                    c.fill();
+                    
+                    // Línea de la curva
+                    c.strokeStyle = data.color;
+                    c.lineWidth = 3;
+                    c.beginPath();
+                    
+                    state.history.forEach((p, i) => {
+                        const x = leftMargin + (p.t / maxT) * plotW;
+                        const y = (h - bottomMargin) - ((p[data.key] - rangeY_min) / totalRange) * (h - bottomMargin);
+                        if (i === 0) {
+                            c.moveTo(x, y);
+                        } else {
+                            c.lineTo(x, y);
+                        }
+                    });
+                    
+                    c.stroke();
+                }
+            });
+        }
+
+        // ==================== FUNCIONES DE DIBUJO ====================
+        
+        /**
+         * Dibuja una flecha vectorial
+         * @param {number} x - Posición X inicial
+         * @param {number} y - Posición Y inicial
+         * @param {number} angle - Ángulo en radianes
+         * @param {number} length - Longitud de la flecha
+         * @param {string} color - Color de la flecha
+         * @param {number} weight - Grosor de la línea
+         */
+        function drawArrow(x, y, angle, length, color, weight = 2) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = weight;
+            
+            // Línea principal
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(length, 0);
+            ctx.stroke();
+            
+            // Punta de flecha
+            ctx.beginPath();
+            ctx.moveTo(length, 0);
+            ctx.lineTo(length - 12, -6);
+            ctx.lineTo(length - 12, 6);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        /**
+         * Dibuja el sistema de referencia (ejes X e Y)
+         * @returns {number} Posición Y del suelo
+         */
+        function drawAxes() {
+            const groundY = 220;
+            const yTop = 40;
+            const yBottom = 260;
+            
+            // Eje Y
+            drawArrow(state.originX, yBottom, -Math.PI / 2, yBottom - yTop, "#ef4444", 2);
+            ctx.fillStyle = "#ef4444";
+            ctx.font = "bold 14px sans-serif";
+            ctx.fillText("y", state.originX + 12, yTop + 10);
+            
+            // Eje X (dirección depende del sistema de referencia)
+            if (state.xAxisDirection === 1) {
+                // Positivo hacia la derecha
+                drawArrow(state.originX - 40, groundY, 0, canvas.width - state.originX + 20, "#ef4444", 2);
+                ctx.fillText("x (+)", canvas.width - 45, groundY + 22);
+            } else {
+                // Positivo hacia la izquierda
+                drawArrow(state.originX + 40, groundY, Math.PI, state.originX + 20, "#ef4444", 2);
+                ctx.fillText("x (+)", 15, groundY + 22);
+            }
+            
+            // Etiqueta del origen
+            ctx.fillText("(0,0)", state.originX - 35, groundY - 10);
+            
+            return groundY;
+        }
+
+        /**
+         * Dibuja el mini-eje en la esquina superior derecha
+         */
+        function drawMiniAxis() {
+            miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
+            miniCtx.strokeStyle = "#ef4444";
+            miniCtx.fillStyle = "#ef4444";
+            miniCtx.lineWidth = 3;
+            
+            // Eje Y
+            miniCtx.beginPath();
+            miniCtx.moveTo(40, 42);
+            miniCtx.lineTo(40, 8);
+            miniCtx.stroke();
+            
+            miniCtx.beginPath();
+            miniCtx.moveTo(40, 8);
+            miniCtx.lineTo(35, 16);
+            miniCtx.lineTo(45, 16);
+            miniCtx.fill();
+            
+            // Eje X (dirección según SR)
+            if (state.xAxisDirection === 1) {
+                miniCtx.beginPath();
+                miniCtx.moveTo(15, 28);
+                miniCtx.lineTo(65, 28);
+                miniCtx.stroke();
+                
+                miniCtx.beginPath();
+                miniCtx.moveTo(65, 28);
+                miniCtx.lineTo(57, 23);
+                miniCtx.lineTo(57, 33);
+                miniCtx.fill();
+            } else {
+                miniCtx.beginPath();
+                miniCtx.moveTo(65, 28);
+                miniCtx.lineTo(15, 28);
+                miniCtx.stroke();
+                
+                miniCtx.beginPath();
+                miniCtx.moveTo(15, 28);
+                miniCtx.lineTo(23, 23);
+                miniCtx.lineTo(23, 33);
+                miniCtx.fill();
+            }
+        }
+
+        /**
+         * Dibuja un vector sobre el canvas
+         * @param {number} x - Posición X
+         * @param {number} y - Posición Y
+         * @param {number} value - Valor del vector
+         * @param {string} color - Color del vector
+         * @param {string} label - Etiqueta del vector
+         * @param {boolean} isPosition - Si es un vector de posición
+         */
+        function drawVector(x, y, value, color, label, isPosition = false) {
+            // No dibujar vectores muy pequeños (excepto posición)
+            if (!isPosition && Math.abs(value) < 0.1) return;
+            
+            if (isPosition) {
+                // Vector de posición desde el origen
+                const distPx = x - state.originX;
+                drawArrow(state.originX, y, distPx >= 0 ? 0 : Math.PI, Math.abs(distPx), color, 2);
+                
+                ctx.fillStyle = color;
+                ctx.font = "bold 16px serif";
+                ctx.fillText(label, (state.originX + x) / 2 - 10, y + 25);
+            } else {
+                // Vectores de velocidad/aceleración
+                const length = value * 2.5;
+                drawArrow(x, y, length >= 0 ? 0 : Math.PI, Math.abs(length), color, 3);
+                
+                ctx.fillStyle = color;
+                ctx.font = "bold 12px sans-serif";
+                const yLabel = (label === 'a') ? y - 8 : y - 12;
+                ctx.fillText(label, x + length / 2, yLabel);
+            }
+        }
+
+        /**
+         * Dibuja toda la escena principal
+         */
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Dibujar ejes
+            const groundY = drawAxes();
+            
+            // Línea del suelo
+            ctx.fillStyle = "#cbd5e1";
+            ctx.fillRect(0, groundY, canvas.width, 2);
+            
+            // Vector de posición
+            drawVector(state.carX_current, groundY + 12, 0, "#3b82f6", "r", true);
+            
+            // Dibujar coche
+            ctx.fillStyle = "#1e293b";
+            ctx.roundRect(state.carX_current - 30, groundY - 22, 60, 22, 5);
+            ctx.fill();
+            
+            // Ruedas
+            ctx.fillStyle = "#000";
+            ctx.beginPath();
+            ctx.arc(state.carX_current - 15, groundY, 7, 0, Math.PI * 2);
+            ctx.arc(state.carX_current + 15, groundY, 7, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Actualizar UI y obtener posición actual
+            const currentR = updateMathUI();
+            
+            // Mostrar valor de r sobre el coche
+            ctx.fillStyle = "#3b82f6";
+            ctx.font = "bold 14px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(`r = ${currentR.toFixed(2)} m`, state.carX_current, groundY + 58);
+            ctx.textAlign = "start";
+            
+            // Vectores de velocidad y aceleración
+            const curV_phys = state.v0_physical + state.a_physical * state.time;
+            drawVector(state.carX_current, groundY - 45, curV_phys * 2.5, "#fbbf24", "v");
+            drawVector(state.carX_current, groundY - 28, state.a_physical * 12, "#10b981", "a");
+        }
+
+        // ==================== ANIMACIÓN ====================
+        
+        /**
+         * Loop principal de animación
+         */
+        function animate() {
+            if (!state.isRunning) return;
+            
+            // Incrementar tiempo (aproximadamente 60 FPS)
+            state.time += 0.016;
+            
+            // Calcular desplazamiento en metros
+            const deltaX_m = (state.v0_physical * state.time) + 
+                            (0.5 * state.a_physical * state.time * state.time);
+            
+            // Convertir a píxeles
+            state.carX_current = state.carX_initial + (deltaX_m * state.scale);
+            
+            // Verificar límites del canvas
+            if (state.carX_current > canvas.width + 100 || 
+                state.carX_current < -100 || 
+                state.time > 100) {
+                // Detener simulación
+                state.isRunning = false;
+                const btnStart = document.getElementById('btn_start');
+                btnStart.innerText = "Lanzar";
+                btnStart.classList.remove('bg-orange-500');
+                btnStart.classList.add('bg-blue-600');
+            } else {
+                draw();
+                requestAnimationFrame(animate);
+            }
+        }
+
+        /**
+         * Actualiza el estado visual sin animación
+         */
+        function update() {
+            if (!state.isRunning) {
+                state.time = 0;
+                state.carX_current = state.carX_initial;
+                draw();
+            } else {
+                draw();
+            }
+        }
+
+        // ==================== MANEJO DE EVENTOS ====================
+        
+        /**
+         * Ajusta el tamaño de los canvas al tamaño de la ventana
+         */
+        function resize() {
+            canvas.width = canvas.offsetWidth;
+            
+            // Ajustar gráficas con DPI correcto
+            [gR, gV, gA].forEach(g => {
+                const rect = g.getBoundingClientRect();
+                g.width = rect.width * 2;
+                g.height = rect.height * 2;
+                const gctx = g.getContext('2d');
+                gctx.scale(2, 2);
+            });
+            
+            update();
+        }
+
+        // ==================== EVENT LISTENERS ====================
+        
+        // Control de dirección del eje
+        document.getElementById('dir_right').addEventListener('click', () => {
+            state.xAxisDirection = 1;
+            document.getElementById('dir_right').classList.add('bg-white', 'shadow-sm', 'text-slate-800');
+            document.getElementById('dir_right').classList.remove('text-slate-500', 'hover:bg-slate-300');
+            document.getElementById('dir_left').classList.remove('bg-white', 'shadow-sm', 'text-slate-800');
+            document.getElementById('dir_left').classList.add('text-slate-500', 'hover:bg-slate-300');
+            drawMiniAxis();
+            update();
+        });
+
+        document.getElementById('dir_left').addEventListener('click', () => {
+            state.xAxisDirection = -1;
+            document.getElementById('dir_left').classList.add('bg-white', 'shadow-sm', 'text-slate-800');
+            document.getElementById('dir_left').classList.remove('text-slate-500', 'hover:bg-slate-300');
+            document.getElementById('dir_right').classList.remove('bg-white', 'shadow-sm', 'text-slate-800');
+            document.getElementById('dir_right').classList.add('text-slate-500', 'hover:bg-slate-300');
+            drawMiniAxis();
+            update();
+        });
+
+        // Botón de fijar origen
+        document.getElementById('btn_set_origin').addEventListener('click', () => {
+            state.originX = 200;
+            state.carX_initial = 200;
+            state.carX_current = 200;
+            update();
+        });
+
+        // Control de velocidad inicial
+        document.getElementById('v0_input').addEventListener('input', (e) => {
+            state.v0_physical = parseFloat(e.target.value);
+            document.getElementById('v0_display').innerText = state.v0_physical + ' m/s';
+            update();
+        });
+
+        // Control de aceleración
+        document.getElementById('a_input').addEventListener('input', (e) => {
+            state.a_physical = parseFloat(e.target.value);
+            document.getElementById('a_display').innerText = state.a_physical + ' m/s²';
+            update();
+        });
+
+        // Botón de inicio/pausa
+        document.getElementById('btn_start').addEventListener('click', () => {
+            const btn = document.getElementById('btn_start');
+            
+            if (!state.isRunning) {
+                state.isRunning = true;
+                state.time = 0;
+                state.history = [];
+                state.carX_initial = state.carX_current;
+                btn.innerText = "Detener";
+                btn.classList.remove('bg-blue-600');
+                btn.classList.add('bg-orange-500');
+                animate();
+            } else {
+                state.isRunning = false;
+                btn.innerText = "Lanzar";
+                btn.classList.remove('bg-orange-500');
+                btn.classList.add('bg-blue-600');
+            }
+        });
+
+        // Botón de reinicio
+        document.getElementById('btn_reset').addEventListener('click', () => {
+            state.isRunning = false;
+            state.time = 0;
+            state.history = [];
+            state.carX_initial = 200;
+            state.carX_current = 200;
+            state.originX = 200;
+            
+            const btn = document.getElementById('btn_start');
+            btn.innerText = "Lanzar";
+            btn.classList.remove('bg-orange-500');
+            btn.classList.add('bg-blue-600');
+            
+            update();
+        });
+
+        // Arrastre del sistema de referencia
+        canvas.addEventListener('mousedown', (e) => {
+            if (!state.isRunning) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                // Detectar si se hace clic cerca del origen
+                if (Math.abs(mouseX - state.originX) < 30 && 
+                    Math.abs(mouseY - 220) < 30) {
+                    state.isDragging = true;
+                }
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (state.isDragging && !state.isRunning) {
+                const rect = canvas.getBoundingClientRect();
+                state.originX = e.clientX - rect.left;
+                update();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            state.isDragging = false;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            state.isDragging = false;
+        });
+
+        // Soporte táctil
+        canvas.addEventListener('touchstart', (e) => {
+            if (!state.isRunning) {
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                const touchX = touch.clientX - rect.left;
+                const touchY = touch.clientY - rect.top;
+                
+                if (Math.abs(touchX - state.originX) < 30 && 
+                    Math.abs(touchY - 220) < 30) {
+                    state.isDragging = true;
+                }
+            }
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (state.isDragging && !state.isRunning) {
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                state.originX = touch.clientX - rect.left;
+                update();
+            }
+        });
+
+        canvas.addEventListener('touchend', () => {
+            state.isDragging = false;
+        });
+
+        // Redimensionamiento de ventana
+        window.addEventListener('resize', resize);
+
+        // ==================== INICIALIZACIÓN ====================
+        resize();
+        drawMiniAxis();
+        update();
+    </script>
+</body>
+</html>
