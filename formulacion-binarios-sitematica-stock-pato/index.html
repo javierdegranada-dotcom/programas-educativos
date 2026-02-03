@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrenador de Formulación Básico - Survival</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --secondary: #34495e;
+            --success: #2ecc71;
+            --warning: #f1c40f;
+            --error: #e74c3c;
+            --bg: #f5f7fa;
+            --card: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 650px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 0.5rem; }
+        .subtitle { color: #7f8c8d; font-size: 0.9rem; margin-bottom: 2rem; }
+
+        /* --- PANTALLA DE INICIO --- */
+        #start-screen {
+            display: block;
+        }
+        .mode-btn {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            margin: 15px 0;
+            font-size: 1.2rem;
+            border: 2px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            line-height: 1.4; /* Mejor espaciado para las nuevas líneas */
+        }
+        .mode-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
+        }
+        /* Para que el texto blanco se lea bien al hacer hover, forzamos color en los spans hijos si fuera necesario, 
+           pero con color inherit suele bastar. Ajustamos colores específicos abajo inline */
+        .mode-btn:hover span {
+            color: #ecf0f1 !important; 
+        }
+        
+        .credits {
+            margin-top: 30px;
+            font-size: 0.85rem;
+            color: #95a5a6;
+            border-top: 1px solid #ecf0f1;
+            padding-top: 15px;
+        }
+
+        /* --- ESTILOS DE LA CARRERA --- */
+        .race-container {
+            margin-bottom: 20px;
+            position: relative;
+            height: 80px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            background: #fcfcfc;
+            border-radius: 10px;
+            border: 1px solid #eee;
+        }
+        .race-line {
+            position: absolute;
+            top: 60px;
+            left: 40px; /* Dejar sitio al matadero */
+            right: 40px;
+            height: 4px;
+            background: #dfe6e9;
+            border-radius: 2px;
+            z-index: 0;
+        }
+        .race-goal {
+            position: absolute;
+            right: 5px;
+            top: 25px;
+            font-size: 2rem;
+            z-index: 1;
+        }
+        .race-death {
+            position: absolute;
+            left: 5px;
+            top: 25px;
+            font-size: 2rem;
+            z-index: 1;
+            filter: grayscale(100%); /* Calavera gris hasta que muere */
+        }
+        .player-char {
+            position: absolute;
+            left: 0%; /* JS lo controla */
+            top: 15px;
+            font-size: 2.5rem;
+            transition: left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 2;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+            transform: scaleX(-1); /* Pato mirando derecha */
+        }
+
+        /* CONTADORES */
+        .counters-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            font-weight: bold;
+        }
+
+        .question-box {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f0f4f8;
+            border-radius: 10px;
+            border-left: 5px solid var(--primary);
+        }
+
+        /* Estilos para Tipo Test */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .btn-option {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+        }
+        .btn-option:hover { border-color: var(--primary); background: #f0f8ff; }
+        .btn-option:disabled { cursor: default; opacity: 0.7; }
+        
+        /* Estilos para Escribir */
+        input[type="text"] {
+            width: 80%;
+            padding: 15px;
+            font-size: 1.2rem;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            margin-top: 10px;
+            text-align: center;
+        }
+        input[type="text"]:focus { outline: none; border-color: var(--primary); }
+
+        .btn-check {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: none;
+        }
+
+        /* Botón Rendirse */
+        .btn-surrender {
+            background: transparent;
+            border: 1px solid #bdc3c7;
+            color: #7f8c8d;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 30px;
+            transition: all 0.2s;
+        }
+        .btn-surrender:hover {
+            background: #fff5f5;
+            color: #e74c3c;
+            border-color: #e74c3c;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none;
+        }
+        .feedback.correct { background: #d4edda; color: #155724; }
+        .feedback.warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .feedback.incorrect { background: #f8d7da; color: #721c24; }
+        .feedback.penalty { color: #c0392b; font-size: 0.9em; margin-top: 5px; font-style: italic; }
+
+        .btn-next {
+            margin-top: 15px;
+            padding: 10px 25px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+        }
+
+        sub { font-size: 0.7em; }
+
+        #quiz-screen, #end-screen, #death-screen { display: none; }
+        
+        .score-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0 auto 20px;
+        }
+
+        /* Pantalla de Muerte */
+        .death-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            display: block;
+            animation: shake 0.5s infinite;
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        #fireworks-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="fireworks-canvas"></canvas>
+
+<div class="container">
+    <!-- PANTALLA DE INICIO -->
+    <div id="start-screen">
+        <h1>Entrenador de Química</h1>
+        <p class="subtitle">Modo Supervivencia: ¡Que no muera el pato!</p>
+        
+        <button class="mode-btn" onclick="seleccionarModo('sistematica')">
+            🧪 Nomenclatura Sistemática<br>
+            <span style="font-size:0.85em; font-weight:normal; color:#555;">(Solo compuestos binarios)</span><br>
+            <span style="font-size:0.8em; font-weight:normal; color:#95a5a6;">Meta: 30 pasos (Normal)</span>
+        </button>
+        <button class="mode-btn" onclick="seleccionarModo('stock')">
+            🏛️ Nomenclatura Stock<br>
+            <span style="font-size:0.85em; font-weight:normal; color:#555;">(Añade Peróxidos e Hidróxidos)</span><br>
+            <span style="font-size:0.8em; font-weight:normal; color:#95a5a6;">Meta: 45 pasos (Difícil)</span>
+        </button>
+
+        <div class="credits">
+            Programa realizado por <strong>Javier Gijón</strong>.<br>
+            Profesor del IES María Moliner de Segovia
+        </div>
+    </div>
+
+    <!-- PANTALLA DE JUEGO -->
+    <div id="quiz-screen">
+        <h1>Formulación de binarios</h1>
+        <p class="subtitle" id="mode-subtitle">¡Evita el matadero!</p>
+        
+        <div class="race-container">
+            <div class="race-death">☠️</div>
+            <div class="race-line"></div>
+            <div class="race-goal">🏁</div>
+            <div id="player-char" class="player-char">🦆</div>
+        </div>
+        
+        <div class="counters-container">
+            <span id="steps-counter">Posición: 4 (Inicio)</span>
+            <span id="db-counter">Compuesto: 1 / 79</span>
+        </div>
+        
+        <div id="question-area"></div>
+        <div id="input-area"></div>
+
+        <button id="btn-check" class="btn-check" onclick="verificarRespuestaTexto()">Comprobar</button>
+        
+        <div id="feedback" class="feedback"></div>
+        <button id="btn-next" class="btn-next" onclick="siguientePregunta()">Siguiente >></button>
+
+        <!-- BOTÓN DE RENDIRSE -->
+        <button class="btn-surrender" onclick="rendirse()">🏳️ Rendirse</button>
+    </div>
+
+    <!-- PANTALLA VICTORIA -->
+    <div id="end-screen">
+        <div class="score-circle" id="final-score" style="background: var(--success)">🏆</div>
+        <h2 style="color: var(--success)">¡VICTORIA!</h2>
+        <p>El pato ha cruzado la meta sano y salvo.</p>
+        <button class="mode-btn" onclick="location.reload()">Jugar de Nuevo</button>
+    </div>
+
+    <!-- PANTALLA MUERTE -->
+    <div id="death-screen">
+        <span class="death-icon">🍗</span>
+        <h2 style="color: var(--error)">GAME OVER</h2>
+        <p>El pato ha llegado al matadero... <br>Ten cuidado con los fallos (-2 pasos).</p>
+        <button class="mode-btn" style="border-color: var(--error); color: var(--error);" onclick="location.reload()">Reintentar</button>
+    </div>
+</div>
+
+<script>
+    // --- BASE DE DATOS COMPLETA ---
+    const baseDatos = [
+        // --- ÓXIDOS ---
+        { f: "Li<sub>2</sub>O", n: "Óxido de dilitio", s: "Óxido de litio", tipo: "oxido" },
+        { f: "Na<sub>2</sub>O", n: "Óxido de disodio", s: "Óxido de sodio", tipo: "oxido" },
+        { f: "K<sub>2</sub>O", n: "Óxido de dipotasio", s: "Óxido de potasio", tipo: "oxido" },
+        { f: "Rb<sub>2</sub>O", n: "Óxido de dirrubidio", s: "Óxido de rubidio", tipo: "oxido" },
+        { f: "BeO", n: "Óxido de berilio", s: "Óxido de berilio", tipo: "oxido" },
+        { f: "MgO", n: "Óxido de magnesio", s: "Óxido de magnesio", tipo: "oxido" },
+        { f: "CaO", n: "Óxido de calcio", s: "Óxido de calcio", tipo: "oxido" },
+        { f: "SrO", n: "Óxido de estroncio", s: "Óxido de estroncio", tipo: "oxido" },
+        { f: "BaO", n: "Óxido de bario", s: "Óxido de bario", tipo: "oxido" },
+        { f: "FeO", n: "Óxido de hierro", s: "Óxido de hierro(II)", tipo: "oxido" },
+        { f: "Fe<sub>2</sub>O<sub>3</sub>", n: "Trióxido de dihierro", s: "Óxido de hierro(III)", tipo: "oxido" },
+        { f: "CuO", n: "Óxido de cobre", s: "Óxido de cobre(II)", tipo: "oxido" },
+        { f: "Cu<sub>2</sub>O", n: "Óxido de dicobre", s: "Óxido de cobre(I)", tipo: "oxido" },
+        { f: "ZnO", n: "Óxido de cinc", s: "Óxido de cinc", tipo: "oxido" },
+        { f: "Ag<sub>2</sub>O", n: "Óxido de diplata", s: "Óxido de plata", tipo: "oxido" },
+        { f: "HgO", n: "Óxido de mercurio", s: "Óxido de mercurio(II)", tipo: "oxido" },
+        { f: "Hg<sub>2</sub>O", n: "Óxido de dimercurio", s: "Óxido de mercurio(I)", tipo: "oxido" },
+        { f: "Au<sub>2</sub>O<sub>3</sub>", n: "Trióxido de dioro", s: "Óxido de oro(III)", tipo: "oxido" },
+        { f: "PbO<sub>2</sub>", n: "Dióxido de plomo", s: "Óxido de plomo(IV)", tipo: "oxido" },
+        { f: "PtO<sub>2</sub>", n: "Dióxido de platino", s: "Óxido de platino(IV)", tipo: "oxido" },
+        { f: "N<sub>2</sub>O", n: "Óxido de dinitrógeno", s: "Óxido de nitrógeno(I)", tipo: "oxido" },
+        { f: "NO", n: "Óxido de nitrógeno", s: "Óxido de nitrógeno(II)", tipo: "oxido" },
+        { f: "N<sub>2</sub>O<sub>3</sub>", n: "Trióxido de dinitrógeno", s: "Óxido de nitrógeno(III)", tipo: "oxido" },
+        { f: "NO<sub>2</sub>", n: "Dióxido de nitrógeno", s: "Óxido de nitrógeno(IV)", tipo: "oxido" },
+        { f: "N<sub>2</sub>O<sub>5</sub>", n: "Pentaóxido de dinitrógeno", s: "Óxido de nitrógeno(V)", tipo: "oxido" },
+        { f: "SO<sub>2</sub>", n: "Dióxido de azufre", s: "Óxido de azufre(IV)", tipo: "oxido" },
+        { f: "SO<sub>3</sub>", n: "Trióxido de azufre", s: "Óxido de azufre(VI)", tipo: "oxido" },
+        { f: "Cl<sub>2</sub>O", n: "Óxido de dicloro", s: "Óxido de cloro(I)", tipo: "oxido" },
+        { f: "Cl<sub>2</sub>O<sub>7</sub>", n: "Heptaóxido de dicloro", s: "Óxido de cloro(VII)", tipo: "oxido" },
+        { f: "CO<sub>2</sub>", n: "Dióxido de carbono", s: "Óxido de carbono(IV)", tipo: "oxido" },
+
+        // --- HIDRUROS METÁLICOS ---
+        { f: "LiH", n: "Hidruro de litio", s: "Hidruro de litio", tipo: "hidruro" },
+        { f: "NaH", n: "Hidruro de sodio", s: "Hidruro de sodio", tipo: "hidruro" },
+        { f: "KH", n: "Hidruro de potasio", s: "Hidruro de potasio", tipo: "hidruro" },
+        { f: "RbH", n: "Hidruro de rubidio", s: "Hidruro de rubidio", tipo: "hidruro" },
+        { f: "CsH", n: "Hidruro de cesio", s: "Hidruro de cesio", tipo: "hidruro" },
+        { f: "BeH<sub>2</sub>", n: "Dihidruro de berilio", s: "Hidruro de berilio", tipo: "hidruro" },
+        { f: "MgH<sub>2</sub>", n: "Dihidruro de magnesio", s: "Hidruro de magnesio", tipo: "hidruro" },
+        { f: "CaH<sub>2</sub>", n: "Dihidruro de calcio", s: "Hidruro de calcio", tipo: "hidruro" },
+        { f: "SrH<sub>2</sub>", n: "Dihidruro de estroncio", s: "Hidruro de estroncio", tipo: "hidruro" },
+        { f: "BaH<sub>2</sub>", n: "Dihidruro de bario", s: "Hidruro de bario", tipo: "hidruro" },
+        { f: "FeH<sub>2</sub>", n: "Dihidruro de hierro", s: "Hidruro de hierro(II)", tipo: "hidruro" },
+        { f: "FeH<sub>3</sub>", n: "Trihidruro de hierro", s: "Hidruro de hierro(III)", tipo: "hidruro" },
+        { f: "CuH", n: "Hidruro de cobre", s: "Hidruro de cobre(I)", tipo: "hidruro" },
+        { f: "CuH<sub>2</sub>", n: "Dihidruro de cobre", s: "Hidruro de cobre(II)", tipo: "hidruro" },
+        { f: "ZnH<sub>2</sub>", n: "Dihidruro de cinc", s: "Hidruro de cinc", tipo: "hidruro" },
+        { f: "AgH", n: "Hidruro de plata", s: "Hidruro de plata", tipo: "hidruro" },
+        { f: "CdH<sub>2</sub>", n: "Dihidruro de cadmio", s: "Hidruro de cadmio", tipo: "hidruro" },
+        { f: "AuH<sub>3</sub>", n: "Trihidruro de oro", s: "Hidruro de oro(III)", tipo: "hidruro" },
+        { f: "NiH<sub>2</sub>", n: "Dihidruro de níquel", s: "Hidruro de níquel(II)", tipo: "hidruro" },
+        { f: "AlH<sub>3</sub>", n: "Trihidruro de aluminio", s: "Hidruro de aluminio", tipo: "hidruro" },
+
+        // --- SALES BINARIAS ---
+        { f: "NaCl", n: "Cloruro de sodio", s: "Cloruro de sodio", tipo: "sal" },
+        { f: "KCl", n: "Cloruro de potasio", s: "Cloruro de potasio", tipo: "sal" },
+        { f: "FeS", n: "Sulfuro de hierro", s: "Sulfuro de hierro(II)", tipo: "sal" },
+        { f: "Fe<sub>2</sub>S<sub>3</sub>", n: "Trisulfuro de dihierro", s: "Sulfuro de hierro(III)", tipo: "sal" },
+        { f: "FeCl<sub>3</sub>", n: "Tricloruro de hierro", s: "Cloruro de hierro(III)", tipo: "sal" },
+        { f: "CaF<sub>2</sub>", n: "Difluoruro de calcio", s: "Fluoruro de calcio", tipo: "sal" },
+        { f: "KI", n: "Yoduro de potasio", s: "Yoduro de potasio", tipo: "sal" },
+        { f: "MgBr<sub>2</sub>", n: "Dibromuro de magnesio", s: "Bromuro de magnesio", tipo: "sal" },
+        { f: "AlCl<sub>3</sub>", n: "Tricloruro de aluminio", s: "Cloruro de aluminio", tipo: "sal" },
+        { f: "PbS<sub>2</sub>", n: "Disulfuro de plomo", s: "Sulfuro de plomo(IV)", tipo: "sal" },
+        { f: "NiS", n: "Sulfuro de níquel", s: "Sulfuro de níquel(II)", tipo: "sal" },
+        { f: "BeI<sub>2</sub>", n: "Diyoduro de berilio", s: "Yoduro de berilio", tipo: "sal" },
+        { f: "Li<sub>2</sub>S", n: "Sulfuro de dilitio", s: "Sulfuro de litio", tipo: "sal" },
+        { f: "AgCl", n: "Cloruro de plata", s: "Cloruro de plata", tipo: "sal" },
+
+        // --- HIDRÁCIDOS & HALUROS ---
+        { f: "HF(aq)", n: "Ácido fluorhídrico", s: "Ácido fluorhídrico", tipo: "hidracido" },
+        { f: "HCl(aq)", n: "Ácido clorhídrico", s: "Ácido clorhídrico", tipo: "hidracido" },
+        { f: "HBr(aq)", n: "Ácido bromhídrico", s: "Ácido bromhídrico", tipo: "hidracido" },
+        { f: "HI(aq)", n: "Ácido yodhídrico", s: "Ácido yodhídrico", tipo: "hidracido" },
+        { f: "H<sub>2</sub>S(aq)", n: "Ácido sulfhídrico", s: "Ácido sulfhídrico", tipo: "hidracido" },
+        { f: "HF", n: "Fluoruro de hidrógeno", s: "Fluoruro de hidrógeno", tipo: "uro" },
+        { f: "HCl", n: "Cloruro de hidrógeno", s: "Cloruro de hidrógeno", tipo: "uro" },
+        { f: "HBr", n: "Bromuro de hidrógeno", s: "Bromuro de hidrógeno", tipo: "uro" },
+        { f: "HI", n: "Yoduro de hidrógeno", s: "Yoduro de hidrógeno", tipo: "uro" },
+        { f: "H<sub>2</sub>S", n: "Sulfuro de hidrógeno", s: "Sulfuro de hidrógeno", tipo: "uro" },
+
+        // --- VOLÁTILES ---
+        { f: "CH<sub>4</sub>", n: "Metano", s: "Metano", tipo: "volatil" },
+        { f: "NH<sub>3</sub>", n: "Amoniaco", s: "Amoniaco", tipo: "volatil" },
+        { f: "PH<sub>3</sub>", n: "Fosfano", s: "Fosfano", tipo: "volatil" },
+        { f: "H<sub>2</sub>O", n: "Agua", s: "Agua", tipo: "especial" },
+        { f: "SiH<sub>4</sub>", n: "Silano", s: "Silano", tipo: "volatil" },
+
+        // --- HIDRÓXIDOS (15 Nuevos) ---
+        { f: "LiOH", n: "Hidróxido de litio", s: "Hidróxido de litio", tipo: "hidroxido" },
+        { f: "NaOH", n: "Hidróxido de sodio", s: "Hidróxido de sodio", tipo: "hidroxido" },
+        { f: "KOH", n: "Hidróxido de potasio", s: "Hidróxido de potasio", tipo: "hidroxido" },
+        { f: "Mg(OH)<sub>2</sub>", n: "Dihidróxido de magnesio", s: "Hidróxido de magnesio", tipo: "hidroxido" },
+        { f: "Ca(OH)<sub>2</sub>", n: "Dihidróxido de calcio", s: "Hidróxido de calcio", tipo: "hidroxido" },
+        { f: "Ba(OH)<sub>2</sub>", n: "Dihidróxido de bario", s: "Hidróxido de bario", tipo: "hidroxido" },
+        { f: "Fe(OH)<sub>2</sub>", n: "Dihidróxido de hierro", s: "Hidróxido de hierro(II)", tipo: "hidroxido" },
+        { f: "Fe(OH)<sub>3</sub>", n: "Trihidróxido de hierro", s: "Hidróxido de hierro(III)", tipo: "hidroxido" },
+        { f: "Cu(OH)<sub>2</sub>", n: "Dihidróxido de cobre", s: "Hidróxido de cobre(II)", tipo: "hidroxido" },
+        { f: "Al(OH)<sub>3</sub>", n: "Trihidróxido de aluminio", s: "Hidróxido de aluminio", tipo: "hidroxido" },
+        { f: "Zn(OH)<sub>2</sub>", n: "Dihidróxido de cinc", s: "Hidróxido de cinc", tipo: "hidroxido" },
+        { f: "AgOH", n: "Hidróxido de plata", s: "Hidróxido de plata", tipo: "hidroxido" },
+        { f: "Pb(OH)<sub>2</sub>", n: "Dihidróxido de plomo", s: "Hidróxido de plomo(II)", tipo: "hidroxido" },
+        { f: "Pb(OH)<sub>4</sub>", n: "Tetrahidróxido de plomo", s: "Hidróxido de plomo(IV)", tipo: "hidroxido" },
+        { f: "Ni(OH)<sub>2</sub>", n: "Dihidróxido de níquel", s: "Hidróxido de níquel(II)", tipo: "hidroxido" },
+
+        // --- PERÓXIDOS (10 Nuevos) ---
+        { f: "H<sub>2</sub>O<sub>2</sub>", n: "Dióxido de dihidrógeno", s: "Peróxido de hidrógeno", tipo: "peroxido" },
+        { f: "Li<sub>2</sub>O<sub>2</sub>", n: "Dióxido de dilitio", s: "Peróxido de litio", tipo: "peroxido" },
+        { f: "Na<sub>2</sub>O<sub>2</sub>", n: "Dióxido de disodio", s: "Peróxido de sodio", tipo: "peroxido" },
+        { f: "K<sub>2</sub>O<sub>2</sub>", n: "Dióxido de dipotasio", s: "Peróxido de potasio", tipo: "peroxido" },
+        { f: "BeO<sub>2</sub>", n: "Dióxido de berilio", s: "Peróxido de berilio", tipo: "peroxido" },
+        { f: "MgO<sub>2</sub>", n: "Dióxido de magnesio", s: "Peróxido de magnesio", tipo: "peroxido" },
+        { f: "CaO<sub>2</sub>", n: "Dióxido de calcio", s: "Peróxido de calcio", tipo: "peroxido" },
+        { f: "SrO<sub>2</sub>", n: "Dióxido de estroncio", s: "Peróxido de estroncio", tipo: "peroxido" },
+        { f: "BaO<sub>2</sub>", n: "Dióxido de bario", s: "Peróxido de bario", tipo: "peroxido" },
+        { f: "ZnO<sub>2</sub>", n: "Dióxido de cinc", s: "Peróxido de cinc", tipo: "peroxido" }
+    ];
+
+    // --- VARIABLES DE JUEGO ---
+    let colaPreguntas = []; // Aquí meteremos todos desordenados
+    let indicePregunta = 0; // Índice sobre la cola
+    let totalPreguntas = 0;
+    
+    let modoJuego = 'sistematica';
+    let metaPasos = 30; // 30 sistematica, 45 stock
+    let posicionPato = 4; // Empieza con ventaja
+    const POSICION_MUERTE = 0;
+    
+    // --- GENERADOR DE TRAMPAS MEJORADO ---
+    function generarDistractorFormula(formulaCorrecta, nombre) {
+        let fake = formulaCorrecta;
+        
+        // Trampas específicas para Hidróxidos (OH)
+        if (formulaCorrecta.includes("OH")) {
+            if (Math.random() > 0.5 && fake.includes(")")) {
+                // Quitar paréntesis: Ca(OH)2 -> CaOH2
+                fake = fake.replace("(", "").replace(")", "");
+            } else if (fake.includes("<sub>2</sub>")) {
+                // Cambiar valencia
+                fake = fake.replace("<sub>2</sub>", "<sub>3</sub>");
+            } else if (fake.includes("<sub>3</sub>")) {
+                fake = fake.replace("<sub>3</sub>", "<sub>2</sub>");
+            } else {
+                // Añadir un 2 falso
+                fake = fake + "<sub>2</sub>";
+            }
+        }
+        
+        // Trampas específicas para Peróxidos (O2)
+        // Confundir Na2O2 con Na2O (óxido normal)
+        else if (formulaCorrecta.includes("O<sub>2</sub>") && !formulaCorrecta.includes("C")) { // Evitar CO2
+             if (Math.random() > 0.4) {
+                 fake = fake.replace("O<sub>2</sub>", "O"); // Quitar el 2 del oxígeno
+             }
+        }
+
+        // Trampas de Oxido (O -> Ox) - Solo si no es peróxido
+        else if (formulaCorrecta.includes("O") && !fake.includes("Ox") && !fake.includes("OH") && Math.random() > 0.3) {
+             if(!fake.includes("Co") && !fake.includes("No") && !fake.includes("Po") && !fake.includes("So")) {
+                fake = fake.replace(/O(?=\d|$)/, "Ox"); 
+             }
+        }
+        
+        if (fake.includes("Ox")) return fake;
+
+        // Trampas de Símbolos Genéricas
+        if (fake.includes("Zn")) fake = fake.replace("Zn", ["Ce", "Ci", "Cz"][Math.floor(Math.random()*3)]);
+        else if (fake.includes("Rb")) fake = fake.replace("Rb", ["Ru", "Rub"][Math.floor(Math.random()*2)]);
+        else if (fake.includes("Cu")) fake = fake.replace("Cu", ["Co", "C"][Math.floor(Math.random()*2)]);
+        else if (fake.includes("Au")) fake = fake.replace("Au", ["Or", "O"][Math.floor(Math.random()*2)]);
+        else if (fake.includes("Ag")) fake = fake.replace("Ag", ["Pl", "Pt"][Math.floor(Math.random()*2)]);
+        else if (fake.includes("Pt")) fake = fake.replace("Pt", ["Pl", "Ag"][Math.floor(Math.random()*2)]);
+        else if (fake.includes("I") && !fake.includes("Li") && !fake.includes("Ni") && !fake.includes("Si") && !fake.includes("HI")) fake = fake.replace("I", "Y");
+        else if (fake.includes("(aq)")) {
+             if(Math.random() > 0.5) fake = fake.replace("(aq)", "(ac)"); 
+             else fake = fake.replace("(aq)", "");
+        }
+        else if (fake.includes("Na")) fake = fake.replace("Na", Math.random() > 0.5 ? "So" : "No");
+        else if (fake.includes("K")) fake = fake.replace("K", "P");
+        else if (fake.includes("Hg")) fake = fake.replace("Hg", "Me");
+        else if (fake.includes("Pb")) fake = fake.replace("Pb", "Pl");
+        else if (fake.includes("S") && !fake.includes("Sr") && !fake.includes("Si")) fake = fake.replace("S", "A");
+        else if (fake.includes("N") && !fake.includes("Na") && !fake.includes("Ni")) fake = fake.replace("N", Math.random() > 0.5 ? "Ni" : "No");
+        else if (fake.includes("Fe")) fake = fake.replace("Fe", "Hi");
+        else if (fake.includes("P") && !fake.includes("Pb") && !fake.includes("Pt") && !fake.includes("PH")) fake = fake.replace("P", "Po");
+        else if (fake.includes("F") && !fake.includes("Fe")) fake = fake.replace("F", "Fl");
+        else {
+            if (fake.includes("2")) fake = fake.replace("2", "");
+            else if (fake.includes("3")) fake = fake.replace("3", "2");
+            else fake = fake + "<sub>2</sub>";
+        }
+        if (fake === formulaCorrecta) fake = "X" + fake;
+        return fake;
+    }
+
+    // --- LOGICA DE MOVIMIENTO ---
+    function actualizarPosicionVisual() {
+        let porcentaje = (posicionPato / metaPasos) * 90;
+        if(porcentaje < 0) porcentaje = 0;
+        if(porcentaje > 90) porcentaje = 90;
+        
+        document.getElementById('player-char').style.left = porcentaje + "%";
+        document.getElementById("steps-counter").innerText = `Posición: ${posicionPato} / ${metaPasos}`;
+    }
+
+    function moverPato(delta) {
+        posicionPato += delta;
+        actualizarPosicionVisual();
+        checkGameOver();
+    }
+
+    function checkGameOver() {
+        if (posicionPato <= POSICION_MUERTE) {
+            mostrarMuerte();
+        } else if (posicionPato >= metaPasos) {
+            mostrarVictoria();
+        }
+    }
+
+    // --- CONTROL DE FLUJO ---
+    function seleccionarModo(modo) {
+        modoJuego = modo;
+        if (modo === 'sistematica') {
+            metaPasos = 30;
+        } else {
+            metaPasos = 45;
+        }
+        document.getElementById("start-screen").style.display = "none";
+        iniciarJuego();
+    }
+
+    function rendirse() {
+        document.getElementById("quiz-screen").style.display = "none";
+        document.getElementById("start-screen").style.display = "block";
+    }
+
+    function iniciarJuego() {
+        document.getElementById("end-screen").style.display = "none";
+        document.getElementById("death-screen").style.display = "none";
+        document.getElementById("quiz-screen").style.display = "block";
+        detenerFuegos();
+        
+        const nombreModo = modoJuego === 'sistematica' ? 'Sistemática' : 'Stock';
+        document.getElementById("mode-subtitle").innerText = `Modo: ${nombreModo} - Meta: ${metaPasos} pasos`;
+
+        // Filtrar preguntas según el modo
+        let preguntasCandidatas = baseDatos;
+        
+        // En sistemática excluimos peróxidos e hidróxidos por petición del usuario
+        if (modoJuego === 'sistematica') {
+            preguntasCandidatas = baseDatos.filter(p => p.tipo !== 'hidroxido' && p.tipo !== 'peroxido');
+        }
+
+        // Clonar y mezclar
+        colaPreguntas = [...preguntasCandidatas].sort(() => 0.5 - Math.random());
+        totalPreguntas = colaPreguntas.length;
+        indicePregunta = 0;
+        
+        posicionPato = 4;
+        actualizarPosicionVisual();
+
+        cargarSiguientePregunta();
+    }
+
+    function getNombreCorrecto(dato) {
+        return modoJuego === 'sistematica' ? dato.n : dato.s;
+    }
+
+    function cargarSiguientePregunta() {
+        if (indicePregunta >= totalPreguntas) {
+            mostrarVictoria(); 
+            return;
+        }
+
+        document.getElementById("feedback").style.display = "none";
+        document.getElementById("btn-next").style.display = "none";
+        document.getElementById("btn-check").style.display = "none";
+        document.getElementById("input-area").innerHTML = "";
+        
+        document.getElementById("db-counter").innerText = `Compuesto: ${indicePregunta + 1} / ${totalPreguntas}`;
+
+        const dato = colaPreguntas[indicePregunta];
+        const nombreMostrar = getNombreCorrecto(dato);
+        const questionArea = document.getElementById("question-area");
+
+        // DECIDIR TIPO DE PREGUNTA (TEST O ESCRIBIR)
+        let umbralTest = (modoJuego === 'sistematica') ? 0.5 : 0.4;
+        let esTest = Math.random() < umbralTest;
+
+        if (esTest) {
+            // TIPO TEST (+1 paso, -2 fallo)
+            questionArea.innerHTML = `<div>¿Cuál es la fórmula de:</div><div class="question-box">${nombreMostrar}</div>`;
+            let opciones = [{ texto: dato.f, correcta: true }];
+            
+            for(let i=0; i<3; i++) {
+                let formulaFalsa = generarDistractorFormula(dato.f, nombreMostrar);
+                while(opciones.some(o => o.texto === formulaFalsa)) {
+                    formulaFalsa = generarDistractorFormula(formulaFalsa + "i", nombreMostrar); 
+                }
+                opciones.push({ texto: formulaFalsa, correcta: false });
+            }
+            
+            opciones.sort(() => 0.5 - Math.random());
+            let htmlBotones = '<div class="options-grid">';
+            opciones.forEach((opcion) => {
+                htmlBotones += `<button class="btn-option" onclick="verificarTest(this, ${opcion.correcta})">${opcion.texto}</button>`;
+            });
+            htmlBotones += '</div>';
+            document.getElementById("input-area").innerHTML = htmlBotones;
+        
+        } else {
+            // TIPO ESCRIBIR (+3 pasos, -2 fallo)
+            questionArea.innerHTML = `<div>Nombra este compuesto (${modoJuego}):</div><div class="question-box">${dato.f}</div>`;
+            document.getElementById("input-area").innerHTML = `
+                <input type="text" id="respuesta-texto" placeholder="Escribe el nombre aquí..." autocomplete="off">
+            `;
+            document.getElementById("btn-check").style.display = "inline-block";
+            document.getElementById("respuesta-texto").addEventListener("keyup", function(event) {
+                if (event.key === "Enter") verificarRespuestaTexto();
+            });
+            setTimeout(() => document.getElementById("respuesta-texto").focus(), 100);
+        }
+    }
+
+    function verificarTest(btn, esCorrecta) {
+        let botones = document.querySelectorAll(".btn-option");
+        botones.forEach(b => b.disabled = true);
+        const feedback = document.getElementById("feedback");
+        feedback.style.display = "block";
+
+        if (esCorrecta) {
+            moverPato(1); 
+            btn.style.backgroundColor = "#d4edda";
+            btn.style.borderColor = "#28a745";
+            feedback.className = "feedback correct";
+            feedback.innerHTML = "¡Correcto! +1 paso";
+        } else {
+            moverPato(-2); 
+            btn.style.backgroundColor = "#f8d7da";
+            btn.style.borderColor = "#dc3545";
+            feedback.className = "feedback incorrect";
+            let correcta = colaPreguntas[indicePregunta].f;
+            feedback.innerHTML = `¡Fallaste! La correcta es: <strong>${correcta}</strong>. <div class="penalty">Retrocedes 2 pasos.</div>`;
+        }
+        
+        if (posicionPato > POSICION_MUERTE && posicionPato < metaPasos) {
+            document.getElementById("btn-next").style.display = "inline-block";
+        }
+    }
+
+    function verificarRespuestaTexto() {
+        const input = document.getElementById("respuesta-texto");
+        const btnCheck = document.getElementById("btn-check");
+        let respuestaAlumno = input.value.trim();
+        let respuestaCorrecta = getNombreCorrecto(colaPreguntas[indicePregunta]);
+
+        let alumnoStrict = respuestaAlumno.toLowerCase();
+        let dbStrict = respuestaCorrecta.toLowerCase();
+
+        alumnoStrict = alumnoStrict.replace(/\s+\(/g, "(");
+        dbStrict = dbStrict.replace(/\s+\(/g, "(");
+
+        if (modoJuego === 'sistematica') {
+            alumnoStrict = alumnoStrict.replace(/mono/g, "");
+            dbStrict = dbStrict.replace(/mono/g, "");
+        }
+
+        const normalize = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        let alumnoLoose = normalize(alumnoStrict);
+        let dbLoose = normalize(dbStrict);
+
+        let esCorrecto = (alumnoLoose === dbLoose);
+
+        input.disabled = true;
+        btnCheck.style.display = "none";
+        
+        const feedback = document.getElementById("feedback");
+        feedback.style.display = "block";
+
+        if (esCorrecto) {
+            if (alumnoStrict === dbStrict) {
+                moverPato(3); 
+                feedback.className = "feedback correct";
+                feedback.innerHTML = "¡Perfecto! +3 pasos";
+            } else {
+                moverPato(2); 
+                feedback.className = "feedback warning";
+                feedback.innerHTML = `¡Bien, pero faltan tildes! +2 pasos.<br><small>Lo correcto es: <strong>${respuestaCorrecta}</strong> (Has perdido 1 paso)</small>`;
+            }
+        } else {
+            moverPato(-2); 
+            feedback.className = "feedback incorrect";
+            feedback.innerHTML = `Incorrecto. La respuesta es: <br><strong>${respuestaCorrecta}</strong> <div class="penalty">Retrocedes 2 pasos.</div>`;
+        }
+        
+        if (posicionPato > POSICION_MUERTE && posicionPato < metaPasos) {
+            document.getElementById("btn-next").style.display = "inline-block";
+        }
+    }
+
+    function siguientePregunta() {
+        indicePregunta++; 
+        cargarSiguientePregunta();
+    }
+
+    function mostrarVictoria() {
+        document.getElementById("quiz-screen").style.display = "none";
+        document.getElementById("end-screen").style.display = "block";
+        lanzarFuegos();
+    }
+
+    function mostrarMuerte() {
+        document.getElementById("quiz-screen").style.display = "none";
+        document.getElementById("death-screen").style.display = "block";
+    }
+
+    function lanzarFuegos() {
+        const canvas = document.getElementById('fireworks-canvas');
+        canvas.style.display = 'block';
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const particles = [];
+        
+        function createFirework(x, y) {
+            const colors = ['#e74c3c', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6'];
+            const count = 30;
+            for(let i=0; i<count; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    angle: Math.random() * Math.PI * 2,
+                    speed: Math.random() * 5 + 2,
+                    alpha: 1,
+                    decay: Math.random() * 0.02 + 0.01
+                });
+            }
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if(Math.random() < 0.05) {
+                createFirework(Math.random() * canvas.width, Math.random() * canvas.height * 0.6);
+            }
+
+            for(let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += Math.cos(p.angle) * p.speed;
+                p.y += Math.sin(p.angle) * p.speed + 1;
+                p.alpha -= p.decay;
+                
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                if(p.alpha <= 0) particles.splice(i, 1);
+            }
+            
+            if(canvas.style.display === 'block') requestAnimationFrame(animate);
+        }
+        animate();
+    }
+
+    function detenerFuegos() {
+        const canvas = document.getElementById('fireworks-canvas');
+        canvas.style.display = 'none';
+    }
+</script>
+
+</body>
+</html>
