@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrenador de Formulación</title>
+    <style>
+        :root {
+            /* Paleta moderna y vibrante */
+            --primary: #6366f1; /* Indigo */
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899; /* Pink */
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --surface: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --success: #22c55e;
+            --error: #ef4444;
+            --radius: 24px;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px;
+        }
+
+        .app-container {
+            background: var(--surface);
+            width: 100%;
+            max-width: 480px;
+            border-radius: var(--radius);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 650px;
+            position: relative;
+        }
+
+        /* --- HEADER MODERNO --- */
+        header {
+            background: white;
+            padding: 30px 65px 15px; 
+            text-align: center;
+            border-bottom: 1px solid #f1f5f9;
+            position: relative;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: -webkit-linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+            margin-bottom: 5px;
+        }
+
+        .credits {
+            font-size: 0.9rem;
+            color: var(--primary);
+            margin-top: 8px;
+            font-weight: 600;
+            padding: 0 10px;
+            line-height: 1.4;
+        }
+
+        .credits strong {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 30px;
+            background: #f8fafc;
+            border: none;
+            color: var(--text);
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+        
+        .back-btn:hover { background: #e2e8f0; transform: translateY(-2px); }
+
+        /* --- SCREENS --- */
+        .screen {
+            padding: 25px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .screen.hidden { display: none; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- MENU CARDS --- */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-top: 10px;
+        }
+
+        .menu-card {
+            background: white;
+            border: 2px solid #f1f5f9;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 6px;
+            background: var(--primary);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .menu-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -8px rgba(99, 102, 241, 0.2);
+        }
+
+        .menu-card:hover::before { opacity: 1; }
+
+        .menu-card h3 { margin: 0 0 4px 0; color: var(--text); font-size: 1.1rem; }
+        .menu-card p { margin: 0; font-size: 0.85rem; color: var(--text-light); }
+        .menu-icon { 
+            font-size: 1.5rem; 
+            background: #eff6ff;
+            color: var(--primary);
+            width: 45px; height: 45px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* --- GAME UI --- */
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Estilo para el texto de progreso con contadores */
+        .progress-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            font-size: 0.95rem;
+            color: #64748b;
+            margin: -5px 0 15px;
+            font-weight: 700;
+        }
+
+        .score-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 15px;
+            border-radius: 20px;
+            background: #f8fafc;
+            transition: all 0.2s;
+        }
+
+        .question-card {
+            background: #ffffff;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 110px;
+            margin-top: 10px;
+        }
+
+        .question-label {
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 0.7rem;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .question-text {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .question-text sub {
+            font-size: 0.6em;
+            vertical-align: baseline; 
+            position: relative;
+            bottom: -0.25em;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        /* INPUT */
+        .input-container {
+            position: relative;
+            width: 100%;
+            background: #f8fafc;
+            border: 2px solid transparent;
+            border-radius: 16px;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: text;
+            transition: all 0.2s;
+            box-sizing: border-box;
+            padding: 0 15px;
+        }
+
+        .input-container.focused {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        .input-container.disabled {
+            background-color: #f1f5f9;
+            cursor: default;
+            opacity: 0.7;
+        }
+
+        .visual-display {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--text);
+            pointer-events: none;
+            white-space: pre;
+            min-width: 10px;
+            display: inline-block; 
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .visual-display sub {
+            font-size: 0.65em;
+            vertical-align: baseline;
+            position: relative;
+            bottom: -0.45em;
+            margin-left: 2px;
+            margin-right: 2px;
+            font-weight: 700;
+            color: var(--secondary);
+            line-height: 0;
+        }
+
+        .placeholder { color: #cbd5e1; font-weight: 500; font-size: 1.2rem; }
+        
+        .cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1.4em;
+            background-color: var(--secondary);
+            margin-left: 2px;
+            animation: blink 1s step-end infinite;
+            border-radius: 2px;
+            vertical-align: text-bottom;
+            margin-bottom: -0.2em;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        #hidden-input {
+            position: absolute; opacity: 0; top: 0; left: 0; height: 100%; width: 100%; cursor: text;
+        }
+
+        /* KEYPAD */
+        .keypad-label { font-size: 0.75rem; color: var(--text-light); text-align: center; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; }
+        .keypad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        
+        .key {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-bottom: 4px solid #e2e8f0; /* Efecto 3D */
+            border-radius: 12px;
+            padding: 12px 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+        
+        .key:active {
+            transform: translateY(3px);
+            border-bottom-width: 1px;
+            background: #f8fafc;
+        }
+
+        .key-num { color: var(--primary); }
+        .key-num sub { font-size: 0.7em; vertical-align: baseline; position: relative; bottom: -0.2em; }
+        .key-action { color: var(--error); background: #fef2f2; border-color: #fee2e2; border-bottom-color: #fecaca; }
+
+        /* BUTTON */
+        .action-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            border-radius: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            border-bottom: 5px solid rgba(0,0,0,0.2); /* Efecto 3D */
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+        }
+
+        .action-btn:active {
+            transform: translateY(3px);
+            border-bottom-width: 2px;
+            box-shadow: none;
+        }
+
+        /* FEEDBACK */
+        .feedback-area {
+            min-height: 60px; text-align: center; padding: 15px; border-radius: 16px; display: none; margin-top: 5px;
+        }
+        .feedback-area.visible { display: block; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .feedback-area.correct { background: #dcfce7; color: #15803d; border: 2px solid #86efac; }
+        .feedback-area.incorrect { background: #fee2e2; color: #b91c1c; border: 2px solid #fca5a5; }
+
+        .footer-info { text-align: center; font-size: 0.75rem; color: #cbd5e1; margin-top: auto; padding-top: 20px;}
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <button id="back-btn" class="back-btn" style="display:none;" onclick="showMenu()">←</button>
+            
+            <h1>Entrenador de Formulación</h1>
+            <div class="credits">
+                Prof. Javier Gijón • IES María Moliner (Segovia)
+            </div>
+        </header>
+
+        <!-- MENU SCREEN -->
+        <div id="menu-screen" class="screen">
+            <p style="text-align:center; color: var(--text-light); margin-bottom: 5px;">Elige tu entrenamiento:</p>
+            <div class="menu-grid">
+                <div class="menu-card" onclick="startGame('oxoacidos')">
+                    <div class="menu-icon">🧪</div>
+                    <div style="flex:1; margin-left: 15px;">
+                        <h3>Oxoácidos</h3>
+                        <p>Ácidos tradicionales e Hidrácidos</p>
+                    </div>
+                </div>
+
+                <div class="menu-card" onclick="startGame('oxisales')">
+                    <div class="menu-icon">🧂</div>
+                    <div style="flex:1; margin-left: 15px;">
+                        <h3>Oxisales</h3>
+                        <p>Sales neutras ternarias</p>
+                    </div>
+                </div>
+
+                <div class="menu-card" onclick="startGame('sales_acidas')">
+                    <div class="menu-icon">💧</div>
+                    <div style="flex:1; margin-left: 15px;">
+                        <h3>Sales Ácidas</h3>
+                        <p>Nomenclatura de Hidrógeno</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-info">¡Completa la serie sin fallos!</div>
+        </div>
+
+        <!-- GAME SCREEN -->
+        <div id="game-screen" class="screen hidden">
+            
+            <div class="progress-bar-container">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+            
+            <!-- CONTADORES DE ACIERTOS Y FALLOS -->
+            <div id="progress-text" class="progress-info">
+                <span class="score-badge" style="color: var(--success); background: #dcfce7;">Aciertos: 0</span>
+                <span class="score-badge" style="color: var(--error); background: #fee2e2;">Errores: 0</span>
+            </div>
+
+            <div class="question-card">
+                <span id="mode-label" class="question-label">Modo</span>
+                <div id="question-display" class="question-text">...</div>
+            </div>
+
+            <div class="input-container" id="input-container" onclick="focusInput()">
+                <div id="visual-display" class="visual-display">
+                    <span class="placeholder">Escribe aquí...</span>
+                </div>
+                <input type="text" id="hidden-input" autocomplete="off" spellcheck="false" inputmode="text">
+            </div>
+
+            <div>
+                <div class="keypad-label">Teclado Químico</div>
+                <div class="keypad">
+                    <button class="key key-num" onclick="typeChar('2')"><sub>2</sub></button>
+                    <button class="key key-num" onclick="typeChar('3')"><sub>3</sub></button>
+                    <button class="key key-num" onclick="typeChar('4')"><sub>4</sub></button>
+                    <button class="key key-num" onclick="typeChar('5')"><sub>5</sub></button>
+                    <button class="key key-num" onclick="typeChar('6')"><sub>6</sub></button>
+                    
+                    <button class="key key-num" onclick="typeChar('7')"><sub>7</sub></button>
+                    <button class="key" onclick="typeChar('(')">(</button>
+                    <button class="key" onclick="typeChar(')')">)</button>
+                    <button class="key key-action" onclick="backspace()">⌫</button>
+                    <button class="key key-action" onclick="clearInput()">C</button>
+                </div>
+            </div>
+
+            <button id="main-btn" class="action-btn" onclick="checkAnswer()">Comprobar</button>
+
+            <div id="feedback" class="feedback-area">
+                <div id="feedback-title" style="font-weight: 800; margin-bottom: 5px; font-size: 1.2rem;"></div>
+                <div id="feedback-detail"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+        
+        // COMBINACIÓN: Oxoácidos tradicionales + Hidrácidos (Trampa)
+        const DB_OXOACIDOS = [
+            // Hidrácidos (Flag: isHydracid = true para forzar fórmula)
+            { f: "HF", n: "ácido fluorhídrico", isHydracid: true },
+            { f: "HCl", n: "ácido clorhídrico", isHydracid: true },
+            { f: "HBr", n: "ácido bromhídrico", isHydracid: true },
+            { f: "HI", n: "ácido yodhídrico", isHydracid: true },
+            { f: "H2S", n: "ácido sulfhídrico", isHydracid: true },
+            { f: "H2Se", n: "ácido selenhídrico", isHydracid: true },
+            { f: "H2Te", n: "ácido telurhídrico", isHydracid: true },
+            { f: "HCN", n: "ácido cianhídrico", isHydracid: true },
+
+            // Oxoácidos
+            { f: "HClO", n: "ácido hipocloroso" }, { f: "HClO2", n: "ácido cloroso" },
+            { f: "HClO3", n: "ácido clórico" }, { f: "HClO4", n: "ácido perclórico" },
+            { f: "HBrO", n: "ácido hipobromoso" }, { f: "HBrO2", n: "ácido bromoso" },
+            { f: "HBrO3", n: "ácido brómico" }, { f: "HBrO4", n: "ácido perbrómico" },
+            { f: "HIO", n: "ácido hipoyodoso" }, { f: "HIO2", n: "ácido yodoso" },
+            { f: "HIO3", n: "ácido yódico" }, { f: "HIO4", n: "ácido peryódico" },
+            { f: "H2SO3", n: "ácido sulfuroso" }, { f: "H2SO4", n: "ácido sulfúrico" },
+            { f: "H2S2O7", n: "ácido disulfúrico" },
+            { f: "H2SeO3", n: "ácido selenioso" }, { f: "H2SeO4", n: "ácido selénico" },
+            { f: "H2TeO3", n: "ácido teluroso" }, { f: "H2TeO4", n: "ácido telúrico" },
+            { f: "HNO2", n: "ácido nitroso" }, { f: "HNO3", n: "ácido nítrico" },
+            { f: "HPO3", n: "ácido metafosfórico" }, { f: "H3PO3", n: "ácido fosforoso" },
+            { f: "H3PO4", n: "ácido fosfórico" }, { f: "H4P2O7", n: "ácido difosfórico" },
+            { f: "H3AsO3", n: "ácido arsenioso" }, { f: "H3AsO4", n: "ácido arsénico" },
+            { f: "H2CO3", n: "ácido carbónico" }, { f: "H2SiO3", n: "ácido metasilícico" },
+            { f: "H4SiO4", n: "ácido ortosilícico" }, { f: "HBO2", n: "ácido metabórico" },
+            { f: "H3BO3", n: "ácido bórico" }, { f: "HMnO4", n: "ácido permangánico" },
+            { f: "H2MnO4", n: "ácido mangánico" }, { f: "H2CrO4", n: "ácido crómico" },
+            { f: "H2Cr2O7", n: "ácido dicrómico" }
+        ];
+
+        const DB_OXISALES = [
+            { f: "NaClO", n: "hipoclorito de sodio" },
+            { f: "NaClO3", n: "clorato de sodio" },
+            { f: "KClO4", n: "perclorato de potasio" },
+            { f: "Ca(ClO)2", n: "hipoclorito de calcio" },
+            { f: "K2SO4", n: "sulfato de potasio" },
+            { f: "CaSO4", n: "sulfato de calcio" },
+            { f: "Al2(SO4)3", n: "sulfato de aluminio" },
+            { f: "FeSO4", n: "sulfato de hierro (II)" },
+            { f: "Fe2(SO4)3", n: "sulfato de hierro (III)" },
+            { f: "NaNO3", n: "nitrato de sodio" },
+            { f: "KNO2", n: "nitrito de potasio" },
+            { f: "AgNO3", n: "nitrato de plata" },
+            { f: "Cu(NO3)2", n: "nitrato de cobre (II)" },
+            { f: "CaCO3", n: "carbonato de calcio" },
+            { f: "Na2CO3", n: "carbonato de sodio" },
+            { f: "Li2CO3", n: "carbonato de litio" },
+            { f: "Ca3(PO4)2", n: "fosfato de calcio" },
+            { f: "AlPO4", n: "fosfato de aluminio" },
+            { f: "KMnO4", n: "permanganato de potasio" },
+            { f: "K2Cr2O7", n: "dicromato de potasio" },
+            { f: "Pb(NO3)2", n: "nitrato de plomo (II)" },
+            { f: "Mg3(PO4)2", n: "fosfato de magnesio" },
+            { f: "FePO4", n: "fosfato de hierro (III)" },
+            { f: "Sn(SO4)2", n: "sulfato de estaño (IV)" }
+        ];
+
+        const DB_SALES_ACIDAS = [
+            { f: "NaHCO3", n: "hidrogenocarbonato de sodio" },
+            { f: "KHCO3", n: "hidrogenocarbonato de potasio" },
+            { f: "Ca(HCO3)2", n: "hidrogenocarbonato de calcio" },
+            { f: "LiHCO3", n: "hidrogenocarbonato de litio" },
+            { f: "NaHSO4", n: "hidrogenosulfato de sodio" },
+            { f: "KHSO4", n: "hidrogenosulfato de potasio" },
+            { f: "Ca(HSO4)2", n: "hidrogenosulfato de calcio" },
+            { f: "NaHSO3", n: "hidrogenosulfito de sodio" },
+            { f: "Mg(HSO3)2", n: "hidrogenosulfito de magnesio" },
+            { f: "NaH2PO4", n: "dihidrogenofosfato de sodio" },
+            { f: "KH2PO4", n: "dihidrogenofosfato de potasio" },
+            { f: "Ca(H2PO4)2", n: "dihidrogenofosfato de calcio" },
+            { f: "Na2HPO4", n: "hidrogenofosfato de sodio" },
+            { f: "K2HPO4", n: "hidrogenofosfato de potasio" },
+            { f: "CaHPO4", n: "hidrogenofosfato de calcio" },
+            { f: "Fe(HSO4)2", n: "hidrogenosulfato de hierro (II)" },
+            { f: "Fe(HSO4)3", n: "hidrogenosulfato de hierro (III)" },
+            { f: "Cu(H2PO4)2", n: "dihidrogenofosfato de cobre (II)" },
+            { f: "Al(HCO3)3", n: "hidrogenocarbonato de aluminio" },
+            { f: "Al(HSO4)3", n: "hidrogenosulfato de aluminio" }
+        ];
+
+        // --- STATE ---
+        let currentDB = [];
+        let remainingDB = [];
+        let currentItem = null;
+        let mode = 0; // 0: Formula, 1: Name
+        let isAnswerPhase = true;
+        let correctCount = 0;
+        let incorrectCount = 0;
+
+        // --- DOM ---
+        const menuScreen = document.getElementById('menu-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const backBtn = document.getElementById('back-btn');
+        const visualDisplay = document.getElementById('visual-display');
+        const hiddenInput = document.getElementById('hidden-input');
+        const inputContainer = document.getElementById('input-container');
+        const btnEl = document.getElementById('main-btn');
+        const feedbackEl = document.getElementById('feedback');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackDetail = document.getElementById('feedback-detail');
+        const questionEl = document.getElementById('question-display');
+        const labelEl = document.getElementById('mode-label');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+
+        // --- NAVIGATION ---
+        function showMenu() {
+            menuScreen.classList.remove('hidden');
+            gameScreen.classList.add('hidden');
+            backBtn.style.display = 'none';
+        }
+
+        function startGame(category) {
+            menuScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            backBtn.style.display = 'flex';
+
+            switch(category) {
+                case 'oxoacidos': currentDB = DB_OXOACIDOS; break;
+                case 'oxisales': currentDB = DB_OXISALES; break;
+                case 'sales_acidas': currentDB = DB_SALES_ACIDAS; break;
+            }
+            remainingDB = [...currentDB];
+            correctCount = 0;
+            incorrectCount = 0;
+            loadQuestion();
+        }
+
+        // --- LOGIC ---
+        function focusInput() {
+            if (!isAnswerPhase) return;
+            hiddenInput.focus();
+            inputContainer.classList.add('focused');
+        }
+
+        hiddenInput.addEventListener('blur', () => inputContainer.classList.remove('focused'));
+        hiddenInput.addEventListener('input', updateDisplay);
+
+        function updateDisplay() {
+            const raw = hiddenInput.value;
+            if (raw.length === 0) {
+                visualDisplay.innerHTML = '<span class="placeholder">Escribe aquí...</span>';
+                if(isAnswerPhase && document.activeElement === hiddenInput) visualDisplay.innerHTML += '<span class="cursor"></span>';
+                return;
+            }
+
+            let formatted = raw;
+            // Si estamos pidiendo FÓRMULA (mode 0), aplicamos subíndices
+            if (mode === 0) formatted = raw.replace(/(\d)/g, '<sub>$1</sub>');
+
+            if (isAnswerPhase) formatted += '<span class="cursor"></span>';
+            visualDisplay.innerHTML = formatted;
+        }
+
+        window.typeChar = (char) => {
+            if(!isAnswerPhase) return;
+            hiddenInput.focus();
+            const start = hiddenInput.selectionStart;
+            const end = hiddenInput.selectionEnd;
+            const val = hiddenInput.value;
+            hiddenInput.value = val.substring(0, start) + char + val.substring(end);
+            hiddenInput.selectionStart = hiddenInput.selectionEnd = start + 1;
+            updateDisplay();
+        };
+
+        window.backspace = () => {
+            if(!isAnswerPhase) return;
+            hiddenInput.focus();
+            const val = hiddenInput.value;
+            if (val.length > 0) {
+                hiddenInput.value = val.slice(0, -1);
+                updateDisplay();
+            }
+        };
+
+        window.clearInput = () => {
+            if(!isAnswerPhase) return;
+            hiddenInput.focus();
+            hiddenInput.value = "";
+            updateDisplay();
+        };
+
+        function updateProgressText() {
+            progressText.innerHTML = `
+                <span class="score-badge" style="color: var(--success); background: #dcfce7;">Aciertos: ${correctCount}</span>
+                <span class="score-badge" style="color: var(--error); background: #fee2e2;">Errores: ${incorrectCount}</span>
+            `;
+        }
+
+        function loadQuestion() {
+            if (remainingDB.length === 0) remainingDB = [...currentDB];
+
+            isAnswerPhase = true;
+            inputContainer.classList.remove('disabled');
+            hiddenInput.disabled = false;
+            hiddenInput.value = "";
+            updateDisplay();
+            feedbackEl.classList.remove('visible', 'correct', 'incorrect');
+            btnEl.innerText = "COMPROBAR";
+            btnEl.onclick = checkAnswer;
+            btnEl.style.background = "var(--primary)";
+            btnEl.style.borderBottomColor = "rgba(0,0,0,0.2)";
+
+            // Pick question
+            const randomIndex = Math.floor(Math.random() * remainingDB.length);
+            currentItem = remainingDB[randomIndex];
+            remainingDB.splice(randomIndex, 1);
+
+            // Update UI Counters
+            updateProgressText();
+            const done = currentDB.length - remainingDB.length - 1; 
+            const pct = (done / currentDB.length) * 100;
+            progressBar.style.width = `${pct}%`;
+
+            // LOGICA DE MODOS
+            if (currentItem.isHydracid) {
+                mode = 0; // SIEMPRE pedir fórmula para Ácidos
+            } else {
+                mode = Math.random() > 0.5 ? 1 : 0;
+            }
+
+            if (mode === 0) {
+                labelEl.innerText = "ESCRIBE LA FÓRMULA";
+                questionEl.innerHTML = currentItem.n;
+                setTimeout(() => hiddenInput.focus(), 50);
+            } else {
+                labelEl.innerText = "ESCRIBE EL NOMBRE";
+                questionEl.innerHTML = currentItem.f.replace(/(\d+)/g, '<sub>$1</sub>');
+                setTimeout(() => hiddenInput.focus(), 50);
+            }
+        }
+
+        function checkAnswer() {
+            if (hiddenInput.value.trim() === "") return;
+
+            const userVal = normalize(hiddenInput.value);
+            let isCorrect = false;
+            let correctDisplay = "";
+
+            if (mode === 0) {
+                if (userVal === normalize(currentItem.f)) isCorrect = true;
+                correctDisplay = currentItem.f.replace(/(\d+)/g, '<sub>$1</sub>');
+            } else {
+                const correctName = normalize(currentItem.n);
+                if (userVal === correctName) isCorrect = true;
+                // Flexible validations
+                if (correctName.includes("fosforico") && userVal.includes("ortofosforico")) isCorrect = true;
+                if (correctName.includes("fosforoso") && userVal.includes("ortofosforoso")) isCorrect = true;
+                if (correctName.includes("borico") && userVal.includes("ortoborico")) isCorrect = true;
+                if (correctName.includes("fosfato") && userVal.includes("ortofosfato")) isCorrect = true;
+                correctDisplay = currentItem.n;
+            }
+
+            showFeedback(isCorrect, correctDisplay);
+        }
+
+        function showFeedback(correct, answerText) {
+            isAnswerPhase = false;
+            hiddenInput.disabled = true;
+            inputContainer.classList.add('disabled');
+            const cursor = visualDisplay.querySelector('.cursor');
+            if(cursor) cursor.remove();
+
+            // Update scores
+            if (correct) correctCount++; else incorrectCount++;
+            
+            // Refresh counter immediately
+            updateProgressText();
+
+            // Update Progress Bar
+            const done = currentDB.length - remainingDB.length;
+            const pct = (done / currentDB.length) * 100;
+            progressBar.style.width = `${pct}%`;
+
+            feedbackEl.classList.remove('correct', 'incorrect');
+            feedbackEl.classList.add('visible');
+
+            if (correct) {
+                feedbackEl.classList.add('correct');
+                feedbackTitle.innerText = "¡Correcto! 🎉";
+                feedbackDetail.innerHTML = "";
+                btnEl.style.background = "var(--success)";
+                btnEl.style.borderBottomColor = "#15803d";
+            } else {
+                feedbackEl.classList.add('incorrect');
+                feedbackTitle.innerText = "¡Vaya! 😅";
+                feedbackDetail.innerHTML = `La solución era: <br><strong style="font-size:1.2rem; display:block; margin-top:5px;">${answerText}</strong>`;
+                btnEl.style.background = "var(--error)";
+                btnEl.style.borderBottomColor = "#b91c1c";
+            }
+
+            btnEl.innerText = remainingDB.length === 0 ? "¡SERIE COMPLETADA! 🔄" : "SIGUIENTE ➡️";
+            btnEl.onclick = loadQuestion;
+        }
+
+        const normalize = (str) => {
+            return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, ' ').trim(); 
+        };
+
+        hiddenInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") isAnswerPhase ? checkAnswer() : loadQuestion();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrenador de Binarios</title>
+    <style>
+        :root {
+            /* Paleta actualizada a Indigo/Rosa (como el programa de Ternarios) */
+            --primary: #6366f1; /* Indigo */
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899; /* Pink */
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            --surface: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            
+            /* Colores específicos para los contadores */
+            --success: #22c55e;
+            --success-bg: #dcfce7;
+            --error: #ef4444;
+            --error-bg: #fee2e2;
+            
+            --radius: 24px;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px;
+        }
+
+        .app-container {
+            background: var(--surface);
+            width: 100%;
+            max-width: 480px;
+            border-radius: var(--radius);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 680px;
+            position: relative;
+        }
+
+        /* --- HEADER --- */
+        header {
+            background: white;
+            padding: 30px 65px 15px; 
+            text-align: center;
+            border-bottom: 1px solid #f1f5f9;
+            position: relative;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: -webkit-linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+            margin-bottom: 5px;
+        }
+
+        .credits {
+            font-size: 0.9rem;
+            color: var(--primary);
+            margin-top: 8px;
+            font-weight: 600;
+            padding: 0 10px;
+            line-height: 1.4;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 30px;
+            background: #f8fafc;
+            border: none;
+            color: var(--text);
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+        
+        .back-btn:hover { background: #e2e8f0; transform: translateY(-2px); }
+
+        /* --- SCREEN ANIMATION --- */
+        .screen {
+            padding: 25px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .screen.hidden { display: none; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- MENU --- */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 5px;
+        }
+
+        .menu-card {
+            background: white;
+            border: 2px solid #f1f5f9;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -5px rgba(99, 102, 241, 0.15); /* Sombra ajustada al índigo */
+        }
+
+        .menu-card h3 { margin: 0 0 2px 0; color: var(--text); font-size: 1.05rem; }
+        .menu-card p { margin: 0; font-size: 0.8rem; color: var(--text-light); }
+        .menu-icon { 
+            font-size: 1.4rem; 
+            background: #eff6ff; /* Fondo azul muy claro */
+            color: var(--primary);
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* --- GAME UI --- */
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            /* DEGRADADO SOLICITADO */
+            background: linear-gradient(90deg, #6366f1, #ec4899);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Estilo para el texto de progreso con contadores */
+        .progress-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            font-size: 0.85rem;
+            color: #64748b;
+            margin: -5px 0 10px;
+            font-weight: 600;
+        }
+
+        .score-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+
+        .question-card {
+            background: #ffffff;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 110px;
+            margin-top: 10px;
+        }
+
+        .question-label {
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 0.7rem;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .question-text {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .question-text sub {
+            font-size: 0.6em;
+            vertical-align: baseline; 
+            position: relative;
+            bottom: -0.25em;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .input-container {
+            position: relative;
+            width: 100%;
+            background: #f8fafc;
+            border: 2px solid transparent;
+            border-radius: 16px;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: text;
+            transition: all 0.2s;
+            box-sizing: border-box;
+            padding: 0 15px;
+        }
+
+        .input-container.focused {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15); /* Sombra índigo */
+        }
+
+        .input-container.disabled { background-color: #f1f5f9; cursor: default; opacity: 0.7; }
+
+        .visual-display {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--text);
+            pointer-events: none;
+            white-space: pre;
+            min-width: 10px;
+            display: inline-block; 
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .visual-display sub {
+            font-size: 0.65em;
+            vertical-align: baseline;
+            position: relative;
+            bottom: -0.45em;
+            margin-left: 2px;
+            margin-right: 2px;
+            font-weight: 700;
+            color: var(--secondary);
+            line-height: 0;
+        }
+
+        .placeholder { color: #cbd5e1; font-weight: 500; font-size: 1.2rem; }
+        
+        .cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1.4em;
+            background-color: var(--secondary);
+            margin-left: 2px;
+            animation: blink 1s step-end infinite;
+            border-radius: 2px;
+            vertical-align: text-bottom;
+            margin-bottom: -0.2em;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        #hidden-input { position: absolute; opacity: 0; top: 0; left: 0; height: 100%; width: 100%; cursor: text; }
+
+        .keypad-label { font-size: 0.75rem; color: var(--text-light); text-align: center; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; }
+        .keypad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        
+        .key {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-bottom: 4px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.1s;
+            display: flex; align-items: center; justify-content: center; user-select: none;
+        }
+        
+        .key:active { transform: translateY(3px); border-bottom-width: 1px; background: #f8fafc; }
+        .key-num { color: var(--primary); }
+        .key-num sub { font-size: 0.7em; vertical-align: baseline; position: relative; bottom: -0.2em; }
+        .key-action { color: var(--error); background: #fef2f2; border-color: #fee2e2; border-bottom-color: #fecaca; }
+
+        .action-btn {
+            background: var(--primary);
+            color: white; border: none; padding: 18px; font-size: 1.1rem; font-weight: 800; border-radius: 16px;
+            cursor: pointer; width: 100%; transition: all 0.2s; border-bottom: 5px solid rgba(0,0,0,0.2);
+            text-transform: uppercase; letter-spacing: 1px; margin-top: 10px;
+        }
+
+        .action-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); }
+        .action-btn:active { transform: translateY(3px); border-bottom-width: 2px; box-shadow: none; }
+
+        .feedback-area {
+            min-height: 60px; text-align: center; padding: 15px; border-radius: 16px; display: none; margin-top: 5px;
+        }
+        .feedback-area.visible { display: block; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        
+        @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+        .feedback-area.correct { background: #dcfce7; color: #15803d; border: 2px solid #86efac; }
+        .feedback-area.incorrect { background: #fee2e2; color: #b91c1c; border: 2px solid #fca5a5; }
+
+        .footer-info { text-align: center; font-size: 0.75rem; color: #cbd5e1; margin-top: auto; padding-top: 20px;}
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <button id="back-btn" class="back-btn" style="display:none;" onclick="showMenu()">←</button>
+            
+            <h1>Entrenador de Binarios</h1>
+            <div class="credits">
+                Prof. Javier Gijón • IES María Moliner (Segovia)
+            </div>
+        </header>
+
+        <!-- MENU SCREEN -->
+        <div id="menu-screen" class="screen">
+            <p style="text-align:center; color: var(--text-light); margin-bottom: 5px;">Selecciona el grupo:</p>
+            <div class="menu-grid">
+                <div class="menu-card" onclick="startGame('oxigeno')">
+                    <div class="menu-icon">🧪</div>
+                    <div style="flex:1; margin-left: 15px;">
+                        <h3>Con Oxígeno</h3>
+                        <p>Óxidos, Peróxidos, Haluros</p>
+                    </div>
+                </div>
+
+                <div class="menu-card" onclick="startGame('hidrogeno')">
+                    <div class="menu-icon">☢️</div>
+                    <div style="flex:1; margin-left: 15px;">
+                        <h3>Con Hidrógeno</h3>
+                        <p>Hidruros e Hidrácidos</p>
+                    </div>
+                </div>
+
+                <div class="menu-card" onclick="startGame('sales')">
+                    <div class="menu-icon">🧂</div>
+                    <div style="flex:1; margin-left: 15px;">
+                        <h3>Sales Binarias</h3>
+                        <p>Metal + No Metal</p>
+                    </div>
+                </div>
+
+                <div class="menu-card" onclick="startGame('hidroxidos')">
+                    <div class="menu-icon">💧</div>
+                    <div style="flex:1; margin-left: 15px;">
+                        <h3>Hidróxidos</h3>
+                        <p>Grupos OH</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-info">¡Completa la serie sin fallos!</div>
+        </div>
+
+        <!-- GAME SCREEN -->
+        <div id="game-screen" class="screen hidden">
+            
+            <div class="progress-bar-container">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+            
+            <!-- CONTADORES DE ACIERTOS Y FALLOS CON COLORES SOLICITADOS -->
+            <div id="progress-text" class="progress-info">
+                <span class="score-badge" style="color: #22c55e; background: #dcfce7;">Aciertos: 0</span>
+                <span class="score-badge" style="color: #ef4444; background: #fee2e2;">Errores: 0</span>
+            </div>
+
+            <div class="question-card">
+                <span id="mode-label" class="question-label">Modo</span>
+                <div id="question-display" class="question-text">...</div>
+            </div>
+
+            <div class="input-container" id="input-container" onclick="focusInput()">
+                <div id="visual-display" class="visual-display">
+                    <span class="placeholder">Escribe aquí...</span>
+                </div>
+                <input type="text" id="hidden-input" autocomplete="off" spellcheck="false" inputmode="text">
+            </div>
+
+            <div>
+                <div class="keypad-label">Teclado Químico</div>
+                <div class="keypad">
+                    <button class="key key-num" onclick="typeChar('2')"><sub>2</sub></button>
+                    <button class="key key-num" onclick="typeChar('3')"><sub>3</sub></button>
+                    <button class="key key-num" onclick="typeChar('4')"><sub>4</sub></button>
+                    <button class="key key-num" onclick="typeChar('5')"><sub>5</sub></button>
+                    <button class="key key-num" onclick="typeChar('6')"><sub>6</sub></button>
+                    
+                    <button class="key key-num" onclick="typeChar('7')"><sub>7</sub></button>
+                    <button class="key" onclick="typeChar('(')">(</button>
+                    <button class="key" onclick="typeChar(')')">)</button>
+                    <button class="key key-action" onclick="backspace()">⌫</button>
+                    <button class="key key-action" onclick="clearInput()">C</button>
+                </div>
+            </div>
+
+            <button id="main-btn" class="action-btn" onclick="checkAnswer()">Comprobar</button>
+
+            <div id="feedback" class="feedback-area">
+                <div id="feedback-title" style="font-weight: 800; margin-bottom: 5px; font-size: 1.2rem;"></div>
+                <div id="feedback-detail"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+        
+        // GRUPO 1: OXÍGENOS
+        const DB_OXIGENO = [
+            // Excepción
+            { f: "H2O", n: ["agua"] },
+            // Óxidos Metálicos
+            { f: "Na2O", n: ["óxido de sodio", "monóxido de disodio", "óxido de disodio"] },
+            { f: "K2O", n: ["óxido de potasio", "monóxido de dipotasio", "óxido de dipotasio"] },
+            { f: "Li2O", n: ["óxido de litio", "monóxido de dilitio", "óxido de dilitio"] },
+            { f: "Rb2O", n: ["óxido de rubidio", "monóxido de dirubidio", "óxido de dirubidio"] },
+            { f: "Cs2O", n: ["óxido de cesio", "monóxido de dicesio", "óxido de dicesio"] },
+            { f: "BeO", n: ["óxido de berilio", "monóxido de berilio"] },
+            { f: "MgO", n: ["óxido de magnesio", "monóxido de magnesio"] },
+            { f: "CaO", n: ["óxido de calcio", "monóxido de calcio"] },
+            { f: "SrO", n: ["óxido de estroncio", "monóxido de estroncio"] },
+            { f: "BaO", n: ["óxido de bario", "monóxido de bario"] },
+            
+            // Stock y Sistemática
+            { f: "FeO", n: ["óxido de hierro (II)", "monóxido de hierro"] },
+            { f: "Fe2O3", n: ["óxido de hierro (III)", "trióxido de dihierro"] },
+            { f: "CuO", n: ["óxido de cobre (II)", "monóxido de cobre"] },
+            { f: "Cu2O", n: ["óxido de cobre (I)", "monóxido de dicobre", "óxido de dicobre"] },
+            { f: "ZnO", n: ["óxido de zinc", "monóxido de zinc"] },
+            { f: "CdO", n: ["óxido de cadmio", "monóxido de cadmio"] },
+            { f: "HgO", n: ["óxido de mercurio (II)", "monóxido de mercurio"] },
+            { f: "Hg2O", n: ["óxido de mercurio (I)", "monóxido de dimercurio", "óxido de dimercurio"] },
+            { f: "Au2O3", n: ["óxido de oro (III)", "trióxido de dioro"] },
+            { f: "Al2O3", n: ["óxido de aluminio", "trióxido de dialuminio"] },
+            { f: "PbO", n: ["óxido de plomo (II)", "monóxido de plomo"] },
+            { f: "PbO2", n: ["óxido de plomo (IV)", "dióxido de plomo"] },
+            { f: "SnO", n: ["óxido de estaño (II)", "monóxido de estaño"] },
+            { f: "SnO2", n: ["óxido de estaño (IV)", "dióxido de estaño"] },
+            { f: "NiO", n: ["óxido de níquel (II)", "monóxido de níquel"] },
+            { f: "Ni2O3", n: ["óxido de níquel (III)", "trióxido de diníquel"] },
+            { f: "CoO", n: ["óxido de cobalto (II)", "monóxido de cobalto"] },
+            { f: "Co2O3", n: ["óxido de cobalto (III)", "trióxido de dicobalto"] },
+            
+            // Óxidos No Metálicos
+            { f: "CO2", n: ["dióxido de carbono", "óxido de carbono (IV)"] },
+            { f: "CO", n: ["monóxido de carbono", "óxido de carbono (II)"] }, 
+            
+            { f: "N2O", n: ["monóxido de dinitrógeno", "óxido de nitrógeno (I)", "óxido de dinitrógeno"] },
+            { f: "NO", n: ["monóxido de nitrógeno", "óxido de nitrógeno (II)"] },
+            { f: "N2O3", n: ["trióxido de dinitrógeno", "óxido de nitrógeno (III)"] },
+            { f: "NO2", n: ["dióxido de nitrógeno", "óxido de nitrógeno (IV)"] },
+            { f: "N2O4", n: ["tetraóxido de dinitrógeno"] },
+            { f: "N2O5", n: ["pentóxido de dinitrógeno", "óxido de nitrógeno (V)"] },
+            
+            { f: "SO", n: ["monóxido de azufre", "óxido de azufre (II)"] },
+            { f: "SO2", n: ["dióxido de azufre", "óxido de azufre (IV)"] },
+            { f: "SO3", n: ["trióxido de azufre", "óxido de azufre (VI)"] },
+            
+            // Peróxidos
+            { f: "H2O2", n: ["peróxido de hidrógeno", "agua oxigenada"] },
+            { f: "Li2O2", n: ["peróxido de litio"] },
+            { f: "Na2O2", n: ["peróxido de sodio"] },
+            { f: "K2O2", n: ["peróxido de potasio"] },
+            { f: "Rb2O2", n: ["peróxido de rubidio"] },
+            { f: "Cs2O2", n: ["peróxido de cesio"] },
+            { f: "BeO2", n: ["peróxido de berilio"] },
+            { f: "MgO2", n: ["peróxido de magnesio"] },
+            { f: "CaO2", n: ["peróxido de calcio"] },
+            { f: "SrO2", n: ["peróxido de estroncio"] },
+            { f: "BaO2", n: ["peróxido de bario"] },
+            { f: "ZnO2", n: ["peróxido de zinc"] },
+            { f: "CdO2", n: ["peróxido de cadmio"] },
+            { f: "HgO2", n: ["peróxido de mercurio (II)"] },
+            { f: "Cu2O2", n: ["peróxido de cobre (I)"] },
+            { f: "CuO2", n: ["peróxido de cobre (II)"] },
+            { f: "Ag2O2", n: ["peróxido de plata"] },
+
+            // Haluros de Oxígeno
+            { f: "OF2", n: ["difluoruro de oxígeno"] },
+            { f: "O2F2", n: ["difluoruro de dioxígeno"] }
+        ];
+
+        // GRUPO 2: HIDRÓGENOS
+        const DB_HIDROGENO = [
+            // Hidruros Metálicos
+            { f: "LiH", n: ["hidruro de litio", "monohidruro de litio"] },
+            { f: "NaH", n: ["hidruro de sodio", "monohidruro de sodio"] },
+            { f: "KH", n: ["hidruro de potasio", "monohidruro de potasio"] },
+            { f: "RbH", n: ["hidruro de rubidio", "monohidruro de rubidio"] },
+            { f: "CsH", n: ["hidruro de cesio", "monohidruro de cesio"] },
+            { f: "BeH2", n: ["hidruro de berilio", "dihidruro de berilio"] },
+            { f: "MgH2", n: ["hidruro de magnesio", "dihidruro de magnesio"] },
+            { f: "CaH2", n: ["hidruro de calcio", "dihidruro de calcio"] },
+            { f: "SrH2", n: ["hidruro de estroncio", "dihidruro de estroncio"] },
+            { f: "BaH2", n: ["hidruro de bario", "dihidruro de bario"] },
+            { f: "AlH3", n: ["hidruro de aluminio", "trihidruro de aluminio"] },
+            { f: "FeH2", n: ["hidruro de hierro (II)", "dihidruro de hierro"] },
+            { f: "FeH3", n: ["hidruro de hierro (III)", "trihidruro de hierro"] },
+            { f: "CuH", n: ["hidruro de cobre (I)", "monohidruro de cobre"] },
+            { f: "ZnH2", n: ["hidruro de zinc", "dihidruro de zinc"] },
+            { f: "PbH4", n: ["hidruro de plomo (IV)", "tetrahidruro de plomo"] },
+            { f: "SnH4", n: ["hidruro de estaño (IV)", "tetrahidruro de estaño"] },
+            { f: "NiH2", n: ["hidruro de níquel (II)", "dihidruro de níquel"] },
+            { f: "AgH", n: ["hidruro de plata", "monohidruro de plata"] },
+            { f: "AuH3", n: ["hidruro de oro (III)", "trihidruro de oro"] },
+
+            // Hidruros Volátiles
+            { f: "NH3", n: ["amoniaco", "azano"] }, 
+            { f: "PH3", n: ["fosfina", "fosfano", "trihidruro de fósforo"] },
+            { f: "AsH3", n: ["arsina", "arsano", "trihidruro de arsénico"] },
+            { f: "SbH3", n: ["estibina", "estibano", "trihidruro de antimonio"] },
+            { f: "BiH3", n: ["bismutina", "bismutano", "trihidruro de bismuto"] },
+            { f: "CH4", n: ["metano", "tetrahidruro de carbono"] },
+            { f: "SiH4", n: ["silano", "tetrahidruro de silicio"] },
+            { f: "BH3", n: ["borano", "trihidruro de boro"] },
+
+            // Haluros de Hidrógeno
+            { f: "HF", n: ["fluoruro de hidrógeno", "monofluoruro de hidrógeno"] },
+            { f: "HCl", n: ["cloruro de hidrógeno", "monocloruro de hidrógeno"] },
+            { f: "HBr", n: ["bromuro de hidrógeno", "monobromuro de hidrógeno"] },
+            { f: "HI", n: ["yoduro de hidrógeno", "monoyoduro de hidrógeno"] },
+            { f: "H2S", n: ["sulfuro de hidrógeno", "monosulfuro de dihidrógeno", "sulfuro de dihidrógeno"] },
+            { f: "H2Se", n: ["seleniuro de hidrógeno", "monoseleniuro de dihidrógeno", "seleniuro de dihidrógeno"] },
+
+            // Hidrácidos
+            { f: "HF", n: ["ácido fluorhídrico"], isHydracid: true },
+            { f: "HCl", n: ["ácido clorhídrico"], isHydracid: true },
+            { f: "HBr", n: ["ácido bromhídrico"], isHydracid: true },
+            { f: "HI", n: ["ácido yodhídrico"], isHydracid: true },
+            { f: "H2S", n: ["ácido sulfhídrico"], isHydracid: true },
+            { f: "H2Se", n: ["ácido selenhídrico"], isHydracid: true },
+            { f: "H2Te", n: ["ácido telurhídrico"], isHydracid: true },
+            { f: "HCN", n: ["ácido cianhídrico"], isHydracid: true }
+        ];
+
+        // GRUPO 3: SALES BINARIAS
+        const DB_SALES = [
+            // Sales Neutras
+            { f: "NaCl", n: ["cloruro de sodio", "monocloruro de sodio"] },
+            { f: "KCl", n: ["cloruro de potasio", "monocloruro de potasio"] },
+            { f: "LiF", n: ["fluoruro de litio", "monofluoruro de litio"] },
+            { f: "NaBr", n: ["bromuro de sodio", "monobromuro de sodio"] },
+            { f: "KI", n: ["yoduro de potasio", "monoyoduro de potasio"] },
+            { f: "CaF2", n: ["fluoruro de calcio", "difluoruro de calcio"] },
+            { f: "MgBr2", n: ["bromuro de magnesio", "dibromuro de magnesio"] },
+            { f: "MgI2", n: ["yoduro de magnesio", "diyoduro de magnesio"] },
+            { f: "FeCl2", n: ["cloruro de hierro (II)", "dicloruro de hierro"] },
+            { f: "FeCl3", n: ["cloruro de hierro (III)", "tricloruro de hierro"] },
+            { f: "AlCl3", n: ["cloruro de aluminio", "tricloruro de aluminio"] },
+            { f: "AlF3", n: ["fluoruro de aluminio", "trifluoruro de aluminio"] },
+            { f: "AgCl", n: ["cloruro de plata", "monocloruro de plata"] },
+            { f: "ZnS", n: ["sulfuro de zinc", "monosulfuro de zinc"] },
+            { f: "PbS", n: ["sulfuro de plomo (II)", "monosulfuro de plomo"] },
+            { f: "Fe2S3", n: ["sulfuro de hierro (III)", "trisulfuro de dihierro"] },
+            { f: "K2S", n: ["sulfuro de potasio", "sulfuro de dipotasio", "monosulfuro de dipotasio"] },
+            { f: "CuCl2", n: ["cloruro de cobre (II)", "dicloruro de cobre"] },
+            { f: "CaBr2", n: ["bromuro de calcio", "dibromuro de calcio"] },
+            { f: "SnCl4", n: ["cloruro de estaño (IV)", "tetracloruro de estaño"] },
+
+            // Sales Volátiles
+            { f: "SF6", n: ["hexafluoruro de azufre"] },
+            { f: "CCl4", n: ["tetracloruro de carbono"] },
+            { f: "CS2", n: ["disulfuro de carbono"] },
+            { f: "BP", n: ["fosfuro de boro"] },
+            { f: "PCl3", n: ["tricloruro de fósforo"] },
+            { f: "PCl5", n: ["pentacloruro de fósforo"] },
+            { f: "BrF3", n: ["trifluoruro de bromo"] },
+            { f: "IF7", n: ["heptafluoruro de yodo"] },
+            { f: "S2Cl2", n: ["dicloruro de disulfuro"] },
+            { f: "SeF6", n: ["hexafluoruro de selenio"] }
+        ];
+
+        // GRUPO 4: HIDRÓXIDOS
+        const DB_HIDROXIDOS = [
+            { f: "NaOH", n: ["hidróxido de sodio"] },
+            { f: "KOH", n: ["hidróxido de potasio"] },
+            { f: "Ca(OH)2", n: ["hidróxido de calcio", "dihidróxido de calcio"] },
+            { f: "Mg(OH)2", n: ["hidróxido de magnesio", "dihidróxido de magnesio"] },
+            { f: "Al(OH)3", n: ["hidróxido de aluminio", "trihidróxido de aluminio"] },
+            { f: "Fe(OH)2", n: ["hidróxido de hierro (II)", "dihidróxido de hierro"] },
+            { f: "Fe(OH)3", n: ["hidróxido de hierro (III)", "trihidróxido de hierro"] },
+            { f: "Pb(OH)2", n: ["hidróxido de plomo (II)", "dihidróxido de plomo"] },
+            { f: "Pb(OH)4", n: ["hidróxido de plomo (IV)", "tetrahidróxido de plomo"] },
+            { f: "Cu(OH)2", n: ["hidróxido de cobre (II)", "dihidróxido de cobre"] },
+            { f: "LiOH", n: ["hidróxido de litio"] },
+            { f: "Ba(OH)2", n: ["hidróxido de bario", "dihidróxido de bario"] },
+            { f: "Sn(OH)2", n: ["hidróxido de estaño (II)", "dihidróxido de estaño"] },
+            { f: "Zn(OH)2", n: ["hidróxido de zinc", "dihidróxido de zinc"] }
+        ];
+
+        // --- STATE ---
+        let currentDB = [];
+        let remainingDB = [];
+        let currentItem = null;
+        let mode = 0; // 0: Formula, 1: Name
+        let isAnswerPhase = true;
+        let correctCount = 0;
+        let incorrectCount = 0;
+
+        // --- DOM ---
+        const menuScreen = document.getElementById('menu-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const backBtn = document.getElementById('back-btn');
+        const visualDisplay = document.getElementById('visual-display');
+        const hiddenInput = document.getElementById('hidden-input');
+        const inputContainer = document.getElementById('input-container');
+        const btnEl = document.getElementById('main-btn');
+        const feedbackEl = document.getElementById('feedback');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackDetail = document.getElementById('feedback-detail');
+        const questionEl = document.getElementById('question-display');
+        const labelEl = document.getElementById('mode-label');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+
+        // --- NAVIGATION ---
+        function showMenu() {
+            menuScreen.classList.remove('hidden');
+            gameScreen.classList.add('hidden');
+            backBtn.style.display = 'none';
+        }
+
+        function startGame(category) {
+            menuScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            backBtn.style.display = 'flex';
+
+            switch(category) {
+                case 'oxigeno': currentDB = DB_OXIGENO; break;
+                case 'hidrogeno': currentDB = DB_HIDROGENO; break;
+                case 'sales': currentDB = DB_SALES; break;
+                case 'hidroxidos': currentDB = DB_HIDROXIDOS; break;
+            }
+            remainingDB = [...currentDB];
+            correctCount = 0;
+            incorrectCount = 0;
+            loadQuestion();
+        }
+
+        // --- LOGIC ---
+        function focusInput() {
+            if (!isAnswerPhase) return;
+            hiddenInput.focus();
+            inputContainer.classList.add('focused');
+        }
+
+        hiddenInput.addEventListener('blur', () => inputContainer.classList.remove('focused'));
+        hiddenInput.addEventListener('input', updateDisplay);
+
+        function updateDisplay() {
+            const raw = hiddenInput.value;
+            if (raw.length === 0) {
+                visualDisplay.innerHTML = '<span class="placeholder">Escribe aquí...</span>';
+                if(isAnswerPhase && document.activeElement === hiddenInput) visualDisplay.innerHTML += '<span class="cursor"></span>';
+                return;
+            }
+
+            let formatted = raw;
+            if (mode === 0) formatted = raw.replace(/(\d)/g, '<sub>$1</sub>');
+
+            if (isAnswerPhase) formatted += '<span class="cursor"></span>';
+            visualDisplay.innerHTML = formatted;
+        }
+
+        window.typeChar = (char) => {
+            if(!isAnswerPhase) return;
+            hiddenInput.focus();
+            const start = hiddenInput.selectionStart;
+            const end = hiddenInput.selectionEnd;
+            const val = hiddenInput.value;
+            hiddenInput.value = val.substring(0, start) + char + val.substring(end);
+            hiddenInput.selectionStart = hiddenInput.selectionEnd = start + 1;
+            updateDisplay();
+        };
+
+        window.backspace = () => {
+            if(!isAnswerPhase) return;
+            hiddenInput.focus();
+            const val = hiddenInput.value;
+            if (val.length > 0) {
+                hiddenInput.value = val.slice(0, -1);
+                updateDisplay();
+            }
+        };
+
+        window.clearInput = () => {
+            if(!isAnswerPhase) return;
+            hiddenInput.focus();
+            hiddenInput.value = "";
+            updateDisplay();
+        };
+
+        function updateProgressText() {
+            progressText.innerHTML = `
+                <span class="score-badge" style="color: #22c55e; background: #dcfce7;">Aciertos: ${correctCount}</span>
+                <span class="score-badge" style="color: #ef4444; background: #fee2e2;">Errores: ${incorrectCount}</span>
+            `;
+        }
+
+        function loadQuestion() {
+            if (remainingDB.length === 0) remainingDB = [...currentDB];
+
+            isAnswerPhase = true;
+            inputContainer.classList.remove('disabled');
+            hiddenInput.disabled = false;
+            hiddenInput.value = "";
+            updateDisplay();
+            feedbackEl.classList.remove('visible', 'correct', 'incorrect');
+            btnEl.innerText = "COMPROBAR";
+            btnEl.onclick = checkAnswer;
+            btnEl.style.background = "var(--primary)";
+            btnEl.style.borderBottomColor = "rgba(0,0,0,0.2)";
+
+            // Pick question
+            const randomIndex = Math.floor(Math.random() * remainingDB.length);
+            currentItem = remainingDB[randomIndex];
+            remainingDB.splice(randomIndex, 1);
+
+            // Update UI Counters
+            updateProgressText();
+            const done = currentDB.length - remainingDB.length - 1; 
+            const pct = (done / currentDB.length) * 100;
+            progressBar.style.width = `${pct}%`;
+
+            // Logic modes
+            if (currentItem.isHydracid) {
+                mode = 0; 
+            } else {
+                mode = Math.random() > 0.5 ? 1 : 0;
+            }
+
+            if (mode === 0) {
+                labelEl.innerText = "ESCRIBE LA FÓRMULA";
+                const randomName = currentItem.n[Math.floor(Math.random() * currentItem.n.length)];
+                questionEl.innerHTML = randomName;
+                setTimeout(() => hiddenInput.focus(), 50);
+            } else {
+                labelEl.innerText = "ESCRIBE EL NOMBRE";
+                questionEl.innerHTML = currentItem.f.replace(/(\d+)/g, '<sub>$1</sub>');
+                setTimeout(() => hiddenInput.focus(), 50);
+            }
+        }
+
+        function checkAnswer() {
+            if (hiddenInput.value.trim() === "") return;
+
+            const userVal = normalize(hiddenInput.value);
+            let isCorrect = false;
+            let correctDisplay = "";
+
+            if (mode === 0) {
+                if (userVal === normalize(currentItem.f)) isCorrect = true;
+                correctDisplay = currentItem.f.replace(/(\d+)/g, '<sub>$1</sub>');
+            } else {
+                const validNames = currentItem.n.map(n => normalize(n));
+                if (validNames.includes(userVal)) isCorrect = true;
+                correctDisplay = currentItem.n.join(" <span style='color:var(--text-light); font-weight:400;'>o</span> ");
+            }
+
+            showFeedback(isCorrect, correctDisplay);
+        }
+
+        function showFeedback(correct, answerText) {
+            isAnswerPhase = false;
+            hiddenInput.disabled = true;
+            inputContainer.classList.add('disabled');
+            const cursor = visualDisplay.querySelector('.cursor');
+            if(cursor) cursor.remove();
+
+            // Update scores
+            if (correct) correctCount++; else incorrectCount++;
+            
+            // Refresh counter immediately
+            updateProgressText();
+
+            // Update Progress Bar
+            const done = currentDB.length - remainingDB.length;
+            const pct = (done / currentDB.length) * 100;
+            progressBar.style.width = `${pct}%`;
+
+            feedbackEl.classList.remove('correct', 'incorrect');
+            feedbackEl.classList.add('visible');
+
+            if (correct) {
+                feedbackEl.classList.add('correct');
+                feedbackTitle.innerText = "¡Correcto! 🎉";
+                feedbackDetail.innerHTML = "";
+                btnEl.style.background = "var(--success)";
+                btnEl.style.borderBottomColor = "#15803d";
+            } else {
+                feedbackEl.classList.add('incorrect');
+                feedbackTitle.innerText = "¡Vaya! 😅";
+                feedbackDetail.innerHTML = `La solución era: <br><strong style="font-size:1.1rem; display:block; margin-top:5px;">${answerText}</strong>`;
+                btnEl.style.background = "var(--error)";
+                btnEl.style.borderBottomColor = "#b91c1c";
+            }
+
+            btnEl.innerText = remainingDB.length === 0 ? "¡SERIE COMPLETADA! 🔄" : "SIGUIENTE ➡️";
+            btnEl.onclick = loadQuestion;
+        }
+
+        const normalize = (str) => {
+            return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, ' ').trim(); 
+        };
+
+        hiddenInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") isAnswerPhase ? checkAnswer() : loadQuestion();
+        });
+    </script>
+</body>
+</html>
