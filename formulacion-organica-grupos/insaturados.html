@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Insaturados PRO: Edición Definitiva</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .chem-text { font-family: 'Roboto Mono', monospace; font-weight: bold; }
+        svg { width: 100%; height: auto; display: block; transition: all 0.5s ease-in-out; }
+        .formula-card { background: radial-gradient(circle at center, #ffffff 0%, #f8fafc 100%); }
+        .btn-fancy { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn-fancy:active { transform: scale(0.95); }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-2 md:p-4">
+
+    <div id="app" class="bg-white shadow-2xl rounded-3xl p-4 md:p-8 w-full max-w-5xl border border-slate-200 overflow-hidden">
+        
+        <!-- PANTALLA DE INICIO -->
+        <div id="home-screen" class="py-6 text-center animate-fade-in">
+            <div class="inline-block p-4 bg-indigo-50 rounded-full mb-4">
+                <span class="text-6xl">🧬</span>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-black text-indigo-900 uppercase tracking-tighter mb-1">Master Insaturados PRO</h1>
+            <p class="text-slate-500 font-medium mb-6 italic">Geometría ultra-compacta y doble mazo de 50</p>
+            
+            <div class="max-w-md mx-auto space-y-4">
+                <!-- NIVEL BÁSICO -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-3">Mazo Básico (Alquenos y Alquinos)</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="setupQuiz(5, 'normal')" class="btn-fancy bg-white border-2 border-indigo-600 text-indigo-600 font-black py-3 rounded-xl hover:bg-indigo-50 shadow-md">5 Ejercicios</button>
+                        <button onclick="setupQuiz(10, 'normal')" class="btn-fancy bg-indigo-600 text-white font-black py-3 rounded-xl hover:bg-indigo-700 shadow-md">10 Ejercicios</button>
+                    </div>
+                </div>
+
+                <!-- NIVEL EXPERTO -->
+                <div class="bg-slate-900 p-4 rounded-2xl shadow-xl border-t-4 border-emerald-500">
+                    <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-3 italic">Mazo Experto (Insaturaciones en Radicales)</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="setupQuiz(5, 'expert')" class="btn-fancy bg-white/10 border-2 border-white/20 text-white font-black py-3 rounded-xl hover:bg-white/20">5 Nivel Élite</button>
+                        <button onclick="setupQuiz(10, 'expert')" class="btn-fancy bg-emerald-500 text-white font-black py-3 rounded-xl hover:bg-emerald-600">10 Nivel Élite</button>
+                    </div>
+                </div>
+
+                <button onclick="resetAllHistory()" class="text-[9px] text-slate-400 uppercase font-bold hover:text-red-500 underline decoration-dotted mt-4">
+                    Borrar memoria de ambos mazos
+                </button>
+            </div>
+            
+            <div class="mt-8 flex justify-center gap-4">
+                <span id="basic-stats" class="text-[10px] font-bold text-slate-400 bg-white px-3 py-1 rounded-full border"></span>
+                <span id="expert-stats" class="text-[10px] font-bold text-slate-400 bg-white px-3 py-1 rounded-full border"></span>
+            </div>
+        </div>
+
+        <!-- PANTALLA DE JUEGO -->
+        <div id="quiz-screen" class="hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3">
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black text-indigo-900 uppercase tracking-tighter leading-none">Desafío IUPAC</h1>
+                    <p class="text-[10px] text-indigo-900 font-bold uppercase tracking-widest italic mt-1">Programa realizado por Javier Gijón. Prof del IES María Moliner de Segovia</p>
+                </div>
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="flex-1 md:flex-none text-right">
+                        <span id="progress-text" class="block text-[9px] font-bold text-slate-400 mb-1 tracking-widest uppercase text-nowrap">Cargando...</span>
+                        <div class="w-full md:w-32 h-1.5 bg-slate-100 rounded-full overflow-hidden border">
+                            <div id="progress-bar" class="h-full bg-blue-500 transition-all duration-500"></div>
+                        </div>
+                    </div>
+                    <span id="score-badge" class="bg-indigo-600 text-white px-3 py-1.5 rounded-xl text-xs font-black shadow-lg italic">0 Pts</span>
+                </div>
+            </div>
+
+            <!-- Visualizador Ultra-Compacto -->
+            <div class="formula-card rounded-2xl p-4 md:p-6 mb-6 border border-slate-100 shadow-inner flex items-center justify-center overflow-hidden min-h-[220px]">
+                <div id="visual-formula-container" class="w-full flex justify-center items-center scale-110"></div>
+            </div>
+
+            <div class="max-w-xl mx-auto space-y-4">
+                <input type="text" id="answer-input" 
+                    class="w-full px-4 py-4 bg-slate-50 border-2 border-slate-200 rounded-2xl text-lg md:text-2xl outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all text-center font-bold text-slate-700 shadow-sm"
+                    placeholder="Escribe el nombre aquí..." autocomplete="off">
+                
+                <button onclick="handleCheck()" id="submit-btn"
+                    class="btn-fancy w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl transition-all shadow-xl text-sm md:text-lg uppercase tracking-widest">
+                    Verificar
+                </button>
+
+                <button onclick="nextQuestion()" id="next-btn"
+                    class="hidden btn-fancy w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-emerald-200 text-sm md:text-lg uppercase tracking-widest flex items-center justify-center gap-2">
+                    Siguiente <span class="text-xl">→</span>
+                </button>
+            </div>
+
+            <div id="message-box" class="mt-6 p-4 rounded-2xl hidden text-center font-bold text-xs md:text-sm border-2"></div>
+        </div>
+
+        <!-- RESUMEN -->
+        <div id="result-screen" class="hidden flex flex-col h-full max-h-[85vh]">
+            <div class="text-center mb-6">
+                <div class="inline-block p-4 bg-indigo-100 rounded-full mb-2 text-3xl">📝</div>
+                <h2 class="text-2xl md:text-3xl font-black text-slate-800 uppercase tracking-tighter">Resumen de Evaluación</h2>
+                <p id="final-stats" class="text-slate-500 font-bold text-sm uppercase"></p>
+            </div>
+            <div class="flex-1 overflow-y-auto custom-scroll pr-2 border-y border-slate-100 py-4">
+                <table class="w-full text-left border-collapse">
+                    <thead class="sticky top-0 bg-white z-10">
+                        <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200">
+                            <th class="pb-3 pl-2">Estructura</th>
+                            <th class="pb-3">Respuesta</th>
+                            <th class="pb-3">Corrección</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-table-body" class="divide-y divide-slate-50"></tbody>
+                </table>
+            </div>
+            <div class="pt-6 text-center">
+                <button onclick="goToHome()" class="btn-fancy bg-slate-900 hover:bg-black text-white font-black py-4 px-10 rounded-2xl transition-all shadow-2xl uppercase tracking-widest text-xs">Menú Principal</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * MOTOR GRÁFICO ULTRA-COMPACTO (Spacing: 52px, Offset: 19px)
+         */
+        function formatChemSVG(text, x, y, fontSize, color) {
+            let svgText = `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-family="Roboto Mono" font-weight="bold" font-size="${fontSize}" fill="${color}">`;
+            for (let char of text) {
+                if (/\d/.test(char)) svgText += `<tspan dy="0.35em" font-size="0.65em">${char}</tspan><tspan dy="-0.22em"> </tspan>`;
+                else svgText += char;
+            }
+            return svgText + `</text>`;
+        }
+
+        function drawMolecule(chainLength, bonds, substituents, mini = false) {
+            const spacingX = mini ? 48 : 52; 
+            const spacingY = mini ? 30 : 42; 
+            const fontSize = mini ? 10 : 16;
+            let maxUp = 0, maxDown = 0;
+
+            substituents.forEach(s => {
+                let levels = s.type.includes('CH2CH2CH3') ? 3 : (s.type.includes('CH2') || s.type.includes('FORK') || s.type.includes('=') || s.type.includes('#') ? 2 : 1);
+                if (s.dir === 'up') maxUp = Math.max(maxUp, levels);
+                else maxDown = Math.max(maxDown, levels);
+            });
+
+            const margin = mini ? 10 : 35;
+            const h = (maxUp + maxDown) * spacingY + (margin * 2);
+            const midY = (maxUp * spacingY) + margin;
+            const w = (chainLength + 1) * spacingX;
+
+            let svg = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="${mini ? 'max-height: 65px;' : ''}">`;
+
+            for (let i = 0; i < chainLength; i++) {
+                const x = (i + 1) * spacingX;
+                if (i < chainLength - 1) {
+                    const bt = bonds[i] || 1;
+                    const off = mini ? 16 : 19; 
+                    const x1 = x + off, x2 = x + spacingX - off;
+                    
+                    if (bt === 1) svg += `<line x1="${x1}" y1="${midY}" x2="${x2}" y2="${midY}" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" />`;
+                    else if (bt === 2) {
+                        svg += `<line x1="${x1}" y1="${midY - 2.5}" x2="${x2}" y2="${midY - 2.5}" stroke="#94a3b8" stroke-width="2.2" stroke-linecap="round" />`;
+                        svg += `<line x1="${x1}" y1="${midY + 2.5}" x2="${x2}" y2="${midY + 2.5}" stroke="#94a3b8" stroke-width="2.2" stroke-linecap="round" />`;
+                    } else if (bt === 3) {
+                        svg += `<line x1="${x1}" y1="${midY}" x2="${x2}" y2="${midY}" stroke="#64748b" stroke-width="2.2" stroke-linecap="round" />`;
+                        svg += `<line x1="${x1}" y1="${midY - 4}" x2="${x2}" y2="${midY - 4}" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round" />`;
+                        svg += `<line x1="${x1}" y1="${midY + 4}" x2="${x2}" y2="${midY + 4}" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round" />`;
+                    }
+                }
+
+                const lb = i === 0 ? 0 : (bonds[i-1] || 1), rb = i === chainLength - 1 ? 0 : (bonds[i] || 1);
+                const sc = substituents.filter(s => s.pos === i + 1);
+                let vu = lb + rb; sc.forEach(s => vu += (s.bond || 1));
+                let hC = Math.max(0, 4 - vu);
+                let cT = hC > 0 ? (hC > 1 ? `CH${hC}` : "CH") : "C";
+
+                sc.forEach(s => {
+                    const m = s.dir === 'up' ? -1 : 1, vO = mini ? 8 : 12;
+                    let p = [];
+                    if (s.type === 'CH=CH2') p = ['CH', 'CH2'];
+                    else if (s.type === 'C(CH3)=CH2') p = ['C', 'FORK_ISOPROPENIL'];
+                    else if (s.type === 'CH3') p = ['CH3'];
+                    else if (s.type === 'CH2CH3') p = ['CH2', 'CH3'];
+                    else if (s.type === 'C#CH') p = ['C', 'CH']; // Etinilo
+                    else p = ['CH', 'FORK_ISO'];
+
+                    let cy = midY;
+                    p.forEach((part, pi) => {
+                        const ny = cy + (m * spacingY);
+                        if (part.includes('FORK')) {
+                            const fxL = x - (mini?15:25), fxR = x + (mini?15:25), fy = cy + (m * (mini?20:32));
+                            const isD = part === 'FORK_ISOPROPENIL';
+                            svg += `<line x1="${x}" y1="${cy+(m*vO)}" x2="${fxL}" y2="${fy-(m*5)}" stroke="#94a3b8" stroke-width="1.5" />`;
+                            if (isD) {
+                                svg += `<line x1="${x-2}" y1="${cy+(m*vO)}" x2="${fxR-2}" y2="${fy-(m*5)}" stroke="#64748b" stroke-width="1.5" />`;
+                                svg += `<line x1="${x+2}" y1="${cy+(m*vO)}" x2="${fxR+2}" y2="${fy-(m*5)}" stroke="#64748b" stroke-width="1.5" />`;
+                            } else svg += `<line x1="${x}" y1="${cy+(m*vO)}" x2="${fxR}" y2="${fy-(m*5)}" stroke="#94a3b8" stroke-width="1.5" />`;
+                            svg += formatChemSVG("CH3", fxL, fy, fontSize, "#2563eb");
+                            svg += formatChemSVG(isD ? "CH2" : "CH3", fxR, fy, fontSize, "#2563eb");
+                        } else {
+                            const isD = (pi === 0 && (s.type === 'CH=CH2' || s.type === 'C(CH3)=CH2'));
+                            const isT = (pi === 0 && s.type === 'C#CH');
+                            if (isD) {
+                                svg += `<line x1="${x-2}" y1="${cy+(m*vO)}" x2="${x-2}" y2="${ny-(m*vO)}" stroke="#64748b" stroke-width="1.5" />`;
+                                svg += `<line x1="${x+2}" y1="${cy+(m*vO)}" x2="${x+2}" y2="${ny-(m*vO)}" stroke="#64748b" stroke-width="1.5" />`;
+                            } else if (isT) {
+                                svg += `<line x1="${x}" y1="${cy+(m*vO)}" x2="${x}" y2="${ny-(m*vO)}" stroke="#64748b" stroke-width="1.5" />`;
+                                svg += `<line x1="${x-3.5}" y1="${cy+(m*vO)}" x2="${x-3.5}" y2="${ny-(m*vO)}" stroke="#94a3b8" stroke-width="1" />`;
+                                svg += `<line x1="${x+3.5}" y1="${cy+(m*vO)}" x2="${x+3.5}" y2="${ny-(m*vO)}" stroke="#94a3b8" stroke-width="1" />`;
+                            } else svg += `<line x1="${x}" y1="${cy+(m*vO)}" x2="${x}" y2="${ny-(m*vO)}" stroke="#94a3b8" stroke-width="1.5" />`;
+                            svg += formatChemSVG(part, x, ny, fontSize, "#2563eb");
+                            cy = ny;
+                        }
+                    });
+                });
+                svg += formatChemSVG(cT, x, midY, fontSize, "#1e293b");
+            }
+            return svg + `</svg>`;
+        }
+
+        /** MAZO BÁSICO (50 Compuestos) **/
+        const DB_NORMAL = [
+            { id: 1, chain: 3, bonds: [2, 1], subs: [], nombres: ["propeno"] },
+            { id: 2, chain: 4, bonds: [2, 1, 1], subs: [], nombres: ["but-1-eno"] },
+            { id: 3, chain: 4, bonds: [1, 2, 1], subs: [], nombres: ["but-2-eno"] },
+            { id: 4, chain: 5, bonds: [2, 1, 1, 1], subs: [], nombres: ["pent-1-eno"] },
+            { id: 5, chain: 5, bonds: [1, 2, 1, 1], subs: [], nombres: ["pent-2-eno"] },
+            { id: 6, chain: 6, bonds: [2, 1, 1, 1, 1], subs: [], nombres: ["hex-1-eno"] },
+            { id: 7, chain: 4, bonds: [2, 1, 2], subs: [], nombres: ["buta-1,3-dieno"] },
+            { id: 8, chain: 5, bonds: [2, 1, 1, 2], subs: [], nombres: ["penta-1,4-dieno"] },
+            { id: 9, chain: 3, bonds: [2, 1], subs: [{pos: 2, type: "CH3", dir: "up"}], nombres: ["metilpropeno"] },
+            { id: 10, chain: 4, bonds: [2, 1, 1], subs: [{pos: 3, type: "CH3", dir: "up"}], nombres: ["3-metilbut-1-eno"] },
+            { id: 11, chain: 2, bonds: [3], subs: [], nombres: ["etino", "acetileno"] },
+            { id: 12, chain: 3, bonds: [3, 1], subs: [], nombres: ["propino"] },
+            { id: 13, chain: 4, bonds: [3, 1, 1], subs: [], nombres: ["but-1-ino"] },
+            { id: 14, chain: 4, bonds: [1, 3, 1], subs: [], nombres: ["but-2-ino"] },
+            { id: 15, chain: 5, bonds: [3, 1, 1, 1], subs: [], nombres: ["pent-1-ino"] },
+            { id: 16, chain: 5, bonds: [1, 1, 3, 1], subs: [], nombres: ["pent-2-ino"] },
+            { id: 17, chain: 6, bonds: [3, 1, 1, 1, 1], subs: [], nombres: ["hex-1-ino"] },
+            { id: 18, chain: 4, bonds: [3, 1, 1], subs: [{pos: 3, type: "CH3", dir: "up"}], nombres: ["3-metilbut-1-ino"] },
+            { id: 19, chain: 5, bonds: [3, 1, 1, 1], subs: [{pos: 3, type: "CH3", dir: "down"}], nombres: ["3-metilpent-1-ino"] },
+            { id: 20, chain: 5, bonds: [3, 1, 1, 1], subs: [{pos: 4, type: "CH3", dir: "up"}], nombres: ["4-metilpent-1-ino"] },
+            { id: 21, chain: 4, bonds: [2, 1, 3], subs: [], nombres: ["but-1-en-3-ino"] },
+            { id: 22, chain: 5, bonds: [2, 1, 1, 3], subs: [], nombres: ["pent-1-en-4-ino"] },
+            { id: 23, chain: 6, bonds: [2, 1, 1, 1, 3], subs: [], nombres: ["hex-1-en-5-ino"] },
+            { id: 24, chain: 7, bonds: [2, 1, 1, 1, 1, 1], subs: [], nombres: ["hept-1-eno"] },
+            { id: 25, chain: 7, bonds: [1, 3, 1, 1, 1, 1], subs: [], nombres: ["hept-2-ino"] },
+            { id: 26, chain: 5, bonds: [1, 2, 1, 1], subs: [{pos: 2, type: "CH3", dir: "up"}], nombres: ["2-metilpent-2-eno"] },
+            { id: 27, chain: 6, bonds: [1, 1, 2, 1, 1], subs: [], nombres: ["hex-3-eno"] },
+            { id: 28, chain: 5, bonds: [2, 1, 1, 2], subs: [{pos: 3, type: "CH3", dir: "up"}], nombres: ["3-metilpenta-1,4-dieno"] },
+            { id: 29, chain: 6, bonds: [2, 1, 2, 1, 1], subs: [], nombres: ["hexa-1,3-dieno"] },
+            { id: 30, chain: 7, bonds: [3, 1, 1, 1, 1, 3], subs: [], nombres: ["hepta-1,6-diino"] },
+            { id: 31, chain: 4, bonds: [2, 1, 1], subs: [{pos: 2, type: "CH3", dir: "up"}], nombres: ["2-metilbut-1-eno"] },
+            { id: 32, chain: 5, bonds: [1, 2, 1, 1], subs: [{pos: 3, type: "CH3", dir: "down"}], nombres: ["3-metilpent-2-eno"] },
+            { id: 33, chain: 6, bonds: [1, 3, 1, 1, 1], subs: [], nombres: ["hex-2-ino"] },
+            { id: 34, chain: 5, bonds: [3, 1, 1, 1], subs: [{pos: 3, type: "CH3", dir: "up"}, {pos: 4, type: "CH3", dir: "down"}], nombres: ["3,4-dimetilpent-1-ino"] },
+            { id: 35, chain: 4, bonds: [3, 1, 1], subs: [{pos: 3, type: "CH3", dir: "up"}, {pos: 3, type: "CH3", dir: "down"}], nombres: ["3,3-dimetilbut-1-ino"] },
+            { id: 36, chain: 6, bonds: [2, 1, 1, 2, 1], subs: [], nombres: ["hexa-1,4-dieno"] },
+            { id: 37, chain: 5, bonds: [1, 2, 2, 1], subs: [], nombres: ["penta-2,3-dieno"] },
+            { id: 38, chain: 4, bonds: [1, 2, 1], subs: [{pos: 2, type: "CH3", dir: "up"}], nombres: ["2-metilbut-2-eno"] },
+            { id: 39, chain: 5, bonds: [2, 1, 1, 1], subs: [{pos: 2, type: "CH3", dir: "up"}], nombres: ["2-metilpent-1-eno"] },
+            { id: 40, chain: 6, bonds: [3, 1, 1, 1, 1], subs: [{pos: 5, type: "CH3", dir: "up"}], nombres: ["5-metilhex-1-ino"] },
+            { id: 41, chain: 6, bonds: [1, 3, 1, 1, 1], subs: [{pos: 5, type: "CH3", dir: "down"}], nombres: ["5-metilhex-2-ino"] },
+            { id: 42, chain: 7, bonds: [3, 1, 1, 1, 1, 1], subs: [], nombres: ["hept-1-ino"] },
+            { id: 43, chain: 5, bonds: [2, 1, 1, 3], subs: [], nombres: ["pent-1-en-4-ino"] },
+            { id: 44, chain: 6, bonds: [1, 2, 1, 1, 3], subs: [], nombres: ["hex-2-en-5-ino"] },
+            { id: 45, chain: 6, bonds: [3, 1, 1, 1, 3], subs: [], nombres: ["hexa-1,5-diino"] },
+            { id: 46, chain: 5, bonds: [2, 1, 1, 1], subs: [{pos: 4, type: "CH3", dir: "up"}, {pos: 4, type: "CH3", dir: "down"}], nombres: ["4,4-dimetilpent-1-eno"] },
+            { id: 47, chain: 6, bonds: [2, 1, 3, 1, 1], subs: [], nombres: ["hex-1-en-3-ino"] },
+            { id: 48, chain: 5, bonds: [3, 1, 3, 1], subs: [], nombres: ["penta-1,3-diino"] },
+            { id: 49, chain: 4, bonds: [3, 1, 3], subs: [], nombres: ["buta-1,3-diino"] },
+            { id: 50, chain: 7, bonds: [2, 1, 1, 1, 1, 1], subs: [{pos: 3, type: "CH3", dir: "down"}], nombres: ["3-metilhept-1-eno"] }
+        ];
+
+        /** MAZO EXPERTO (50 Compuestos de Élite) **/
+        const DB_EXPERT = [
+            { id: 101, chain: 5, bonds: [2, 1, 1, 1], subs: [{pos: 2, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["2-vinilpenta-1,4-dieno", "3-metilenpenta-1,4-dieno"] },
+            { id: 102, chain: 6, bonds: [2, 1, 1, 1, 1], subs: [{pos: 3, type: "C(CH3)=CH2", dir: "up", bond: 1}], nombres: ["3-isopropenilhex-1-eno"] },
+            { id: 103, chain: 5, bonds: [1, 1, 1, 1], subs: [{pos: 3, type: "CH=CH2", dir: "up", bond: 1}], nombres: ["3-vinilpenta-1,4-dieno", "3-etilpenta-1,4-dieno"] },
+            { id: 104, chain: 6, bonds: [3, 1, 1, 1, 1], subs: [{pos: 3, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["3-vinilhex-1-ino"] },
+            { id: 105, chain: 4, bonds: [2, 1, 3], subs: [{pos: 2, type: "CH3", dir: "up"}], nombres: ["2-metilbut-1-en-3-ino"] },
+            { id: 106, chain: 5, bonds: [2, 1, 3, 1], subs: [{pos: 2, type: "CH3", dir: "down"}], nombres: ["2-metilpent-1-en-3-ino"] },
+            { id: 107, chain: 6, bonds: [2, 1, 2, 1, 3], subs: [], nombres: ["hexa-1,3-dien-5-ino"] },
+            { id: 108, chain: 5, bonds: [3, 1, 1, 1], subs: [{pos: 3, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["3-etinilpenta-1,4-dieno"] },
+            { id: 109, chain: 7, bonds: [2, 1, 2, 1, 2, 1], subs: [], nombres: ["hepta-1,3,5-trieno"] },
+            { id: 110, chain: 6, bonds: [3, 1, 1, 3, 1], subs: [{pos: 3, type: "CH3", dir: "up"}], nombres: ["3-metilhexa-1,4-diino"] },
+            { id: 111, chain: 5, bonds: [1, 2, 1, 1], subs: [{pos: 3, type: "CH=CH2", dir: "up", bond: 1}], nombres: ["3-vinilpent-2-eno"] },
+            { id: 112, chain: 4, bonds: [1, 2, 1], subs: [{pos: 2, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["2-vinilbut-2-eno"] },
+            { id: 113, chain: 6, bonds: [2, 1, 1, 2, 1], subs: [{pos: 3, type: "C#CH", dir: "up", bond: 1}], nombres: ["3-etinilhexa-1,4-dieno"] },
+            { id: 114, chain: 7, bonds: [3, 1, 3, 1, 3, 1], subs: [], nombres: ["hepta-1,3,5-triino"] },
+            { id: 115, chain: 5, bonds: [2, 1, 2, 1], subs: [{pos: 3, type: "CH3", dir: "up"}], nombres: ["3-metilpenta-1,3-dieno"] },
+            { id: 116, chain: 6, bonds: [2, 1, 1, 1, 1], subs: [{pos: 4, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["4-vinilhex-1-eno"] },
+            { id: 117, chain: 5, bonds: [3, 1, 1, 1], subs: [{pos: 4, type: "CH=CH2", dir: "up", bond: 1}], nombres: ["4-etinilpent-1-eno"] },
+            { id: 118, chain: 6, bonds: [3, 1, 3, 1, 1], subs: [{pos: 5, type: "CH3", dir: "up"}], nombres: ["5-metilhexa-1,3-diino"] },
+            { id: 119, chain: 7, bonds: [2, 1, 1, 3, 1, 1], subs: [], nombres: ["hept-1-en-4-ino"] },
+            { id: 120, chain: 5, bonds: [2, 1, 1, 1], subs: [{pos: 3, type: "C#CH", dir: "up", bond: 1}], nombres: ["3-etinilpent-1-eno"] },
+            { id: 121, chain: 6, bonds: [1, 2, 1, 1, 3], subs: [{pos: 4, type: "CH3", dir: "down"}], nombres: ["4-metilhex-2-en-5-ino"] },
+            { id: 122, chain: 4, bonds: [2, 1, 1], subs: [{pos: 2, type: "C#CH", dir: "up", bond: 1}], nombres: ["2-etinilbut-1-eno"] },
+            { id: 123, chain: 6, bonds: [2, 1, 2, 1, 2], subs: [], nombres: ["hexa-1,3,5-trieno"] },
+            { id: 124, chain: 5, bonds: [2, 1, 3, 1], subs: [{pos: 2, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["2-vinilpent-1-en-3-ino"] },
+            { id: 125, chain: 7, bonds: [3, 1, 1, 1, 2, 1], subs: [{pos: 4, type: "CH3", dir: "up"}], nombres: ["4-metilhept-4-en-1-ino"] },
+            // ... (Añadiendo 25 más para completar 50 en la lógica interna)
+            { id: 126, chain: 6, bonds: [2, 1, 1, 1, 1], subs: [{pos: 2, type: "CH3", dir: "up"}, {pos: 5, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["5-metilhepta-1,6-dieno"] },
+            { id: 127, chain: 5, bonds: [3, 1, 1, 1], subs: [{pos: 3, type: "CH3", dir: "up"}, {pos: 3, type: "CH3", dir: "down"}], nombres: ["3,3-dimetilpent-1-ino"] },
+            { id: 128, chain: 6, bonds: [2, 1, 3, 1, 1], subs: [{pos: 5, type: "CH3", dir: "up"}], nombres: ["5-metilhex-1-en-3-ino"] },
+            { id: 129, chain: 4, bonds: [2, 1, 2], subs: [{pos: 2, type: "CH3", dir: "up"}, {pos: 3, type: "CH3", dir: "down"}], nombres: ["2,3-dimetilbuta-1,3-dieno"] },
+            { id: 130, chain: 7, bonds: [2, 1, 1, 1, 2, 1], subs: [{pos: 2, type: "CH3", dir: "up"}], nombres: ["2-metilhepta-1,5-dieno"] },
+            { id: 131, chain: 6, bonds: [3, 1, 1, 1, 2], subs: [{pos: 4, type: "CH3", dir: "up"}], nombres: ["4-metilhex-5-en-1-ino"] },
+            { id: 132, chain: 5, bonds: [2, 1, 1, 2], subs: [{pos: 2, type: "CH2CH3", dir: "down"}], nombres: ["2-etilpenta-1,4-dieno"] },
+            { id: 133, chain: 6, bonds: [2, 1, 1, 1, 3], subs: [{pos: 3, type: "CH3", dir: "up"}], nombres: ["3-metilhex-1-en-5-ino"] },
+            { id: 134, chain: 7, bonds: [1, 2, 1, 1, 1, 3], subs: [{pos: 4, type: "CH3", dir: "down"}], nombres: ["4-metilhept-2-en-6-ino"] },
+            { id: 135, chain: 4, bonds: [2, 1, 2], subs: [{pos: 2, type: "CH2CH3", dir: "up"}], nombres: ["2-etilbuta-1,3-dieno"] },
+            { id: 136, chain: 5, bonds: [2, 2, 1, 1], subs: [{pos: 4, type: "CH3", dir: "up"}], nombres: ["4-metilpenta-1,2-dieno"] },
+            { id: 137, chain: 6, bonds: [2, 1, 1, 2, 1], subs: [{pos: 2, type: "CH3", dir: "up"}, {pos: 5, type: "CH3", dir: "down"}], nombres: ["2,5-dimetilhexa-1,4-dieno"] },
+            { id: 138, chain: 5, bonds: [3, 1, 1, 1], subs: [{pos: 4, type: "CH(CH3)2", dir: "up"}], nombres: ["4,5-dimetilhex-1-ino"] },
+            { id: 139, chain: 6, bonds: [2, 1, 1, 1, 1], subs: [{pos: 3, type: "CH2CH3", dir: "down"}], nombres: ["3-etilhex-1-eno"] },
+            { id: 140, chain: 4, bonds: [3, 1, 1], subs: [{pos: 3, type: "C#CH", dir: "up", bond: 1}], nombres: ["3-metilpenta-1,4-diino"] },
+            { id: 141, chain: 5, bonds: [2, 1, 3, 1], subs: [{pos: 4, type: "CH3", dir: "down"}], nombres: ["4-metilpent-1-en-3-ino"] },
+            { id: 142, chain: 6, bonds: [2, 1, 1, 3, 1], subs: [{pos: 2, type: "CH3", dir: "up"}], nombres: ["2-metilhex-1-en-4-ino"] },
+            { id: 143, chain: 7, bonds: [3, 1, 1, 1, 1, 1], subs: [{pos: 3, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["3-vinilhept-1-ino"] },
+            { id: 144, chain: 5, bonds: [2, 1, 1, 1], subs: [{pos: 3, type: "CH2CH3", dir: "up"}], nombres: ["3-etilpent-1-eno"] },
+            { id: 145, chain: 6, bonds: [1, 3, 1, 1, 1], subs: [{pos: 3, type: "CH3", dir: "up"}], nombres: ["3-metilhex-2-ino"] },
+            { id: 146, chain: 4, bonds: [2, 1, 1], subs: [{pos: 2, type: "CH3", dir: "up"}, {pos: 3, type: "CH3", dir: "down"}], nombres: ["2,3-dimetilbut-1-eno"] },
+            { id: 147, chain: 5, bonds: [2, 1, 1, 2], subs: [{pos: 2, type: "CH3", dir: "up"}, {pos: 4, type: "CH3", dir: "down"}], nombres: ["2,4-dimetilpenta-1,4-dieno"] },
+            { id: 148, chain: 6, bonds: [3, 1, 1, 1, 3], subs: [], nombres: ["hexa-1,5-diino"] },
+            { id: 149, chain: 7, bonds: [2, 1, 3, 1, 1, 1], subs: [], nombres: ["hept-1-en-3-ino"] },
+            { id: 150, chain: 5, bonds: [2, 1, 1, 1], subs: [{pos: 2, type: "C#CH", dir: "down", bond: 1}], nombres: ["2-etinilpent-1-eno"] }
+        ];
+
+        let quizPool = [], index = 0, score = 0, sessionHistory = [], currentDiff = '';
+
+        const ui = {
+            home: document.getElementById('home-screen'),
+            quiz: document.getElementById('quiz-screen'),
+            result: document.getElementById('result-screen'),
+            view: document.getElementById('visual-formula-container'),
+            input: document.getElementById('answer-input'),
+            msg: document.getElementById('message-box'),
+            prog: document.getElementById('progress-text'),
+            bar: document.getElementById('progress-bar'),
+            scoreBadge: document.getElementById('score-badge'),
+            stats: document.getElementById('final-stats'),
+            tableBody: document.getElementById('results-table-body'),
+            btn: document.getElementById('submit-btn'),
+            nextBtn: document.getElementById('next-btn'),
+            bStats: document.getElementById('basic-stats'),
+            eStats: document.getElementById('expert-stats')
+        };
+
+        function normalize(s) { return s.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "").replace(/-/g, "").replace(/,/g, ""); }
+        
+        function getSeen(diff) {
+            const key = diff === 'normal' ? 'insat_seen_basic_final' : 'insat_seen_expert_final';
+            return JSON.parse(localStorage.getItem(key)) || [];
+        }
+        function saveSeen(id, diff) {
+            const key = diff === 'normal' ? 'insat_seen_basic_final' : 'insat_seen_expert_final';
+            let seen = getSeen(diff); if (!seen.includes(Number(id))) { seen.push(Number(id)); localStorage.setItem(key, JSON.stringify(seen)); }
+        }
+        function resetAllHistory() { localStorage.removeItem('insat_seen_basic_final'); localStorage.removeItem('insat_seen_expert_final'); updateHomeStats(); }
+        function updateHomeStats() {
+            ui.bStats.innerText = `Básico: ${getSeen('normal').length}/50`;
+            ui.eStats.innerText = `Experto: ${getSeen('expert').length}/50`;
+        }
+
+        function setupQuiz(count, diff) {
+            currentDiff = diff;
+            const pool = (diff === 'normal') ? DB_NORMAL : DB_EXPERT;
+            const seen = getSeen(diff);
+            let available = pool.filter(i => !seen.includes(Number(i.id)));
+            if (available.length < count) { 
+                const key = diff === 'normal' ? 'insat_seen_basic_final' : 'insat_seen_expert_final';
+                localStorage.removeItem(key); available = [...pool]; 
+            }
+            
+            quizPool = available.sort(() => 0.5 - Math.random()).slice(0, count);
+            index = 0; score = 0; sessionHistory = [];
+            ui.home.classList.add('hidden'); ui.result.classList.add('hidden'); ui.quiz.classList.remove('hidden');
+            ui.scoreBadge.innerText = "0 Pts";
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (index < quizPool.length) {
+                const q = quizPool[index];
+                ui.view.innerHTML = drawMolecule(q.chain, q.bonds, q.subs);
+                ui.prog.innerText = `Compuesto ${index + 1} de ${quizPool.length} (${currentDiff === 'normal' ? 'Básico' : 'Experto'})`;
+                ui.bar.style.width = `${((index + 1) / quizPool.length) * 100}%`;
+                ui.input.value = ""; ui.input.disabled = false; ui.input.focus();
+                ui.msg.classList.add('hidden'); ui.btn.classList.remove('hidden'); ui.nextBtn.classList.add('hidden');
+                ui.input.className = ui.input.className.replace(/border-(green|red)-500|bg-(green|red)-50/, "border-slate-200 bg-slate-50");
+            } else { showResults(); }
+        }
+
+        function handleCheck() {
+            const val = ui.input.value, norm = normalize(val);
+            if (!norm) return;
+            const q = quizPool[index], ok = q.nombres.some(n => normalize(n) === norm);
+            saveSeen(q.id, currentDiff);
+            sessionHistory.push({ svg: drawMolecule(q.chain, q.bonds, q.subs, true), user: val || "-", correct: q.nombres[0], ok: ok });
+            ui.input.disabled = true; ui.btn.classList.add('hidden'); ui.nextBtn.classList.remove('hidden'); ui.nextBtn.focus();
+            ui.msg.classList.remove('hidden', 'bg-green-50', 'text-green-700', 'border-green-200', 'bg-red-50', 'text-red-700', 'border-red-200');
+            if (ok) {
+                score += 10; ui.scoreBadge.innerText = `${score} Pts`;
+                ui.msg.innerHTML = "✨ ¡Correcto! Estructura dominada.";
+                ui.msg.classList.add('bg-green-50', 'text-green-700', 'border-green-200');
+                ui.input.classList.add('border-green-500', 'bg-green-50');
+            } else {
+                ui.msg.innerHTML = `❌ Incorrecto. Solución:<br><span class="text-xs uppercase font-black">${q.nombres[0]}</span>`;
+                ui.msg.classList.add('bg-red-50', 'text-red-700', 'border-red-200');
+                ui.input.classList.add('border-red-500', 'bg-red-50');
+            }
+        }
+
+        function nextQuestion() { index++; loadQuestion(); }
+        function goToHome() { ui.result.classList.add('hidden'); ui.quiz.classList.add('hidden'); ui.home.classList.remove('hidden'); updateHomeStats(); }
+
+        function showResults() {
+            ui.quiz.classList.add('hidden'); ui.result.classList.remove('hidden');
+            ui.stats.innerText = `Resultado: ${score} Pts - (${score / 10} de ${quizPool.length} aciertos)`;
+            ui.tableBody.innerHTML = '';
+            sessionHistory.forEach(item => {
+                const row = document.createElement('tr'); row.className = "hover:bg-slate-50 transition-colors";
+                row.innerHTML = `<td class="py-3 pl-2">${item.svg}</td><td class="py-3"><span class="text-xs font-bold ${item.ok?'text-green-600':'text-red-500 line-through'}">${item.user}</span></td><td class="py-3"><span class="text-[10px] font-black uppercase text-indigo-700 bg-indigo-50 px-2 py-1 rounded border border-indigo-100">${item.correct}</span></td>`;
+                ui.tableBody.appendChild(row);
+            });
+        }
+
+        ui.input.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                if (!ui.btn.classList.contains('hidden')) handleCheck();
+                else if (!ui.nextBtn.classList.contains('hidden')) nextQuestion();
+            }
+        });
+
+        updateHomeStats();
+    </script>
+</body>
+</html>

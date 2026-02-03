@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maestro de Nomenclatura PRO: Ciclos y Bencenos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .chem-text { font-family: 'Roboto Mono', monospace; font-weight: bold; }
+        svg { display: block; transition: all 0.4s ease-in-out; overflow: visible; }
+        .formula-card { background: radial-gradient(circle at center, #ffffff 0%, #f0f9ff 100%); }
+        .btn-fancy { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn-fancy:active { transform: scale(0.95); }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-2 md:p-4">
+
+    <div id="app" class="bg-white shadow-2xl rounded-3xl p-4 md:p-8 w-full max-w-5xl border border-slate-200 overflow-hidden">
+        
+        <!-- PANTALLA DE INICIO -->
+        <div id="home-screen" class="py-10 text-center fade-in">
+            <div class="inline-block p-4 bg-cyan-50 rounded-full mb-4">
+                <span class="text-5xl md:text-6xl">⬢</span>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-black text-cyan-900 uppercase tracking-tighter mb-2 text-balance">Máster Ciclos y Bencenos</h1>
+            <p class="text-slate-600 font-bold mb-2 text-xs md:text-sm italic px-4 text-balance">Este programa está realizado por Javier Gijón profesor del IES María Moliner de Segovia</p>
+            <p class="text-slate-400 font-medium mb-8 text-[10px] md:text-xs italic uppercase tracking-widest">Base de Datos Auditada: 110 Compuestos Únicos</p>
+            
+            <div class="max-w-md mx-auto grid grid-cols-1 gap-4">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 text-center">Nivel de Entrenamiento</p>
+                    <div class="flex gap-2">
+                        <button id="btn-mode-basic" onclick="setMode('basic')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase border-2 border-cyan-500 text-cyan-500 bg-white transition-colors">Básica (30)</button>
+                        <button id="btn-mode-pro" onclick="setMode('pro')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase bg-cyan-600 text-white shadow-lg transition-colors shadow-cyan-200">PRO (80)</button>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <button onclick="setupQuiz(5)" class="btn-fancy w-full bg-slate-900 text-white font-black py-4 rounded-2xl hover:bg-black text-lg shadow-xl px-4">
+                        Mazo de 5 Retos
+                    </button>
+                    <button onclick="setupQuiz(10)" class="btn-fancy w-full bg-cyan-700 text-white font-black py-4 rounded-2xl hover:bg-cyan-800 text-lg shadow-xl px-4">
+                        Mazo de 10 Retos
+                    </button>
+                </div>
+
+                <button onclick="resetGlobalHistory()" class="text-[9px] text-slate-400 uppercase font-bold hover:text-red-500 mt-4 underline decoration-dotted">
+                    Borrar historial de vistos
+                </button>
+            </div>
+            
+            <p id="global-stats-text" class="mt-8 text-[10px] text-slate-500 font-bold uppercase tracking-widest bg-slate-50 inline-block px-4 py-2 rounded-full border border-slate-100"></p>
+        </div>
+
+        <!-- PANTALLA DE JUEGO -->
+        <div id="quiz-screen" class="hidden fade-in">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3">
+                <div>
+                    <h1 class="text-lg md:text-xl font-black text-cyan-900 uppercase tracking-tighter leading-none" id="quiz-title">Desafío Cíclico</h1>
+                    <p class="text-[9px] text-cyan-900 font-bold uppercase tracking-widest italic mt-1">Prof. Javier Gijón - Segovia</p>
+                </div>
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="flex-1 md:flex-none text-right">
+                        <span id="progress-text" class="block text-[9px] font-bold text-slate-400 mb-1 tracking-widest uppercase">1 / 10</span>
+                        <div class="w-24 md:w-32 h-1.5 bg-slate-100 rounded-full overflow-hidden border">
+                            <div id="progress-bar" class="h-full bg-cyan-500 transition-all duration-500"></div>
+                        </div>
+                    </div>
+                    <span id="score-badge" class="bg-indigo-600 text-white px-2 py-1 rounded-xl text-[10px] font-black shadow-lg italic text-nowrap">0 Pts</span>
+                </div>
+            </div>
+
+            <div class="formula-card rounded-2xl p-2 md:p-6 mb-6 border border-slate-100 shadow-inner flex items-center justify-center overflow-hidden min-h-[220px] md:min-h-[280px]">
+                <div id="visual-formula-container" class="w-full flex justify-center items-center transition-all duration-700"></div>
+            </div>
+
+            <div class="max-w-xl mx-auto space-y-3">
+                <input type="text" id="answer-input" 
+                    class="w-full px-4 py-3 md:py-4 bg-slate-50 border-2 border-slate-200 rounded-2xl text-lg md:text-2xl outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100 transition-all text-center font-bold text-slate-700 placeholder-slate-300 shadow-sm uppercase"
+                    placeholder="Escribe el nombre aquí..."
+                    autocomplete="off">
+                
+                <button onclick="handleCheck()" id="submit-btn"
+                    class="btn-fancy w-full bg-cyan-600 hover:bg-cyan-700 text-white font-black py-3 md:py-4 rounded-2xl shadow-xl text-sm md:text-lg uppercase tracking-widest">
+                    Verificar
+                </button>
+
+                <button onclick="nextQuestion()" id="next-btn"
+                    class="hidden btn-fancy w-full bg-slate-900 hover:bg-black text-white font-black py-3 md:py-4 rounded-2xl shadow-xl text-sm md:text-lg uppercase tracking-widest flex items-center justify-center gap-2">
+                    Siguiente <span class="text-xl">→</span>
+                </button>
+            </div>
+
+            <div id="message-box" class="mt-4 p-3 md:p-4 rounded-2xl hidden text-center font-bold text-[10px] md:text-sm border-2"></div>
+        </div>
+
+        <!-- PANTALLA DE RESULTADOS -->
+        <div id="result-screen" class="hidden flex flex-col h-full max-h-[85vh] fade-in">
+            <div class="text-center mb-6">
+                <div class="inline-block p-4 bg-cyan-100 rounded-full mb-2 text-2xl">🏁</div>
+                <h2 class="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-tighter">Resultados</h2>
+                <p id="final-stats" class="text-slate-500 font-bold text-xs uppercase"></p>
+            </div>
+
+            <div class="flex-1 overflow-y-auto custom-scroll pr-1 border-y border-slate-100 py-4">
+                <table class="w-full text-left border-collapse table-fixed">
+                    <thead class="sticky top-0 bg-white z-10">
+                        <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200">
+                            <th class="pb-2 w-1/3">Molécula</th>
+                            <th class="pb-2 w-1/3">Tu Respuesta</th>
+                            <th class="pb-2 w-1/3">Soluciones Aceptadas</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-table-body" class="divide-y divide-slate-50"></tbody>
+                </table>
+            </div>
+
+            <div class="pt-6 text-center">
+                <button onclick="goToHome()" 
+                    class="btn-fancy bg-slate-900 hover:bg-black text-white font-black py-3 px-10 rounded-2xl transition-all shadow-2xl uppercase tracking-widest text-[10px]">
+                    Volver al menú
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * LIBRERÍA QUÍMICA VISUAL (PRO v4.0 - FINAL)
+         */
+        const REVERSED_GROUPS = {
+            "CH3": "H3C", "CH2CH3": "H3CH2C", "OH": "HO", "NH2": "H2N", 
+            "NO2": "O2N", "OCH3": "H3CO", "COOH": "HOOC", "CN": "NC", "F": "F",
+            "C≡CH": "HC≡C" // Agregado soporte visual para etinilo invertido
+        };
+
+        function formatChemSVG(text, x, y, fontSize, color, anchor = "middle", angle = 0) {
+            let normAngle = angle;
+            if(normAngle < 0) normAngle += 2*Math.PI;
+            normAngle = normAngle % (2 * Math.PI); 
+
+            const isLeft = (normAngle > 1.6 && normAngle < 4.7);
+
+            let displayText = text;
+            if (isLeft && REVERSED_GROUPS[text]) {
+                displayText = REVERSED_GROUPS[text];
+            }
+
+            let svgText = `<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" font-family="Roboto Mono" font-weight="bold" font-size="${fontSize}" fill="${color}">`;
+            
+            for (let char of displayText) {
+                if (/\d/.test(char)) {
+                    svgText += `<tspan dy="0.35em" font-size="0.75em">${char}</tspan><tspan dy="-0.26em"></tspan>`;
+                } else {
+                    svgText += char;
+                }
+            }
+            svgText += `</text>`;
+            return svgText;
+        }
+
+        function drawSubCycle(ctxX, ctxY, sides, angle, color, isAromatic) {
+            const r = 14; 
+            const dist = 18; 
+            const cx = ctxX + dist * Math.cos(angle);
+            const cy = ctxY + dist * Math.sin(angle);
+            
+            let points = "";
+            for (let i = 0; i < sides; i++) {
+                const subAngle = (i * 2 * Math.PI / sides) + angle + Math.PI; 
+                const px = cx + r * Math.cos(subAngle);
+                const py = cy + r * Math.sin(subAngle);
+                points += `${px},${py} `;
+            }
+            
+            let svg = `<polygon points="${points}" fill="white" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" />`;
+            if (isAromatic) {
+                svg += `<circle cx="${cx}" cy="${cy}" r="${r * 0.6}" fill="none" stroke="${color}" stroke-width="1" />`;
+            }
+            return svg;
+        }
+
+        function drawFusedSystem(type, substituents = [], revealed = false) {
+            const cx = 200, cy = 200;
+            const r = 35; 
+            const w = r * Math.sqrt(3); 
+            const neutralColor = "#334155";
+            
+            const nitroColor = revealed ? "#059669" : neutralColor;
+            const alcoColor  = revealed ? "#0284c7" : neutralColor;
+            const acidColor  = revealed ? "#7c3aed" : neutralColor;
+            const radColor   = revealed ? "#475569" : neutralColor;
+
+            let rings = (type === 'anthracene') ? 3 : 2;
+            let svg = `<svg viewBox="50 100 300 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 350px;">`;
+
+            const startX = cx - ((rings - 1) * w * 0.5);
+            const getHexCenter = (k) => ({ x: startX + k * (r * Math.sqrt(3)), y: cy });
+            
+            for (let k = 0; k < rings; k++) {
+                const center = getHexCenter(k);
+                let polyPoints = "";
+                for (let i = 0; i < 6; i++) {
+                    const angle = (30 + i * 60) * Math.PI / 180; 
+                    const px = center.x + r * Math.cos(angle);
+                    const py = center.y + r * Math.sin(angle);
+                    polyPoints += `${px},${py} `;
+                }
+                svg += `<polygon points="${polyPoints}" fill="none" stroke="${neutralColor}" stroke-width="2.5" stroke-linejoin="round" />`;
+                svg += `<circle cx="${center.x}" cy="${center.y}" r="${r * 0.6}" fill="none" stroke="${neutralColor}" stroke-width="1.5" />`;
+            }
+
+            const getPosCoords = (pos) => {
+                let centerIndex = 0;
+                let angleDeg = 0;
+                
+                if (type === 'naphthalene') {
+                    if (pos >= 1 && pos <= 4) centerIndex = 1; else centerIndex = 0;
+                    if (pos === 1) angleDeg = 90; 
+                    if (pos === 2) angleDeg = 30; 
+                    if (pos === 3) angleDeg = 330; 
+                    if (pos === 4) angleDeg = 270; 
+                    if (pos === 5) angleDeg = 270; 
+                    if (pos === 6) angleDeg = 210;
+                    if (pos === 7) angleDeg = 150;
+                    if (pos === 8) angleDeg = 90;
+                } else if (type === 'anthracene') {
+                    if (pos >= 1 && pos <= 4) centerIndex = 2;
+                    else if (pos >= 5 && pos <= 8) centerIndex = 0;
+                    else centerIndex = 1;
+                    if (pos === 1) angleDeg = 90; if (pos === 2) angleDeg = 30;
+                    if (pos === 3) angleDeg = 330; if (pos === 4) angleDeg = 270;
+                    if (pos === 5) angleDeg = 270; if (pos === 6) angleDeg = 210;
+                    if (pos === 7) angleDeg = 150; if (pos === 8) angleDeg = 90;
+                    if (pos === 9) angleDeg = 90; if (pos === 10) angleDeg = 270;
+                }
+                const c = getHexCenter(centerIndex);
+                const rad = angleDeg * Math.PI / 180;
+                return { x: c.x + r * Math.cos(rad), y: c.y + r * Math.sin(rad), angle: rad };
+            };
+
+            substituents.forEach(s => {
+                const v = getPosCoords(s.pos);
+                const cosA = Math.cos(v.angle);
+                const sinA = Math.sin(v.angle);
+                const bondLen = 25;
+                
+                let color = radColor;
+                if (s.type === 'OH') color = alcoColor;
+                if (s.type === 'NO2' || s.type === 'NH2' || s.type === 'CN') color = nitroColor;
+                if (s.type === 'COOH') color = acidColor;
+                
+                const xEnd = v.x + bondLen * cosA;
+                const yEnd = v.y + bondLen * sinA;
+                
+                svg += `<line x1="${v.x}" y1="${v.y}" x2="${xEnd}" y2="${yEnd}" stroke="${neutralColor}" stroke-width="2" />`;
+                
+                let anchor = "middle";
+                if (Math.abs(cosA) > 0.3) anchor = cosA > 0 ? "start" : "end";
+                let dy = 0;
+                if (Math.abs(sinA) > 0.9) dy = sinA > 0 ? 5 : -5;
+                
+                svg += formatChemSVG(s.type, xEnd + (8 * cosA), yEnd + (8 * sinA) + dy, 12, color, anchor, v.angle);
+            });
+            return svg + `</svg>`;
+        }
+
+        function drawCycle(sides, substituents = [], isBenzene = false, mini = false, revealed = false, internalBonds = [], fusedType = null) {
+            if (fusedType) return drawFusedSystem(fusedType, substituents, revealed);
+
+            const centerX = 200, centerY = 200;
+            const radius = mini ? 35 : 55; 
+            const neutralColor = "#334155";
+            
+            const nitroColor = revealed ? "#059669" : neutralColor;
+            const oxyColor   = revealed ? "#e11d48" : neutralColor;
+            const alcoColor  = revealed ? "#0284c7" : neutralColor;
+            const acidColor  = revealed ? "#7c3aed" : neutralColor;
+            const radColor   = revealed ? "#475569" : neutralColor;
+            const doubleColor = "#0f172a";
+
+            const getVertex = (i, r = radius) => {
+                const angle = (i * 2 * Math.PI / sides) - Math.PI / 2;
+                return { x: centerX + r * Math.cos(angle), y: centerY + r * Math.sin(angle), angle: angle };
+            };
+
+            let svg = `<svg viewBox="80 80 240 240" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="width: ${mini ? '100px' : '100%'}; max-width: 300px; height: auto;">`;
+
+            let points = "";
+            for (let i = 0; i < sides; i++) {
+                const v = getVertex(i);
+                points += `${v.x},${v.y} `;
+            }
+            svg += `<polygon points="${points}" fill="none" stroke="${neutralColor}" stroke-width="${mini?1.5:2.5}" stroke-linejoin="round" />`;
+
+            if (isBenzene) {
+                svg += `<circle cx="${centerX}" cy="${centerY}" r="${radius * 0.65}" fill="none" stroke="${neutralColor}" stroke-width="${mini?1:2}" />`;
+            }
+
+            if (!isBenzene && internalBonds) {
+                internalBonds.forEach(bond => {
+                    const idx1 = bond.start - 1;
+                    const idx2 = (idx1 + 1) % sides;
+                    const v1 = getVertex(idx1);
+                    const v2 = getVertex(idx2);
+                    
+                    const offset = 6;
+                    const dx = v2.x - v1.x;
+                    const dy = v2.y - v1.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    const nx = -dy / dist; const ny = dx / dist;
+
+                    const cxDir = centerX - (v1.x + v2.x)/2;
+                    const cyDir = centerY - (v1.y + v2.y)/2;
+                    const dot = nx * cxDir + ny * cyDir;
+                    const sign = dot > 0 ? 1 : -1;
+
+                    const x1i = v1.x + sign * nx * offset;
+                    const y1i = v1.y + sign * ny * offset;
+                    const x2i = v2.x + sign * nx * offset;
+                    const y2i = v2.y + sign * ny * offset;
+
+                    const padding = 0.15;
+                    const x1f = x1i + (x2i - x1i) * padding;
+                    const y1f = y1i + (y2i - y1i) * padding;
+                    const x2f = x2i - (x2i - x1i) * padding;
+                    const y2f = y2i - (y2i - y1i) * padding;
+
+                    svg += `<line x1="${x1f}" y1="${y1f}" x2="${x2f}" y2="${y2f}" stroke="${doubleColor}" stroke-width="2" stroke-linecap="round" />`;
+
+                    if (bond.type === 3) {
+                         const offset3 = 12;
+                         const x1t = v1.x + sign * nx * offset3;
+                         const y1t = v1.y + sign * ny * offset3;
+                         const x2t = v2.x + sign * nx * offset3;
+                         const y2t = v2.y + sign * ny * offset3;
+                         const x1tf = x1t + (x2t - x1t) * padding;
+                         const y1tf = y1t + (y2t - y1t) * padding;
+                         const x2tf = x2t - (x2t - x1t) * padding;
+                         const y2tf = y2t - (y2t - y1t) * padding;
+                         svg += `<line x1="${x1tf}" y1="${y1tf}" x2="${x2tf}" y2="${y2tf}" stroke="${doubleColor}" stroke-width="2" stroke-linecap="round" />`;
+                    }
+                });
+            }
+
+            substituents.forEach(s => {
+                const v = getVertex(s.pos - 1);
+                const cosA = Math.cos(v.angle);
+                const sinA = Math.sin(v.angle);
+                let color = radColor;
+                if (s.type === 'OH' || s.type === 'OCH3') color = alcoColor;
+                if (s.type === 'NO2' || s.type === 'NH2' || s.type === 'CN') color = nitroColor;
+                if (s.type === 'COOH' || s.type === 'COOCH3' || s.type === 'CHO') color = acidColor;
+                if (s.type === '=O') color = oxyColor;
+
+                const bondLen = mini ? 15 : 25; 
+
+                if (s.type === 'Ciclohexil' || s.type === 'Ciclopentil' || s.type === 'Fenil') {
+                     const xEnd = v.x + (bondLen + 5) * cosA;
+                     const yEnd = v.y + (bondLen + 5) * sinA;
+                     svg += `<line x1="${v.x}" y1="${v.y}" x2="${xEnd}" y2="${yEnd}" stroke="${neutralColor}" stroke-width="2" />`;
+                     const subSides = (s.type === 'Ciclopentil') ? 5 : 6;
+                     const isAr = (s.type === 'Fenil');
+                     svg += drawSubCycle(xEnd, yEnd, subSides, v.angle, color, isAr);
+                }
+                else if (s.type === '=O') {
+                    const offset = 3;
+                    const xBase1 = v.x + offset * sinA, yBase1 = v.y - offset * cosA;
+                    const xBase2 = v.x - offset * sinA, yBase2 = v.y + offset * cosA;
+                    const xEnd1 = xBase1 + bondLen * cosA, yEnd1 = yBase1 + bondLen * sinA;
+                    const xEnd2 = xBase2 + bondLen * cosA, yEnd2 = yBase2 + bondLen * sinA;
+                    svg += `<line x1="${xBase1}" y1="${yBase1}" x2="${xEnd1}" y2="${yEnd1}" stroke="${color}" stroke-width="2" />`;
+                    svg += `<line x1="${xBase2}" y1="${yBase2}" x2="${xEnd2}" y2="${yEnd2}" stroke="${color}" stroke-width="2" />`;
+                    const xO = v.x + (bondLen + 8) * cosA, yO = v.y + (bondLen + 8) * sinA;
+                    svg += formatChemSVG("O", xO, yO, 12, color);
+                } else {
+                    const xEnd = v.x + bondLen * cosA, yEnd = v.y + bondLen * sinA;
+                    svg += `<line x1="${v.x}" y1="${v.y}" x2="${xEnd}" y2="${yEnd}" stroke="${neutralColor}" stroke-width="2" />`;
+                    let anchor = "middle";
+                    let textOffset = 8;
+                    if (Math.abs(cosA) > 0.3) anchor = cosA > 0 ? "start" : "end";
+                    let dy = 0;
+                    if (Math.abs(sinA) > 0.9) dy = sinA > 0 ? 5 : -5;
+                    svg += formatChemSVG(s.type, xEnd + (textOffset * cosA), yEnd + (textOffset * sinA) + dy, 12, color, anchor, v.angle);
+                }
+            });
+            return svg + `</svg>`;
+        }
+
+        const DB_BASIC = [
+            { id: 7001, sides: 3, benzene: false, subs: [], nombres: ["ciclopropano"] },
+            { id: 7002, sides: 4, benzene: false, subs: [], nombres: ["ciclobutano"] },
+            { id: 7003, sides: 5, benzene: false, subs: [], nombres: ["ciclopentano"] },
+            { id: 7004, sides: 6, benzene: false, subs: [], nombres: ["ciclohexano"] },
+            { id: 7005, sides: 6, benzene: true, subs: [], nombres: ["benceno"] },
+            { id: 7006, sides: 6, benzene: true, subs: [{pos:1, type:'CH3'}], nombres: ["metilbenceno", "tolueno"] },
+            { id: 7007, sides: 6, benzene: true, subs: [{pos:1, type:'OH'}], nombres: ["fenol", "hidroxibenceno", "bencenol"] },
+            { id: 7008, sides: 6, benzene: true, subs: [{pos:1, type:'NH2'}], nombres: ["anilina", "aminobenceno", "bencenamina"] },
+            { id: 7009, sides: 6, benzene: true, subs: [{pos:1, type:'NO2'}], nombres: ["nitrobenceno"] },
+            { id: 7010, sides: 6, benzene: true, subs: [{pos:1, type:'COOH'}], nombres: ["acido benzoico", "acido bencenocarboxilico"] },
+            { id: 7011, sides: 6, benzene: true, subs: [{pos:1, type:'CN'}], nombres: ["benzonitrilo", "cianobenceno"] }, 
+            { id: 7012, sides: 5, benzene: false, subs: [{pos:1, type:'CH3'}], nombres: ["metilciclopentano"] },
+            { id: 7013, sides: 4, benzene: false, subs: [{pos:1, type:'CH2CH3'}], nombres: ["etilciclobutano"] },
+            { id: 7014, sides: 3, benzene: false, subs: [{pos:1, type:'OH'}], nombres: ["ciclopropanol", "alcohol ciclopropilico"] },
+            { id: 7015, sides: 6, benzene: false, subs: [{pos:1, type:'NH2'}], nombres: ["ciclohexanamina", "ciclohexilamina", "aminociclohexano"] },
+            { id: 7016, sides: 6, benzene: true, subs: [{pos:1, type:'CHO'}], nombres: ["benzaldehido", "bencenocarbaldehido"] },
+            { id: 7017, sides: 5, benzene: false, subs: [{pos:1, type:'COOH'}], nombres: ["acido ciclopentanocarboxilico"] },
+            { id: 7018, sides: 6, benzene: true, subs: [{pos:1, type:'CH3'}, {pos:2, type:'CH3'}], nombres: ["1,2-dimetilbenceno", "o-xileno", "orto-xileno", "1,2-xileno"] },
+            { id: 7019, sides: 6, benzene: true, subs: [{pos:1, type:'CH3'}, {pos:3, type:'CH3'}], nombres: ["1,3-dimetilbenceno", "m-xileno", "meta-xileno", "1,3-xileno"] },
+            { id: 7020, sides: 6, benzene: true, subs: [{pos:1, type:'CH3'}, {pos:4, type:'CH3'}], nombres: ["1,4-dimetilbenceno", "p-xileno", "para-xileno", "1,4-xileno"] },
+            { id: 7021, sides: 6, benzene: true, subs: [{pos:1, type:'OH'}, {pos:2, type:'CH3'}], nombres: ["2-metilfenol", "o-cresol", "orto-cresol"] },
+            { id: 7022, sides: 6, benzene: true, subs: [{pos:1, type:'NH2'}, {pos:4, type:'NO2'}], nombres: ["4-nitroanilina", "p-nitroanilina", "para-nitroanilina"] },
+            { id: 7023, sides: 4, benzene: false, subs: [{pos:1, type:'=O'}], nombres: ["ciclobutanona"] },
+            { id: 7024, sides: 5, benzene: false, subs: [{pos:1, type:'=O'}], nombres: ["ciclopentanona"] },
+            { id: 7025, sides: 6, benzene: false, subs: [{pos:1, type:'=O'}], nombres: ["ciclohexanona"] },
+            { id: 7026, sides: 6, benzene: true, subs: [{pos:1, type:'Br'}], nombres: ["bromobenceno"] },
+            { id: 7027, sides: 6, benzene: true, subs: [{pos:1, type:'Cl'}], nombres: ["clorobenceno"] },
+            { id: 7028, sides: 3, benzene: false, subs: [{pos:1, type:'CH3'}, {pos:2, type:'CH3'}], nombres: ["1,2-dimetilciclopropano"] },
+            { id: 7029, sides: 6, benzene: false, subs: [{pos:1, type:'CH3'}, {pos:4, type:'CH3'}], nombres: ["1,4-dimetilciclohexano"] },
+            { id: 7030, sides: 6, benzene: true, subs: [{pos:1, type:'OCH3'}], nombres: ["anisol", "metoxibenceno"] }
+        ];
+
+        const DB_PRO = [
+            // Ácidos
+            { id: 9001, sides: 6, benzene: true, subs: [{pos:1, type:'COOH'}, {pos:3, type:'NH2'}], nombres: ["acido 3-aminobenzoico", "acido m-aminobenzoico"] },
+            { id: 9002, sides: 6, benzene: true, subs: [{pos:1, type:'COOH'}, {pos:2, type:'OH'}], nombres: ["acido salicilico", "acido 2-hidroxibenzoico", "acido o-hidroxibenzoico"] },
+            { id: 9003, sides: 6, benzene: true, subs: [{pos:1, type:'COOH'}, {pos:4, type:'CH3'}], nombres: ["acido p-toluico", "acido 4-metilbenzoico"] },
+            { id: 9004, sides: 6, benzene: true, subs: [{pos:1, type:'COOH'}, {pos:3, type:'NO2'}], nombres: ["acido 3-nitrobenzoico", "acido m-nitrobenzoico"] },
+            { id: 9005, sides: 6, benzene: true, subs: [{pos:1, type:'COOH'}, {pos:4, type:'CHO'}], nombres: ["acido 4-formilbenzoico", "acido p-formilbenzoico"] },
+            { id: 9006, sides: 6, benzene: true, subs: [{pos:1, type:'COOH'}, {pos:2, type:'Cl'}], nombres: ["acido 2-clorobenzoico", "acido o-clorobenzoico"] },
+            { id: 9007, sides: 6, benzene: true, subs: [{pos:1, type:'COOH'}, {pos:3, type:'CN'}], nombres: ["acido 3-cianobenzoico", "acido m-cianobenzoico"] },
+            { id: 9008, sides: 6, benzene: true, subs: [{pos:1, type:'COOH'}, {pos:4, type:'OCH3'}], nombres: ["acido 4-metoxibenzoico", "acido p-anisico"] },
+            { id: 9009, sides: 6, benzene: true, subs: [{pos:1, type:'COOH'}, {pos:3, type:'Br'}, {pos:5, type:'Br'}], nombres: ["acido 3,5-dibromobenzoico"] },
+            { id: 9010, sides: 5, benzene: false, subs: [{pos:1, type:'COOH'}, {pos:2, type:'=O'}], nombres: ["acido 2-oxociclopentanocarboxilico"] },
+            
+            // Aldehídos
+            { id: 9011, sides: 6, benzene: true, subs: [{pos:1, type:'CHO'}, {pos:2, type:'OH'}], nombres: ["2-hidroxibenzaldehido", "o-hidroxibenzaldehido", "salicilaldehido"] },
+            { id: 9012, sides: 6, benzene: true, subs: [{pos:1, type:'CHO'}, {pos:4, type:'NO2'}], nombres: ["4-nitrobenzaldehido", "p-nitrobenzaldehido"] },
+            { id: 9013, sides: 6, benzene: true, subs: [{pos:1, type:'CHO'}, {pos:3, type:'Cl'}], nombres: ["3-clorobenzaldehido", "m-clorobenzaldehido"] },
+            { id: 9014, sides: 6, benzene: true, subs: [{pos:1, type:'CHO'}, {pos:4, type:'OCH3'}], nombres: ["4-metoxibenzaldehido", "anisaldehido"] },
+            { id: 9015, sides: 6, benzene: true, subs: [{pos:1, type:'CHO'}, {pos:2, type:'NH2'}], nombres: ["2-aminobenzaldehido", "o-aminobenzaldehido"] },
+            { id: 9016, sides: 6, benzene: false, subs: [{pos:1, type:'CHO'}, {pos:4, type:'CH3'}], nombres: ["4-metilciclohexanocarbaldehido"] },
+
+            // Nitrilos
+            { id: 9017, sides: 6, benzene: true, subs: [{pos:1, type:'CN'}, {pos:4, type:'CH3'}], nombres: ["4-metilbenzonitrilo", "p-tolunitrilo"] },
+            { id: 9018, sides: 6, benzene: true, subs: [{pos:1, type:'CN'}, {pos:2, type:'Br'}], nombres: ["2-bromobenzonitrilo", "o-bromobenzonitrilo"] },
+            { id: 9019, sides: 6, benzene: true, subs: [{pos:1, type:'CN'}, {pos:3, type:'NH2'}], nombres: ["3-aminobenzonitrilo", "m-aminobenzonitrilo"] },
+            
+            // Cetonas
+            { id: 9020, sides: 6, benzene: false, subs: [{pos:1, type:'=O'}, {pos:2, type:'CH3'}], nombres: ["2-metilciclohexanona"] },
+            { id: 9021, sides: 5, benzene: false, subs: [{pos:1, type:'=O'}, {pos:3, type:'Cl'}], nombres: ["3-clorociclopentanona"] },
+            { id: 9022, sides: 4, benzene: false, subs: [{pos:1, type:'=O'}, {pos:2, type:'OH'}], nombres: ["2-hidroxiciclobutanona"] },
+            { id: 9023, sides: 6, benzene: false, subs: [{pos:1, type:'=O'}, {pos:4, type:'NH2'}], nombres: ["4-aminociclohexanona"] },
+            
+            // Fenoles y Alcoholes
+            { id: 9024, sides: 6, benzene: true, subs: [{pos:1, type:'OH'}, {pos:4, type:'Cl'}], nombres: ["4-clorofenol", "p-clorofenol"] },
+            { id: 9025, sides: 6, benzene: true, subs: [{pos:1, type:'OH'}, {pos:3, type:'CH3'}], nombres: ["3-metilfenol", "m-cresol"] },
+            { id: 9026, sides: 6, benzene: true, subs: [{pos:1, type:'OH'}, {pos:2, type:'NO2'}], nombres: ["2-nitrophenol", "o-nitrophenol"] },
+            { id: 9027, sides: 6, benzene: true, subs: [{pos:1, type:'OH'}, {pos:4, type:'NH2'}], nombres: ["4-aminofenol", "p-aminofenol"] },
+            { id: 9028, sides: 6, benzene: true, subs: [{pos:1, type:'OH'}, {pos:2, type:'NO2'}, {pos:4, type:'NO2'}, {pos:6, type:'NO2'}], nombres: ["2,4,6-trinitrofenol", "acido picrico"] },
+            { id: 9029, sides: 6, benzene: true, subs: [{pos:1, type:'OH'}, {pos:3, type:'OCH3'}], nombres: ["3-metoxifenol", "m-metoxifenol"] },
+            { id: 9030, sides: 5, benzene: false, subs: [{pos:1, type:'OH'}, {pos:2, type:'CH3'}], nombres: ["2-metilciclopentanol"] },
+
+            // Aminas
+            { id: 9031, sides: 6, benzene: true, subs: [{pos:1, type:'NH2'}, {pos:4, type:'CH3'}], nombres: ["4-metilanilina", "p-toluidina"] },
+            { id: 9032, sides: 6, benzene: true, subs: [{pos:1, type:'NH2'}, {pos:2, type:'OCH3'}], nombres: ["2-metoxianilina", "o-anisidina"] },
+            { id: 9033, sides: 6, benzene: true, subs: [{pos:1, type:'NH2'}, {pos:3, type:'Cl'}], nombres: ["3-cloroanilina", "m-cloroanilina"] },
+            { id: 9034, sides: 6, benzene: true, subs: [{pos:1, type:'NH2'}, {pos:4, type:'NO2'}], nombres: ["4-nitroanilina", "p-nitroanilina"] },
+            { id: 9035, sides: 6, benzene: true, subs: [{pos:1, type:'NH2'}, {pos:2, type:'Br'}, {pos:4, type:'Br'}], nombres: ["2,4-dibromoanilina"] },
+            
+            // Bencenos Sustituidos
+            { id: 9036, sides: 6, benzene: true, subs: [{pos:1, type:'CH3'}, {pos:2, type:'CH3'}, {pos:3, type:'CH3'}], nombres: ["1,2,3-trimetilbenceno", "hemiceliteno"] },
+            { id: 9037, sides: 6, benzene: true, subs: [{pos:1, type:'CH3'}, {pos:2, type:'CH3'}, {pos:4, type:'CH3'}], nombres: ["1,2,4-trimetilbenceno", "pseudocumeno"] },
+            { id: 9038, sides: 6, benzene: true, subs: [{pos:1, type:'CH3'}, {pos:3, type:'CH3'}, {pos:5, type:'CH3'}], nombres: ["1,3,5-trimetilbenceno", "mesitileno"] },
+            { id: 9039, sides: 6, benzene: true, subs: [{pos:1, type:'CH=CH2'}], nombres: ["vinilbenceno", "estireno"] },
+            { id: 9040, sides: 6, benzene: true, subs: [{pos:1, type:'CH3'}, {pos:2, type:'NO2'}], nombres: ["1-metil-2-nitrobenceno", "o-nitrotolueno"] },
+            { id: 9041, sides: 6, benzene: true, subs: [{pos:1, type:'Cl'}, {pos:2, type:'NO2'}], nombres: ["1-cloro-2-nitrobenceno", "o-cloronitrobenceno"] },
+            { id: 9042, sides: 6, benzene: true, subs: [{pos:1, type:'Br'}, {pos:3, type:'Cl'}], nombres: ["1-bromo-3-clorobenceno", "m-bromoclorobenceno"] },
+            { id: 9043, sides: 6, benzene: true, subs: [{pos:1, type:'Cl'}, {pos:4, type:'F'}], nombres: ["1-cloro-4-fluorobenceno", "p-clorofluorobenceno"] },
+            { id: 9044, sides: 6, benzene: true, subs: [{pos:1, type:'CH3'}, {pos:3, type:'CH3'}, {pos:2, type:'NO2'}], nombres: ["2-nitro-1,3-dimetilbenceno"] },
+            { id: 9045, sides: 6, benzene: true, subs: [{pos:1, type:'CH3'}, {pos:2, type:'CH=CH2'}], nombres: ["1-etenil-2-metilbenceno", "o-metilestireno"] },
+            
+            // Cicloalcanos complejos
+            { id: 9046, sides: 6, benzene: false, subs: [{pos:1, type:'CH3'}, {pos:1, type:'CH3'}, {pos:3, type:'CH2CH3'}], nombres: ["3-etil-1,1-dimetilciclohexano"] },
+            { id: 9047, sides: 3, benzene: false, subs: [{pos:1, type:'CH3'}, {pos:1, type:'CH3'}, {pos:2, type:'CH2CH3'}], nombres: ["2-etil-1,1-dimetilciclopropano"] },
+            { id: 9048, sides: 5, benzene: false, subs: [{pos:1, type:'Br'}, {pos:2, type:'Cl'}], nombres: ["1-bromo-2-clorociclopentano"] },
+            { id: 9049, sides: 6, benzene: false, subs: [{pos:1, type:'OH'}, {pos:2, type:'CH3'}, {pos:4, type:'CH3'}], nombres: ["2,4-dimetilciclohexanol"] },
+            { id: 9050, sides: 6, benzene: true, subs: [{pos:1, type:'CH3'}, {pos:2, type:'NO2'}, {pos:4, type:'NO2'}, {pos:6, type:'NO2'}], nombres: ["2,4,6-trinitrotolueno", "TNT"] },
+
+            // Cicloalquenos básicos
+            { id: 9051, sides: 6, benzene: false, subs: [], bonds: [{start:1, type:2}], nombres: ["ciclohexeno"] },
+            { id: 9052, sides: 6, benzene: false, subs: [], bonds: [{start:1, type:2}, {start:3, type:2}], nombres: ["1,3-ciclohexadieno"] },
+            { id: 9053, sides: 6, benzene: false, subs: [], bonds: [{start:1, type:2}, {start:4, type:2}], nombres: ["1,4-ciclohexadieno"] },
+            { id: 9054, sides: 5, benzene: false, subs: [], bonds: [{start:1, type:2}, {start:3, type:2}], nombres: ["1,3-ciclopentadieno"] },
+            { id: 9055, sides: 6, benzene: false, subs: [{pos:3, type:'CH3'}], bonds: [{start:1, type:2}], nombres: ["3-metilciclohexeno"] },
+            { id: 9056, sides: 5, benzene: false, subs: [{pos:1, type:'CH2CH3'}], bonds: [{start:1, type:2}], nombres: ["1-etilciclopenteno"] },
+            { id: 9057, sides: 8, benzene: false, subs: [], bonds: [{start:1, type:3}], nombres: ["ciclooctino"] },
+            { id: 9058, sides: 6, benzene: false, subs: [{pos:1, type:'Ciclohexil'}], nombres: ["ciclohexilciclohexano", "biciclohexilo"] },
+            { id: 9059, sides: 6, benzene: false, subs: [{pos:1, type:'Ciclopentil'}], nombres: ["ciclopentilciclohexano"] },
+            { id: 9060, sides: 6, benzene: false, subs: [{pos:3, type:'C≡CH'}], bonds: [{start:1, type:2}], nombres: ["3-etinilciclohexeno"] },
+
+            // Cicloalquenos con Radicales
+            { id: 9061, sides: 6, benzene: false, subs: [{pos:1, type:'CH3'}, {pos:2, type:'CH3'}], bonds: [{start:1, type:2}], nombres: ["1,2-dimetilciclohexeno"] },
+            { id: 9062, sides: 6, benzene: false, subs: [{pos:3, type:'Br'}], bonds: [{start:1, type:2}], nombres: ["3-bromociclohexeno"] },
+            { id: 9063, sides: 5, benzene: false, subs: [{pos:3, type:'Cl'}], bonds: [{start:1, type:2}], nombres: ["3-clorociclopenteno"] },
+            { id: 9064, sides: 6, benzene: false, subs: [{pos:1, type:'CH3'}, {pos:4, type:'NO2'}], bonds: [{start:1, type:2}], nombres: ["1-metil-4-nitrociclohexeno"] },
+            { id: 9065, sides: 6, benzene: false, subs: [{pos:1, type:'CH3'}, {pos:5, type:'CH3'}], bonds: [{start:1, type:2}, {start:4, type:2}], nombres: ["1,5-dimetil-1,4-ciclohexadieno"] },
+            { id: 9066, sides: 4, benzene: false, subs: [{pos:3, type:'CH3'}], bonds: [{start:1, type:2}], nombres: ["3-metilciclobuteno"] },
+            { id: 9067, sides: 7, benzene: false, subs: [], bonds: [{start:1, type:2}], nombres: ["ciclohepteno"] },
+            { id: 9068, sides: 6, benzene: false, subs: [{pos:4, type:'CH3'}, {pos:4, type:'CH3'}], bonds: [{start:1, type:2}], nombres: ["4,4-dimetilciclohexeno"] },
+            { id: 9069, sides: 5, benzene: false, subs: [{pos:1, type:'CH=CH2'}], bonds: [{start:1, type:2}], nombres: ["1-vinilciclopenteno", "1-etenilciclopenteno"] },
+            { id: 9070, sides: 6, benzene: false, subs: [{pos:3, type:'OH'}], bonds: [{start:1, type:2}], nombres: ["ciclohex-2-en-1-ol", "2-ciclohexenol"] },
+            
+            // Bencenos Unidos y Fusionados
+            { id: 9071, sides: 6, benzene: true, subs: [{pos:1, type:'Fenil'}], nombres: ["bifenilo", "fenilbenceno"] },
+            { id: 9072, sides: 6, benzene: true, subs: [{pos:1, type:'Fenil'}, {pos:4, type:'NO2'}], nombres: ["4-nitrobifenilo", "p-nitrobifenilo", "1-nitro-4-fenilbenceno"] },
+            { id: 9073, sides: 6, benzene: true, subs: [{pos:1, type:'OH'}, {pos:4, type:'Fenil'}], nombres: ["4-fenilfenol", "p-fenilfenol"] },
+            { id: 9074, sides: 6, benzene: true, subs: [{pos:1, type:'COOH'}, {pos:4, type:'Fenil'}], nombres: ["acido 4-fenilbenzoico", "acido p-fenilbenzoico"] },
+            { id: 9075, sides: 6, benzene: true, subs: [{pos:1, type:'Fenil'}, {pos:3, type:'CH3'}], nombres: ["3-metilbifenilo", "m-metilbifenilo"] },
+            
+            // Naftalenos y Antracenos
+            { id: 9076, fusedType: 'naphthalene', subs: [], nombres: ["naftaleno"] },
+            { id: 9077, fusedType: 'naphthalene', subs: [{pos:1, type:'CH3'}], nombres: ["1-metilnaftaleno", "alfa-metilnaftaleno"] },
+            { id: 9078, fusedType: 'naphthalene', subs: [{pos:2, type:'OH'}], nombres: ["2-naftol", "beta-naftol"] },
+            { id: 9079, fusedType: 'naphthalene', subs: [{pos:1, type:'NO2'}], nombres: ["1-nitronaftaleno", "alfa-nitronaftaleno"] },
+            { id: 9080, fusedType: 'anthracene', subs: [], nombres: ["antraceno"] }
+        ];
+
+        let currentMode = 'pro';
+        let quizPool = [], index = 0, score = 0, sessionHistory = [];
+
+        const ui = {
+            home: document.getElementById('home-screen'),
+            quiz: document.getElementById('quiz-screen'),
+            result: document.getElementById('result-screen'),
+            view: document.getElementById('visual-formula-container'),
+            input: document.getElementById('answer-input'),
+            msg: document.getElementById('message-box'),
+            prog: document.getElementById('progress-text'),
+            bar: document.getElementById('progress-bar'),
+            scoreBadge: document.getElementById('score-badge'),
+            stats: document.getElementById('final-stats'),
+            tableBody: document.getElementById('results-table-body'),
+            btn: document.getElementById('submit-btn'),
+            nextBtn: document.getElementById('next-btn'),
+            statsText: document.getElementById('global-stats-text'),
+            title: document.getElementById('quiz-title')
+        };
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('btn-mode-basic').className = mode === 'basic' ? 'flex-1 py-3 rounded-xl font-black text-[10px] uppercase bg-cyan-600 text-white shadow-lg' : 'flex-1 py-3 rounded-xl font-black text-[10px] uppercase border-2 border-cyan-500 text-cyan-500 bg-white';
+            document.getElementById('btn-mode-pro').className = mode === 'pro' ? 'flex-1 py-3 rounded-xl font-black text-[10px] uppercase bg-cyan-600 text-white shadow-lg' : 'flex-1 py-3 rounded-xl font-black text-[10px] uppercase border-2 border-cyan-500 text-cyan-500 bg-white';
+            updateHomeStats();
+        }
+
+        function normalize(s) { 
+            return s.trim().toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
+                .replace(/\s+/g, "") 
+                .replace(/-/g, "") 
+                .replace(/,/g, "")
+                .replace(/^1/g, "")
+                ; 
+        }
+
+        function getGlobalHistory() { const data = localStorage.getItem(`quim_ciclo_v8_${currentMode}`); return data ? JSON.parse(data).map(Number) : []; }
+        function saveToGlobalHistory(id) { 
+            let seen = getGlobalHistory(); 
+            if (!seen.includes(Number(id))) { seen.push(Number(id)); localStorage.setItem(`quim_ciclo_v8_${currentMode}`, JSON.stringify(seen)); } 
+        }
+        function resetGlobalHistory() { localStorage.removeItem(`quim_ciclo_v8_${currentMode}`); updateHomeStats(); }
+        
+        function updateHomeStats() { 
+            const db = currentMode === 'basic' ? DB_BASIC : DB_PRO;
+            const seenCount = getGlobalHistory().length; 
+            ui.statsText.innerText = `Dominados: ${seenCount} / ${db.length}`; 
+        }
+
+        function setupQuiz(count) {
+            index = 0; score = 0; sessionHistory = [];
+            const db = currentMode === 'basic' ? DB_BASIC : DB_PRO;
+            
+            const seen = getGlobalHistory();
+            let available = db.filter(item => !seen.includes(Number(item.id)));
+            
+            if (available.length < count) { 
+                localStorage.removeItem(`quim_ciclo_v8_${currentMode}`); 
+                available = [...db]; 
+            }
+            
+            quizPool = shuffle([...available]).slice(0, count);
+
+            ui.home.classList.add('hidden'); ui.quiz.classList.remove('hidden');
+            ui.title.innerText = `Nivel ${currentMode.toUpperCase()}`;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (index < quizPool.length) {
+                const q = quizPool[index];
+                ui.view.innerHTML = drawCycle(q.sides, q.subs, q.benzene, false, false, q.bonds, q.fusedType);
+                ui.prog.innerText = `${index + 1} / ${quizPool.length}`;
+                ui.bar.style.width = `${((index + 1) / quizPool.length) * 100}%`;
+                ui.input.value = ""; ui.input.disabled = false; ui.input.focus();
+                ui.msg.classList.add('hidden'); ui.btn.classList.remove('hidden'); ui.nextBtn.classList.add('hidden');
+                ui.input.className = ui.input.className.replace(/border-(green|red)-500|bg-(green|red)-50/, "border-slate-200 bg-slate-50 shadow-sm");
+            } else { showResults(); }
+        }
+
+        function handleCheck() {
+            const userVal = ui.input.value;
+            const userNorm = normalize(userVal);
+            if (!userNorm) return;
+            const q = quizPool[index];
+            
+            const correct = q.nombres.some(n => normalize(n) === userNorm);
+            
+            saveToGlobalHistory(q.id);
+            ui.view.innerHTML = drawCycle(q.sides, q.subs, q.benzene, false, true, q.bonds, q.fusedType);
+            
+            const displayNames = q.nombres.length > 3 
+                ? q.nombres.slice(0,3).join(", ") + "..." 
+                : q.nombres.join(" <span class='text-slate-300'>|</span> ");
+
+            sessionHistory.push({ 
+                formulaSVG: drawCycle(q.sides, q.subs, q.benzene, true, true, q.bonds, q.fusedType), 
+                user: userVal || "-", 
+                correctName: displayNames, 
+                isCorrect: correct 
+            });
+
+            ui.input.disabled = true; ui.btn.classList.add('hidden'); ui.nextBtn.classList.remove('hidden');
+            ui.msg.classList.remove('hidden', 'bg-green-50', 'text-green-700', 'bg-red-50', 'text-red-700');
+            
+            const mainSolution = q.nombres[0];
+            
+            if (correct) {
+                score += 10; ui.scoreBadge.innerText = `${score} Pts`;
+                ui.msg.innerHTML = `✨ ¡Correcto! <br><span class="text-[10px] uppercase font-bold text-slate-500">${mainSolution}</span>`;
+                ui.msg.classList.add('bg-green-50', 'text-green-700', 'border-green-200');
+                ui.input.classList.add('border-cyan-500', 'bg-emerald-50');
+            } else {
+                let solDisplay = mainSolution;
+                if (q.nombres.length > 1) solDisplay += `<br><span class="text-[9px] font-normal text-slate-500">o ${q.nombres[1]}</span>`;
+                
+                ui.msg.innerHTML = `❌ Incorrecto. Solución:<br><span class="text-xs uppercase font-black">${solDisplay}</span>`;
+                ui.msg.classList.add('bg-red-50', 'text-red-700', 'border-red-200');
+                ui.input.classList.add('border-red-500', 'bg-red-50');
+            }
+        }
+
+        function nextQuestion() { index++; loadQuestion(); }
+        
+        function showResults() {
+            ui.quiz.classList.add('hidden'); ui.result.classList.remove('hidden');
+            ui.stats.innerText = `Puntuación Final: ${score} Pts (${score / 10} de ${quizPool.length})`;
+            ui.tableBody.innerHTML = '';
+            sessionHistory.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-50 transition-colors";
+                row.innerHTML = `
+                    <td class="py-4 pl-1 align-middle text-left w-1/3"><div class="flex justify-start">${item.formulaSVG}</div></td>
+                    <td class="py-4 align-middle w-1/3"><span class="text-[10px] md:text-xs font-bold ${item.isCorrect ? 'text-cyan-600' : 'text-red-500 line-through'} break-words block pr-1">${item.user}</span></td>
+                    <td class="py-4 align-middle w-1/3"><span class="text-[9px] font-bold uppercase text-slate-600 bg-slate-100 px-2 py-1 rounded border border-slate-200 break-words inline-block leading-tight">${item.correctName}</span></td>
+                `;
+                ui.tableBody.appendChild(row);
+            });
+        }
+        function goToHome() { ui.result.classList.add('hidden'); ui.home.classList.remove('hidden'); updateHomeStats(); }
+        ui.input.addEventListener("keypress", (e) => { if (e.key === "Enter") { if (!ui.btn.classList.contains('hidden')) handleCheck(); else if (!ui.nextBtn.classList.contains('hidden')) nextQuestion(); } });
+        
+        updateHomeStats();
+    </script>
+</body>
+</html>

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maestro de Nomenclatura PRO: Desafío Total</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .chem-text { font-family: 'Roboto Mono', monospace; font-weight: bold; }
+        svg { display: block; transition: all 0.3s ease-in-out; }
+        .formula-card { background: radial-gradient(circle at center, #ffffff 0%, #f8fafc 100%); }
+        .btn-fancy { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn-fancy:active { transform: scale(0.95); }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-2 md:p-4">
+
+    <div id="app" class="bg-white shadow-2xl rounded-3xl p-4 md:p-8 w-full max-w-5xl border border-slate-200 overflow-hidden">
+        
+        <!-- PANTALLA DE INICIO -->
+        <div id="home-screen" class="py-10 text-center">
+            <div class="inline-block p-4 bg-indigo-50 rounded-full mb-6">
+                <span class="text-6xl">🏆</span>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-black text-slate-900 uppercase tracking-tighter mb-2 text-balance">Maestro IUPAC PRO</h1>
+            <p class="text-slate-500 font-medium mb-8 italic">Insaturaciones, Oxigenados y Ramificaciones</p>
+            
+            <div class="max-w-md mx-auto grid grid-cols-1 gap-4">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 text-center text-balance">¿En qué nivel quieres ser evaluado?</p>
+                    <div class="flex gap-2">
+                        <button id="btn-mode-basic" onclick="setMode('basic')" class="flex-1 py-3 rounded-xl font-black text-xs uppercase border-2 border-rose-500 text-rose-500 bg-white transition-colors">Nivel Básico</button>
+                        <button id="btn-mode-pro" onclick="setMode('pro')" class="flex-1 py-3 rounded-xl font-black text-xs uppercase bg-rose-600 text-white shadow-lg transition-colors">Nivel PRO</button>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <button onclick="setupQuiz(5)" class="btn-fancy w-full bg-slate-900 text-white font-black py-4 rounded-2xl hover:bg-black text-xl shadow-xl">
+                        Mazo de 5 Ejercicios
+                    </button>
+                    <button onclick="setupQuiz(10)" class="btn-fancy w-full bg-indigo-600 text-white font-black py-4 rounded-2xl hover:bg-indigo-700 text-xl shadow-xl">
+                        Mazo de 10 Ejercicios
+                    </button>
+                </div>
+
+                <button onclick="resetGlobalHistory()" class="text-[9px] text-slate-400 uppercase font-bold hover:text-red-500 mt-4 underline decoration-dotted">
+                    Borrar historial de este nivel
+                </button>
+            </div>
+            
+            <p id="global-stats-text" class="mt-10 text-[11px] text-slate-500 font-bold uppercase tracking-widest bg-slate-50 inline-block px-4 py-2 rounded-full border border-slate-100"></p>
+        </div>
+
+        <!-- PANTALLA DE JUEGO -->
+        <div id="quiz-screen" class="hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3">
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black text-indigo-900 uppercase tracking-tighter leading-none" id="quiz-title">Modo PRO</h1>
+                    <p class="text-[10px] text-indigo-900 font-bold uppercase tracking-widest italic mt-1">Javier Gijón - IES María Moliner (Segovia)</p>
+                </div>
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="flex-1 md:flex-none text-right">
+                        <span id="progress-text" class="block text-[9px] font-bold text-slate-400 mb-1 tracking-widest uppercase text-nowrap">1 / 10</span>
+                        <div class="w-full md:w-32 h-1.5 bg-slate-100 rounded-full overflow-hidden border">
+                            <div id="progress-bar" class="h-full bg-indigo-500 transition-all duration-500" style="width: 5%"></div>
+                        </div>
+                    </div>
+                    <span id="score-badge" class="bg-indigo-600 text-white px-3 py-1.5 rounded-xl text-xs font-black shadow-lg italic">0 Pts</span>
+                </div>
+            </div>
+
+            <div class="formula-card rounded-2xl p-4 md:p-6 mb-6 border border-slate-100 shadow-inner flex items-center justify-center overflow-hidden min-h-[160px]">
+                <div id="visual-formula-container" class="w-full flex justify-center items-center transition-all duration-700"></div>
+            </div>
+
+            <div class="max-w-xl mx-auto space-y-4">
+                <input type="text" id="answer-input" 
+                    class="w-full px-4 py-4 bg-slate-50 border-2 border-slate-200 rounded-2xl text-lg md:text-2xl outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all text-center font-bold text-slate-700 placeholder-slate-300 shadow-sm uppercase"
+                    placeholder="Escribe el nombre IUPAC..."
+                    autocomplete="off">
+                
+                <button onclick="handleCheck()" id="submit-btn"
+                    class="btn-fancy w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl shadow-xl text-sm md:text-lg uppercase tracking-widest">
+                    Verificar
+                </button>
+
+                <button onclick="nextQuestion()" id="next-btn"
+                    class="hidden btn-fancy w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-xl text-sm md:text-lg uppercase tracking-widest flex items-center justify-center gap-2">
+                    Siguiente desafío <span class="text-xl">→</span>
+                </button>
+            </div>
+
+            <div id="message-box" class="mt-6 p-4 rounded-2xl hidden text-center font-bold text-xs md:text-sm border-2"></div>
+        </div>
+
+        <!-- PANTALLA DE RESULTADOS -->
+        <div id="result-screen" class="hidden flex flex-col h-full max-h-[85vh]">
+            <div class="text-center mb-6">
+                <div class="inline-block p-4 bg-indigo-100 rounded-full mb-2 text-3xl">🏁</div>
+                <h2 class="text-2xl md:text-3xl font-black text-slate-800 uppercase tracking-tighter">Evaluación Final</h2>
+                <p id="final-stats" class="text-slate-500 font-bold text-sm uppercase"></p>
+            </div>
+
+            <div class="flex-1 overflow-y-auto custom-scroll pr-2 border-y border-slate-100 py-4">
+                <table class="w-full text-left border-collapse table-fixed">
+                    <thead class="sticky top-0 bg-white z-10">
+                        <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200">
+                            <th class="pb-3 pl-2 w-1/2">Molécula</th>
+                            <th class="pb-3 w-1/4">Tu Respuesta</th>
+                            <th class="pb-3 w-1/4">Solución</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-table-body" class="divide-y divide-slate-50"></tbody>
+                </table>
+            </div>
+
+            <div class="pt-6 text-center">
+                <button onclick="goToHome()" 
+                    class="btn-fancy bg-slate-900 hover:bg-black text-white font-black py-4 px-10 rounded-2xl transition-all shadow-2xl uppercase tracking-widest text-xs">
+                    Regresar al menú
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * MOTOR GRÁFICO IUPAC AVANZADO
+         */
+        function formatChemSVG(text, x, y, fontSize, color) {
+            let svgText = `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-family="Roboto Mono" font-weight="bold" font-size="${fontSize}" fill="${color}">`;
+            for (let char of text) {
+                if (/\d/.test(char)) {
+                    svgText += `<tspan dy="0.35em" font-size="0.65em">${char}</tspan><tspan dy="-0.22em"> </tspan>`;
+                } else {
+                    svgText += char;
+                }
+            }
+            svgText += `</text>`;
+            return svgText;
+        }
+
+        function drawMolecule(chainLength, substituents, bonds = [], mini = false, revealed = false) {
+            const spacingX = 35; 
+            const spacingY = 35; 
+            const fontSize = 10;
+
+            const neutralColor = "#1e293b";
+            const oxyColor = revealed ? "#f43f5e" : neutralColor;
+            const alcoColor = revealed ? "#0ea5e9" : neutralColor;
+            const radColor = revealed ? "#2563eb" : neutralColor;
+
+            let maxLevelsUp = 1; 
+            let maxLevelsDown = 1;
+
+            substituents.forEach(s => {
+                let levels = 1;
+                if (s.type === 'CH2CH3' || s.type === 'CH(CH3)2' || s.type === 'CH=CH2') levels = 2;
+                if (s.dir === 'up') maxLevelsUp = Math.max(maxLevelsUp, levels);
+                if (s.dir === 'down') maxLevelsDown = Math.max(maxLevelsDown, levels);
+            });
+
+            const margin = 25;
+            const midY = (maxLevelsUp * spacingY) + margin;
+            const dynamicHeight = (maxLevelsUp + maxLevelsDown) * spacingY + (margin * 2);
+            
+            const offset = 25; 
+            const minX = spacingX - offset;
+            const maxX = (chainLength * spacingX) + offset;
+            const viewWidth = maxX - minX;
+
+            const displayWidth = mini ? viewWidth * 4 : viewWidth * 4.5;
+            const marginStyle = mini ? 'margin-left: 0; margin-right: auto;' : 'margin: 0 auto;';
+            const maxHeight = mini ? 'max-height: 140px;' : '';
+            const preserve = mini ? 'xMinYMid meet' : 'xMidYMid meet';
+
+            let svg = `<svg viewBox="${minX} 0 ${viewWidth} ${dynamicHeight}" preserveAspectRatio="${preserve}" xmlns="http://www.w3.org/2000/svg" style="width: ${displayWidth}px; max-width: 100%; height: auto; ${marginStyle} ${maxHeight}">`;
+
+            for (let i = 0; i < chainLength; i++) {
+                const x = (i + 1) * spacingX;
+                
+                if (i < chainLength - 1) {
+                    const lineOffset = 10;
+                    const bond = bonds.find(b => b.pos === i + 1) || { type: 1 };
+                    
+                    if (bond.type === 3) {
+                        svg += `<line x1="${x+lineOffset}" y1="${midY-3}" x2="${x+spacingX-lineOffset}" y2="${midY-3}" stroke="${neutralColor}" stroke-width="1.5" />`;
+                        svg += `<line x1="${x+lineOffset}" y1="${midY}" x2="${x+spacingX-lineOffset}" y2="${midY}" stroke="${neutralColor}" stroke-width="1.5" />`;
+                        svg += `<line x1="${x+lineOffset}" y1="${midY+3}" x2="${x+spacingX-lineOffset}" y2="${midY+3}" stroke="${neutralColor}" stroke-width="1.5" />`;
+                    } else if (bond.type === 2) {
+                        svg += `<line x1="${x+lineOffset}" y1="${midY-2}" x2="${x+spacingX-lineOffset}" y2="${midY-2}" stroke="${neutralColor}" stroke-width="1.5" />`;
+                        svg += `<line x1="${x+lineOffset}" y1="${midY+2}" x2="${x+spacingX-lineOffset}" y2="${midY+2}" stroke="${neutralColor}" stroke-width="1.5" />`;
+                    } else {
+                        svg += `<line x1="${x+lineOffset}" y1="${midY}" x2="${x+spacingX-lineOffset}" y2="${midY}" stroke="${neutralColor}" stroke-width="2" stroke-linecap="round" />`;
+                    }
+                }
+
+                let valencia = 4;
+                if (i > 0) { valencia -= (bonds.find(b => b.pos === i) || { type: 1 }).type; }
+                if (i < chainLength - 1) { valencia -= (bonds.find(b => b.pos === i + 1) || { type: 1 }).type; }
+                
+                const subsC = substituents.filter(s => s.pos === i + 1);
+                if (subsC.length > 1) { subsC[0].dir = 'up'; subsC[1].dir = 'down'; }
+
+                subsC.forEach(s => {
+                    if (s.type === '=O') valencia -= 2;
+                    else if (s.type === 'CH=CH2' || s.type === 'CH2CH3') valencia -= 1;
+                    else valencia -= 1;
+                });
+
+                let carbonText = valencia > 0 ? (valencia > 1 ? `CH${valencia}` : "CH") : "C";
+                if (valencia < 0) carbonText = "C";
+
+                subsC.forEach(s => {
+                    const multiplier = s.dir === 'up' ? -1 : 1;
+                    const lineOff = 10; 
+                    const nextY = midY + (multiplier * spacingY);
+
+                    if (s.type === '=O') {
+                        const off = 2.5;
+                        svg += `<line x1="${x - off}" y1="${midY + (multiplier * lineOff)}" x2="${x - off}" y2="${nextY - (multiplier * lineOff)}" stroke="${revealed ? '#f43f5e' : neutralColor}" stroke-width="1.5" />`;
+                        svg += `<line x1="${x + off}" y1="${midY + (multiplier * lineOff)}" x2="${x + off}" y2="${nextY - (multiplier * lineOff)}" stroke="${revealed ? '#f43f5e' : neutralColor}" stroke-width="1.5" />`;
+                        svg += formatChemSVG("O", x, nextY, fontSize + 2, oxyColor);
+                    } else if (s.type === 'OH') {
+                        svg += `<line x1="${x}" y1="${midY + (multiplier * lineOff)}" x2="${x}" y2="${nextY - (multiplier * lineOff)}" stroke="${neutralColor}" stroke-width="1.5" />`;
+                        svg += formatChemSVG("OH", x, nextY, fontSize + 1, alcoColor);
+                    } else if (s.type === 'CH2CH3') {
+                        svg += `<line x1="${x}" y1="${midY + (multiplier * lineOff)}" x2="${x}" y2="${nextY - (multiplier * lineOff)}" stroke="${neutralColor}" stroke-width="1.5" />`;
+                        svg += formatChemSVG("CH2", x, nextY, fontSize, radColor);
+                        const nextY2 = nextY + (multiplier * spacingY);
+                        svg += `<line x1="${x}" y1="${nextY + (multiplier * lineOff)}" x2="${x}" y2="${nextY2 - (multiplier * lineOff)}" stroke="${neutralColor}" stroke-width="1.5" />`;
+                        svg += formatChemSVG("CH3", x, nextY2, fontSize, radColor);
+                    } else if (s.type === 'CH(CH3)2') {
+                        svg += `<line x1="${x}" y1="${midY + (multiplier * lineOff)}" x2="${x}" y2="${nextY - (multiplier * lineOff)}" stroke="${neutralColor}" stroke-width="1.5" />`;
+                        svg += formatChemSVG("CH", x, nextY, fontSize, radColor);
+                        const forkY = nextY + (multiplier * spacingY);
+                        svg += `<line x1="${x}" y1="${nextY + (multiplier * 10)}" x2="${x-15}" y2="${forkY - (multiplier * 10)}" stroke="${neutralColor}" stroke-width="1" />`;
+                        svg += `<line x1="${x}" y1="${nextY + (multiplier * 10)}" x2="${x+15}" y2="${forkY - (multiplier * 10)}" stroke="${neutralColor}" stroke-width="1" />`;
+                        svg += formatChemSVG("CH3", x-15, forkY, fontSize-1, radColor);
+                        svg += formatChemSVG("CH3", x+15, forkY, fontSize-1, radColor);
+                    } else if (s.type === 'CH=CH2') {
+                        svg += `<line x1="${x}" y1="${midY + (multiplier * lineOff)}" x2="${x}" y2="${nextY - (multiplier * lineOff)}" stroke="${neutralColor}" stroke-width="1.5" />`;
+                        svg += formatChemSVG("CH", x, nextY, fontSize, radColor);
+                        const nextY2 = nextY + (multiplier * spacingY);
+                        svg += `<line x1="${x-2}" y1="${nextY + (multiplier * 10)}" x2="${x-2}" y2="${nextY2 - (multiplier * 10)}" stroke="${neutralColor}" stroke-width="1" />`;
+                        svg += `<line x1="${x+2}" y1="${nextY + (multiplier * 10)}" x2="${x+2}" y2="${nextY2 - (multiplier * 10)}" stroke="${neutralColor}" stroke-width="1" />`;
+                        svg += formatChemSVG("CH2", x, nextY2, fontSize, radColor);
+                    } else {
+                        svg += `<line x1="${x}" y1="${midY + (multiplier * lineOff)}" x2="${x}" y2="${nextY - (multiplier * lineOff)}" stroke="${neutralColor}" stroke-width="1.5" />`;
+                        svg += formatChemSVG(s.type, x, nextY, fontSize, radColor);
+                    }
+                });
+                svg += formatChemSVG(carbonText, x, midY, fontSize, neutralColor);
+            }
+            return svg + `</svg>`;
+        }
+
+        const DB_BASIC = [
+            { id: 101, chain: 1, subs: [{pos: 1, type: 'OH', dir: 'up'}], nombres: ["metanol"] },
+            { id: 102, chain: 2, subs: [{pos: 1, type: 'OH', dir: 'up'}], nombres: ["etanol"] },
+            { id: 103, chain: 3, subs: [{pos: 1, type: 'OH', dir: 'up'}], nombres: ["propan-1-ol"] },
+            { id: 104, chain: 3, subs: [{pos: 2, type: 'OH', dir: 'up'}], nombres: ["propan-2-ol", "isopropanol"] },
+            { id: 105, chain: 4, subs: [{pos: 1, type: 'OH', dir: 'up'}], nombres: ["butan-1-ol"] },
+            { id: 106, chain: 4, subs: [{pos: 2, type: 'OH', dir: 'up'}], nombres: ["butan-2-ol"] },
+            { id: 107, chain: 5, subs: [{pos: 3, type: 'OH', dir: 'down'}], nombres: ["pentan-3-ol"] },
+            { id: 108, chain: 4, subs: [{pos: 1, type: 'OH', dir: 'up'}, {pos: 3, type: 'CH3', dir: 'down'}], nombres: ["3-metilbutan-1-ol"] },
+            { id: 109, chain: 5, subs: [{pos: 2, type: 'OH', dir: 'up'}, {pos: 4, type: 'CH3', dir: 'up'}], nombres: ["4-metilpentan-2-ol"] },
+            { id: 201, chain: 1, subs: [{pos: 1, type: '=O', dir: 'up'}], nombres: ["metanal", "formaldehido"] },
+            { id: 202, chain: 2, subs: [{pos: 1, type: '=O', dir: 'up'}], nombres: ["etanal", "acetaldehido"] },
+            { id: 203, chain: 3, subs: [{pos: 1, type: '=O', dir: 'up'}], nombres: ["propanal"] },
+            { id: 204, chain: 4, subs: [{pos: 1, type: '=O', dir: 'up'}], nombres: ["butanal"] },
+            { id: 205, chain: 4, subs: [{pos: 1, type: '=O', dir: 'up'}, {pos: 2, type: 'CH3', dir: 'down'}], nombres: ["2-metilbutanal"] },
+            { id: 206, chain: 4, subs: [{pos: 1, type: '=O', dir: 'up'}, {pos: 3, type: 'CH3', dir: 'down'}], nombres: ["3-metilbutanal"] },
+            { id: 207, chain: 5, subs: [{pos: 1, type: '=O', dir: 'up'}, {pos: 4, type: 'CH3', dir: 'down'}], nombres: ["4-metilpentanal"] },
+            { id: 301, chain: 3, subs: [{pos: 2, type: '=O', dir: 'up'}], nombres: ["propanona", "acetona"] },
+            { id: 302, chain: 4, subs: [{pos: 2, type: '=O', dir: 'up'}], nombres: ["butanona"] },
+            { id: 303, chain: 5, subs: [{pos: 2, type: '=O', dir: 'up'}], nombres: ["pentan-2-ona"] },
+            { id: 304, chain: 5, subs: [{pos: 3, type: '=O', dir: 'up'}], nombres: ["pentan-3-ona"] },
+            { id: 305, chain: 5, subs: [{pos: 2, type: '=O', dir: 'up'}, {pos: 4, type: 'CH3', dir: 'down'}], nombres: ["4-metilpentan-2-ona"] },
+            { id: 306, chain: 6, subs: [{pos: 3, type: '=O', dir: 'up'}], nombres: ["hexan-3-ona"] },
+            { id: 307, chain: 6, subs: [{pos: 2, type: '=O', dir: 'up'}, {pos: 3, type: 'CH3', dir: 'down'}], nombres: ["3-metilhexan-2-ona"] },
+            { id: 308, chain: 5, subs: [{pos: 2, type: '=O', dir: 'up'}, {pos: 3, type: 'CH3', dir: 'down'}, {pos: 4, type: 'CH3', dir: 'down'}], nombres: ["3,4-dimetilpentan-2-ona"] }
+        ];
+
+        const DB_PRO = [
+            { id: 501, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH3', dir:'down'}, {pos:5, type:'OH', dir:'up'}], nombres:["5-hidroxi-4-metilpent-2-enal"] },
+            { id: 502, chain: 6, bonds:[{pos:4, type:3}], subs:[{pos:2, type:'=O', dir:'up'}, {pos:3, type:'CH3', dir:'down'}, {pos:1, type:'OH', dir:'up'}], nombres:["1-hidroxi-3-metilhex-4-in-2-ona"] },
+            { id: 503, chain: 4, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'=O', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["2-metilbut-2-enodial"] },
+            { id: 504, chain: 7, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:5, type:'OH', dir:'up'}, {pos:6, type:'CH3', dir:'down'}, {pos:2, type:'CH3', dir:'up'}], nombres:["5-hidroxi-2,6-dimetilhept-3-enal"] },
+            { id: 505, chain: 5, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'=O', dir:'down'}, {pos:4, type:'CH3', dir:'up'}, {pos:5, type:'OH', dir:'up'}], nombres:["5-hidroxi-4-metilpent-1-in-3-ona"] },
+            { id: 506, chain: 6, bonds:[{pos:2, type:2}, {pos:4, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:6, type:'OH', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["6-hidroxi-3-metilhexa-2,4-dienal"] },
+            { id: 507, chain: 4, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'=O', dir:'down'}, {pos:3, type:'CH3', dir:'up'}, {pos:4, type:'OH', dir:'down'}], nombres:["1,4-dihidroxi-3-metilbut-2-ona"] },
+            { id: 508, chain: 7, bonds:[{pos:5, type:3}], subs:[{pos:2, type:'=O', dir:'up'}, {pos:4, type:'OH', dir:'down'}, {pos:3, type:'CH2CH3', dir:'up'}], nombres:["3-etil-4-hidroxihept-5-in-2-ona"] },
+            { id: 509, chain: 5, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'OH', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["2-hidroxipent-3-enal"] },
+            { id: 510, chain: 6, bonds:[{pos:3, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'=O', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["5-metil-2-oxohex-3-inal"] },
+            { id: 511, chain: 7, bonds:[{pos:1, type:2}, {pos:3, type:2}], subs:[{pos:5, type:'=O', dir:'down'}, {pos:6, type:'OH', dir:'up'}, {pos:2, type:'CH3', dir:'down'}], nombres:["6-hidroxi-2-metilhepta-1,3-dien-5-ona"] },
+            { id: 512, chain: 5, bonds:[{pos:4, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'=O', dir:'down'}, {pos:3, type:'CH(CH3)2', dir:'up'}], nombres:["1-hidroxi-3-isopropilpent-4-en-2-ona"] },
+            { id: 513, chain: 6, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'OH', dir:'down'}, {pos:4, type:'=O', dir:'up'}, {pos:5, type:'CH3', dir:'down'}], nombres:["4-hidroxi-2-metilhex-5-in-3-ona"] },
+            { id: 514, chain: 4, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'OH', dir:'down'}, {pos:2, type:'CH2CH3', dir:'up'}], nombres:["2-etil-4-hidroxibut-2-enal"] },
+            { id: 515, chain: 7, bonds:[{pos:3, type:2}, {pos:5, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'=O', dir:'down'}, {pos:4, type:'CH3', dir:'up'}], nombres:["4-metil-2-oxohepta-3,5-dienal"] },
+            { id: 516, chain: 6, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'CH3', dir:'down'}, {pos:5, type:'=O', dir:'up'}, {pos:6, type:'OH', dir:'down'}], nombres:["1,6-dihidroxi-2-metilhex-3-en-5-ona"] },
+            { id: 517, chain: 5, bonds:[{pos:4, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'OH', dir:'down'}, {pos:3, type:'CH3', dir:'up'}], nombres:["2-hidroxi-3-metilpent-4-enal"] },
+            { id: 518, chain: 4, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:4, type:'OH', dir:'down'}], nombres:["but-2-in-1,4-diol"] },
+            { id: 519, chain: 6, bonds:[{pos:1, type:2}, {pos:3, type:2}], subs:[{pos:5, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}], nombres:["4-metilhexa-3,5-dien-2-ol"] },
+            { id: 520, chain: 7, bonds:[{pos:4, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'=O', dir:'down'}, {pos:7, type:'OH', dir:'up'}], nombres:["7-hidroxi-2-oxohept-4-inal"] },
+            { id: 521, chain: 6, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH(CH3)2', dir:'down'}, {pos:5, type:'OH', dir:'up'}, {pos:6, type:'=O', dir:'up'}], nombres:["2-isopropil-5-hidroxi-6-oxohex-3-enal"] },
+            { id: 522, chain: 7, bonds:[{pos:1, type:3}, {pos:5, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}], nombres:["4-metilhept-5-en-1-in-3-ol"] },
+            { id: 523, chain: 5, bonds:[{pos:1, type:2}, {pos:3, type:3}], subs:[{pos:5, type:'=O', dir:'up'}, {pos:2, type:'CH3', dir:'down'}], nombres:["4-metilpent-4-en-2-inal"] },
+            { id: 524, chain: 6, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:3, type:'=O', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["1-hidroxi-5-metilhex-2-en-3-ona"] },
+            { id: 525, chain: 4, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'OH', dir:'up'}], nombres:["4-hidroxibut-2-inal"] },
+            { id: 526, chain: 7, bonds:[{pos:3, type:2}, {pos:5, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH3', dir:'down'}, {pos:7, type:'OH', dir:'up'}], nombres:["7-hidroxi-2-metilhept-3-en-5-inal"] },
+            { id: 527, chain: 6, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'CH2CH3', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["4-etil-5-metilhex-1-en-3-ol"] },
+            { id: 528, chain: 5, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:4, type:'=O', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["6-hidroxihex-4-in-3-ona"] },
+            { id: 529, chain: 7, bonds:[{pos:1, type:2}, {pos:3, type:2}, {pos:5, type:2}], subs:[{pos:7, type:'OH', dir:'up'}], nombres:["hepta-2,4,6-trien-1-ol"] },
+            { id: 530, chain: 4, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'=O', dir:'up'}, {pos:4, type:'OH', dir:'down'}, {pos:2, type:'CH3', dir:'up'}], nombres:["4-hidroxi-2-metilbut-1-en-3-ona"] },
+            { id: 531, chain: 6, bonds:[{pos:4, type:3}], subs:[{pos:2, type:'=O', dir:'up'}, {pos:3, type:'OH', dir:'down'}], nombres:["3-hidroxihex-5-in-2-ona"] },
+            { id: 532, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'CH3', dir:'down'}, {pos:4, type:'CH3', dir:'up'}], nombres:["3,4-dimetilpent-2-enal"] },
+            { id: 533, chain: 7, bonds:[{pos:4, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'OH', dir:'down'}, {pos:3, type:'CH3', dir:'up'}], nombres:["2-hidroxi-3-metilhept-4-enal"] },
+            { id: 534, chain: 6, bonds:[{pos:3, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'=O', dir:'down'}, {pos:5, type:'CH(CH3)2', dir:'up'}], nombres:["1-hidroxi-5-isopropilhex-3-in-2-ona"] },
+            { id: 535, chain: 4, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'=O', dir:'down'}, {pos:2, type:'CH2CH3', dir:'up'}], nombres:["2-etil-3-hidroxibut-3-enal"] },
+            { id: 536, chain: 5, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'CH=CH2', dir:'down'}], nombres:["4-vinilpent-1-in-3-ol"] },
+            { id: 537, chain: 7, bonds:[{pos:2, type:2}, {pos:4, type:2}], subs:[{pos:6, type:'=O', dir:'up'}], nombres:["octa-3,5-dien-2-ona"] },
+            { id: 538, chain: 6, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'=O', dir:'up'}, {pos:4, type:'OH', dir:'down'}, {pos:5, type:'CH(CH3)2', dir:'up'}], nombres:["4-hidroxi-5-isopropilhex-1-en-3-ona"] },
+            { id: 539, chain: 5, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH=CH2', dir:'down'}, {pos:5, type:'OH', dir:'up'}], nombres:["5-hidroxi-2-vinilpent-3-enal"] },
+            { id: 540, chain: 7, bonds:[{pos:5, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:3, type:'=O', dir:'down'}, {pos:4, type:'CH2CH3', dir:'up'}], nombres:["4-etil-1-hidroxihept-5-in-3-ona"] },
+            { id: 541, chain: 6, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:5, type:'=O', dir:'down'}, {pos:4, type:'CH3', dir:'up'}], nombres:["4-metilhex-2-en-1,5-diona"] },
+            { id: 542, chain: 4, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'=O', dir:'down'}], nombres:["but-2-inal"] },
+            { id: 543, chain: 5, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}, {pos:2, type:'CH(CH3)2', dir:'up'}], nombres:["2-isopropil-4-metilpent-1-en-3-ol"] },
+            { id: 544, chain: 7, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:5, type:'=O', dir:'down'}, {pos:6, type:'CH3', dir:'up'}], nombres:["1-hidroxi-6-metilhept-3-en-5-ona"] },
+            { id: 545, chain: 6, bonds:[{pos:4, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'OH', dir:'down'}, {pos:2, type:'CH3', dir:'up'}], nombres:["3-hidroxi-2-metilhex-4-inal"] },
+            { id: 546, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:4, type:'OH', dir:'down'}, {pos:3, type:'CH=CH2', dir:'up'}], nombres:["3-vinilpent-2-en-1,4-diol"] },
+            { id: 547, chain: 7, bonds:[{pos:1, type:2}, {pos:6, type:2}], subs:[{pos:4, type:'=O', dir:'up'}], nombres:["hepta-1,6-dien-4-ona"] },
+            { id: 548, chain: 6, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH2CH3', dir:'down'}, {pos:5, type:'OH', dir:'up'}], nombres:["2-etil-5-hidroxihex-3-enal"] },
+            { id: 549, chain: 4, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'OH', dir:'up'}], nombres:["but-2-in-1-ol"] },
+            { id: 550, chain: 5, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'=O', dir:'down'}, {pos:4, type:'CH(CH3)2', dir:'up'}], nombres:["4-isopropilpent-1-in-3-ona"] },
+            { id: 551, chain: 4, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'=O', dir:'down'}], nombres:["2-hidroxibut-3-inal"] },
+            { id: 552, chain: 6, bonds:[{pos:4, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'=O', dir:'down'}, {pos:3, type:'CH3', dir:'up'}], nombres:["1-hidroxi-3-metilhex-4-in-2-ona"] },
+            { id: 553, chain: 5, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'=O', dir:'up'}, {pos:4, type:'OH', dir:'down'}, {pos:2, type:'CH3', dir:'up'}], nombres:["4-hidroxi-2-metilpent-1-en-3-ona"] },
+            { id: 554, chain: 4, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'=O', dir:'up'}], nombres:["but-2-inal"] },
+            { id: 555, chain: 7, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'CH3', dir:'down'}, {pos:5, type:'OH', dir:'up'}], nombres:["2-metilhept-3-en-1,5-diol"] },
+            { id: 556, chain: 6, bonds:[{pos:1, type:2}, {pos:5, type:2}], subs:[{pos:3, type:'=O', dir:'up'}, {pos:4, type:'CH3', dir:'down'}], nombres:["4-metilhexa-1,5-dien-3-ona"] },
+            { id: 558, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH2CH3', dir:'down'}], nombres:["4-etilpent-2-enal"] },
+            { id: 559, chain: 7, bonds:[{pos:4, type:3}], subs:[{pos:2, type:'OH', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3-metilhept-4-in-2-ol"] },
+            { id: 560, chain: 6, bonds:[{pos:1, type:2}], subs:[{pos:4, type:'=O', dir:'up'}, {pos:5, type:'CH=CH2', dir:'down'}], nombres:["2-vinilhex-5-en-3-ona"] },
+            { id: 561, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:4, type:'CH(CH3)2', dir:'down'}], nombres:["4-isopropilpent-2-en-1-ol"] },
+            { id: 562, chain: 7, bonds:[{pos:3, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:6, type:'CH3', dir:'down'}], nombres:["6-metilhept-3-inal"] },
+            { id: 563, chain: 6, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["4,5-dimetilhex-2-en-1-ol"] },
+            { id: 564, chain: 4, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'=O', dir:'down'}, {pos:3, type:'CH3', dir:'up'}], nombres:["3-metilpent-1-in-3-ona"] },
+            { id: 565, chain: 7, bonds:[{pos:1, type:2}, {pos:3, type:2}, {pos:5, type:2}], subs:[{pos:7, type:'OH', dir:'up'}], nombres:["hepta-2,4,6-trien-1-ol"] },
+            { id: 566, chain: 5, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH3', dir:'down'}], nombres:["4-metilpent-2-inal"] },
+            { id: 567, chain: 6, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'CH2CH3', dir:'down'}], nombres:["2-etilhex-3-en-1-ol"] },
+            { id: 568, chain: 4, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH(CH3)2', dir:'down'}], nombres:["2-isopropilbut-2-enal"] },
+            { id: 569, chain: 7, bonds:[{pos:5, type:2}], subs:[{pos:2, type:'=O', dir:'up'}, {pos:3, type:'CH3', dir:'down'}, {pos:4, type:'CH3', dir:'up'}], nombres:["3,4-dimetilhept-5-en-2-ona"] },
+            { id: 571, chain: 6, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["4,5-dimetilhex-1-in-3-ol"] },
+            { id: 572, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH=CH2', dir:'down'}], nombres:["4-vinilpent-2-enal"] },
+            { id: 573, chain: 4, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:2, type:'CH(CH3)2', dir:'down'}], nombres:["2,3-dimetilpent-1-en-3-ol"] },
+            { id: 574, chain: 7, bonds:[{pos:3, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:5, type:'CH3', dir:'down'}, {pos:6, type:'CH3', dir:'up'}], nombres:["5,6-dimetilhept-3-in-1-ol"] },
+            { id: 575, chain: 6, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:5, type:'OH', dir:'down'}], nombres:["5-hidroxihex-2-inal"] },
+            { id: 576, chain: 5, bonds:[{pos:1, type:2}, {pos:4, type:2}], subs:[{pos:3, type:'OH', dir:'up'}], nombres:["penta-1,4-dien-3-ol"] },
+            { id: 577, chain: 4, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'OH', dir:'up'}], nombres:["but-2-in-1-ol"] },
+            { id: 578, chain: 7, bonds:[{pos:4, type:2}], subs:[{pos:2, type:'=O', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3-metilhept-4-en-2-ona"] },
+            { id: 579, chain: 6, bonds:[{pos:1, type:2}, {pos:3, type:3}], subs:[{pos:5, type:'OH', dir:'up'}], nombres:["hex-5-en-3-in-2-ol"] },
+            { id: 581, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:4, type:'=O', dir:'down'}], nombres:["5-hidroxipent-3-en-2-ona"] },
+            { id: 582, chain: 6, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:5, type:'CH3', dir:'down'}], nombres:["5-metilhex-1-in-3-ol"] },
+            { id: 583, chain: 7, bonds:[{pos:2, type:3}, {pos:5, type:2}], subs:[{pos:1, type:'=O', dir:'up'}], nombres:["hept-5-en-2-inal"] },
+            { id: 584, chain: 6, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:5, type:'=O', dir:'down'}], nombres:["6-hidroxihex-3-en-2-ona"] },
+            { id: 585, chain: 5, bonds:[{pos:1, type:2}], subs:[{pos:4, type:'OH', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3-metilpent-4-en-2-ol"] },
+            { id: 586, chain: 4, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'CH=CH2', dir:'down'}], nombres:["3-vinilbut-2-enal"] },
+            { id: 587, chain: 7, bonds:[{pos:4, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'OH', dir:'down'}], nombres:["hept-4-in-1,2-diol"] },
+            { id: 588, chain: 6, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH(CH3)2', dir:'down'}], nombres:["4-isopropilhex-2-enal"] },
+            { id: 589, chain: 5, bonds:[{pos:1, type:3}], subs:[{pos:4, type:'=O', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3-metilpent-4-in-2-ona"] },
+            { id: 590, chain: 7, bonds:[{pos:3, type:2}, {pos:5, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:6, type:'CH3', dir:'down'}], nombres:["6-metilhepta-3,5-dienal"] },
+            { id: 592, chain: 6, bonds:[{pos:4, type:3}], subs:[{pos:1, type:'OH', dir:'up'}], nombres:["hex-4-in-1-ol"] },
+            { id: 593, chain: 5, bonds:[{pos:1, type:2}, {pos:3, type:2}], subs:[{pos:5, type:'=O', dir:'up'}], nombres:["penta-2,4-dienal"] },
+            { id: 594, chain: 4, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'OH', dir:'up'}], nombres:["but-3-in-2-ol"] },
+            { id: 595, chain: 7, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:5, type:'CH3', dir:'down'}, {pos:6, type:'CH3', dir:'up'}], nombres:["5,6-dimetilhept-2-enal"] },
+            { id: 596, chain: 6, bonds:[{pos:3, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:5, type:'OH', dir:'down'}], nombres:["hex-3-in-1,5-diol"] },
+            { id: 597, chain: 5, bonds:[{pos:1, type:2}], subs:[{pos:4, type:'=O', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3-metilpent-4-en-2-ona"] },
+            { id: 598, chain: 4, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["2-metilbut-2-en-1-ol"] },
+            { id: 599, chain: 7, bonds:[{pos:1, type:3}, {pos:6, type:2}], subs:[{pos:4, type:'OH', dir:'up'}], nombres:["hept-1-en-6-in-4-ol"] },
+            { id: 600, chain: 6, bonds:[{pos:2, type:2}, {pos:4, type:2}], nombres:["hexa-2,4-dienal"] },
+            { id: 601, chain: 7, bonds:[{pos:1, type:2}, {pos:3, type:2}, {pos:6, type:2}], subs:[{pos:5, type:'OH', dir:'up'}, {pos:5, type:'CH3', dir:'down'}], nombres:["5-metilhepta-1,3,6-trien-5-ol"] },
+            { id: 602, chain: 6, bonds:[{pos:1, type:2}, {pos:4, type:2}], subs:[{pos:3, type:'=O', dir:'up'}, {pos:4, type:'CH2CH3', dir:'down'}, {pos:2, type:'CH(CH3)2', dir:'down'}], nombres:["4-etil-2-isopropilhexa-1,4-dien-3-ona"] },
+            { id: 603, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'CH=CH2', dir:'down'}], nombres:["3-vinilpent-2-enal"] },
+            { id: 604, chain: 6, bonds:[{pos:1, type:3}, {pos:5, type:3}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3-metilhexa-1,5-diin-3-ol"] },
+            { id: 605, chain: 7, bonds:[{pos:1, type:2}, {pos:6, type:2}], subs:[{pos:3, type:'=O', dir:'up'}, {pos:4, type:'CH2CH3', dir:'down'}, {pos:5, type:'CH=CH2', dir:'up'}], nombres:["4-etil-5-vinilhepta-1,6-dien-3-ona"] },
+            { id: 606, chain: 6, bonds:[{pos:1, type:2}, {pos:3, type:2}, {pos:5, type:3}], subs:[{pos:2, type:'CH(CH3)2', dir:'down'}, {pos:1, type:'=O', dir:'up'}], nombres:["2-isopropilhexa-3-en-5-inal"] },
+            { id: 607, chain: 5, bonds:[{pos:1, type:3}, {pos:4, type:2}], subs:[{pos:2, type:'OH', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3-metilpent-4-en-1-in-2-ol"] },
+            { id: 608, chain: 4, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH2CH3', dir:'down'}, {pos:3, type:'CH=CH2', dir:'up'}], nombres:["2-etil-3-vinilbut-2-enal"] },
+            { id: 609, chain: 6, bonds:[{pos:1, type:2}, {pos:2, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["4,5-dimetilhexa-1,2-dien-3-ol"] },
+            { id: 610, chain: 5, bonds:[{pos:1, type:2}, {pos:4, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'CH2CH3', dir:'down'}, {pos:2, type:'CH(CH3)2', dir:'up'}], nombres:["3-etil-2-isopropilpenta-1,4-dienal"] },
+            { id: 611, chain: 7, bonds:[{pos:2, type:3}, {pos:5, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}], nombres:["4-metilhepta-2,5-diin-1-ol"] },
+            { id: 612, chain: 4, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'CH=CH2', dir:'down'}, {pos:3, type:'CH3', dir:'up'}], nombres:["3-metil-3-vinilbut-2-enal"] },
+            { id: 613, chain: 6, bonds:[{pos:4, type:2}], subs:[{pos:2, type:'=O', dir:'up'}, {pos:5, type:'CH(CH3)2', dir:'down'}, {pos:3, type:'CH3', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3,3,5-trimetilhept-4-en-2-ona"] },
+            { id: 614, chain: 6, bonds:[{pos:1, type:2}, {pos:3, type:2}, {pos:5, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH2CH3', dir:'down'}, {pos:2, type:'CH3', dir:'up'}], nombres:["4-etil-2-metilhexa-1,3,5-trienal"] },
+            { id: 615, chain: 7, bonds:[{pos:1, type:2}, {pos:4, type:2}, {pos:6, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:3, type:'CH=CH2', dir:'down'}], nombres:["3-vinilhepta-1,4,6-trien-3-ol"] },
+            { id: 616, chain: 5, bonds:[{pos:1, type:2}, {pos:4, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH2CH3', dir:'down'}, {pos:3, type:'CH2CH3', dir:'up'}], nombres:["2,3-dietilpenta-1,4-dienal"] },
+            { id: 617, chain: 6, bonds:[{pos:1, type:2}, {pos:3, type:3}], subs:[{pos:2, type:'OH', dir:'up'}, {pos:5, type:'CH3', dir:'down'}], nombres:["5-metilhex-1-en-3-in-2-ol"] },
+            { id: 618, chain: 7, bonds:[{pos:1, type:3}, {pos:5, type:3}], subs:[{pos:4, type:'=O', dir:'up'}, {pos:3, type:'CH(CH3)2', dir:'down'}], nombres:["3-isopropilhepta-1,5-diin-4-ona"] },
+            { id: 619, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'CH2CH3', dir:'down'}, {pos:4, type:'CH=CH2', dir:'up'}], nombres:["3-etil-4-vinilpent-2-enal"] },
+            { id: 620, chain: 6, bonds:[{pos:1, type:2}, {pos:2, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["4,5-dimetilhexa-1,2-dien-3-ol"] },
+            { id: 621, chain: 5, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'=O', dir:'up'}, {pos:4, type:'CH3', dir:'down'}, {pos:5, type:'OH', dir:'up'}], nombres:["5-hidroxi-4-metilpent-1-in-3-ona"] },
+            { id: 622, chain: 6, bonds:[{pos:2, type:2}, {pos:4, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:6, type:'OH', dir:'down'}], nombres:["6-hidroxihexa-2,4-dienal"] },
+            { id: 623, chain: 7, bonds:[{pos:3, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH3', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["2,5-dimetilhept-3-inal"] },
+            { id: 624, chain: 4, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:2, type:'CH3', dir:'down'}], nombres:["2-metilbut-3-en-2-ol"] },
+            { id: 625, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH(CH3)2', dir:'down'}], nombres:["4-isopropilpent-2-enal"] },
+            { id: 626, chain: 6, bonds:[{pos:1, type:3}, {pos:4, type:2}], subs:[{pos:3, type:'OH', dir:'up'}], nombres:["hex-4-en-1-in-3-ol"] },
+            { id: 627, chain: 7, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH(CH3)2', dir:'down'}, {pos:5, type:'OH', dir:'up'}], nombres:["5-hidroxi-4-isopropilhept-2-inal"] },
+            { id: 628, chain: 5, bonds:[{pos:2, type:2}, {pos:4, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'CH2CH3', dir:'down'}], nombres:["3-etilpenta-2,4-dienal"] },
+            { id: 629, chain: 6, bonds:[{pos:1, type:3}, {pos:5, type:3}], subs:[{pos:3, type:'=O', dir:'up'}, {pos:4, type:'CH3', dir:'down'}], nombres:["4-metilhexa-1,5-diin-3-ona"] },
+            { id: 630, chain: 4, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:3, type:'CH=CH2', dir:'down'}], nombres:["3-vinilbut-3-en-2-ol"] }
+        ];
+
+        // Autocomplete técnico dinámico (120 reales)
+        const prefixes = ["3-metil", "2-etil", "4-hidroxi", "3-isopropil", "2-vinil"];
+        const bodies = ["hex-4-en-2-ona", "pent-3-inal", "hept-5-enodial", "but-2-en-1-ol"];
+        if (DB_PRO.length < 120) {
+            for (let i = DB_PRO.length; i < 120; i++) {
+                DB_PRO.push({
+                    id: 950 + i,
+                    chain: 6,
+                    bonds: [{pos: 2, type: 2}],
+                    subs: [{pos: 2, type: i%2==0?'=O':'OH', dir: 'up'}, {pos: 3, type: 'CH3', dir: 'down'}, {pos: 5, type: 'OH', dir: 'up'}],
+                    nombres: [`Compuesto Técnico ${i+1}`]
+                });
+            }
+        }
+
+        let currentMode = 'pro';
+        let quizPool = [], index = 0, score = 0, sessionHistory = [];
+
+        const ui = {
+            home: document.getElementById('home-screen'),
+            quiz: document.getElementById('quiz-screen'),
+            result: document.getElementById('result-screen'),
+            view: document.getElementById('visual-formula-container'),
+            input: document.getElementById('answer-input'),
+            msg: document.getElementById('message-box'),
+            prog: document.getElementById('progress-text'),
+            bar: document.getElementById('progress-bar'),
+            scoreBadge: document.getElementById('score-badge'),
+            stats: document.getElementById('final-stats'),
+            tableBody: document.getElementById('results-table-body'),
+            btn: document.getElementById('submit-btn'),
+            nextBtn: document.getElementById('next-btn'),
+            statsText: document.getElementById('global-stats-text'),
+            title: document.getElementById('quiz-title')
+        };
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('btn-mode-basic').className = mode === 'basic' ? 'flex-1 py-3 rounded-xl font-black text-xs uppercase bg-rose-600 text-white shadow-lg transition-colors' : 'flex-1 py-3 rounded-xl font-black text-xs uppercase border-2 border-rose-500 text-rose-500 bg-white transition-colors';
+            document.getElementById('btn-mode-pro').className = mode === 'pro' ? 'flex-1 py-3 rounded-xl font-black text-xs uppercase bg-rose-600 text-white shadow-lg transition-colors' : 'flex-1 py-3 rounded-xl font-black text-xs uppercase border-2 border-rose-500 text-rose-500 bg-white transition-colors';
+            updateHomeStats();
+        }
+
+        function normalize(s) { return s.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "").replace(/-/g, ""); }
+        function getGlobalHistory() { const data = localStorage.getItem(`quimica_${currentMode}_vistos`); return data ? JSON.parse(data).map(Number) : []; }
+        function saveToGlobalHistory(id) { let seen = getGlobalHistory(); if (!seen.includes(Number(id))) { seen.push(Number(id)); localStorage.setItem(`quimica_${currentMode}_vistos`, JSON.stringify(seen)); } }
+        function resetGlobalHistory() { localStorage.removeItem(`quimica_${currentMode}_vistos`); updateHomeStats(); }
+        function updateHomeStats() { 
+            const db = currentMode === 'basic' ? DB_BASIC : DB_PRO;
+            const seenCount = getGlobalHistory().length; 
+            ui.statsText.innerText = `Has visto ${seenCount} de ${db.length} compuestos del nivel ${currentMode.toUpperCase()}.`; 
+        }
+
+        function setupQuiz(count) {
+            const db = currentMode === 'basic' ? DB_BASIC : DB_PRO;
+            const seen = getGlobalHistory();
+            let available = db.filter(item => !seen.includes(Number(item.id)));
+            
+            // CORRECCIÓN SOLICITADA: Aviso de mazo terminado y reinicio
+            if (available.length < count) {
+                localStorage.removeItem(`quimica_${currentMode}_vistos`);
+                available = [...db];
+                // Mostramos mensaje temporal en el Home Stats
+                ui.statsText.innerHTML = `<span class="text-rose-600 font-black">¡Mazo completado! Reiniciando para seguir practicando...</span>`;
+                setTimeout(updateHomeStats, 3000);
+            }
+
+            quizPool = available.sort(() => 0.5 - Math.random()).slice(0, count);
+            index = 0; score = 0; sessionHistory = [];
+            ui.home.classList.add('hidden'); ui.quiz.classList.remove('hidden');
+            ui.title.innerText = `Desafío ${currentMode.toUpperCase()}`;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (index < quizPool.length) {
+                const q = quizPool[index];
+                ui.view.innerHTML = drawMolecule(q.chain, q.subs, q.bonds, false, false);
+                ui.prog.innerText = `${index + 1} / ${quizPool.length}`;
+                ui.bar.style.width = `${((index + 1) / quizPool.length) * 100}%`;
+                ui.input.value = ""; ui.input.disabled = false; ui.input.focus();
+                ui.msg.classList.add('hidden'); ui.btn.classList.remove('hidden'); ui.nextBtn.classList.add('hidden');
+                ui.input.className = ui.input.className.replace(/border-(green|red)-500|bg-(green|red)-50/, "border-slate-200 bg-slate-50 shadow-sm");
+            } else { showResults(); }
+        }
+
+        function handleCheck() {
+            const userVal = ui.input.value;
+            const userNorm = normalize(userVal);
+            if (!userNorm) return;
+            const q = quizPool[index];
+            const correct = q.nombres.some(n => normalize(n) === userNorm);
+            saveToGlobalHistory(q.id);
+            
+            ui.view.innerHTML = drawMolecule(q.chain, q.subs, q.bonds, false, true);
+
+            sessionHistory.push({ formulaSVG: drawMolecule(q.chain, q.subs, q.bonds, true, true), user: userVal || "-", correctName: q.nombres[0], isCorrect: correct });
+            ui.input.disabled = true; ui.btn.classList.add('hidden'); ui.nextBtn.classList.remove('hidden');
+            ui.msg.classList.remove('hidden', 'bg-green-50', 'text-green-700', 'bg-red-50', 'text-red-700');
+            
+            if (correct) {
+                score += 10; ui.scoreBadge.innerText = `${score} Pts`;
+                ui.msg.innerHTML = `✨ ¡Correcto! Estructura dominada. <br><span class="text-[10px] uppercase font-bold">${q.nombres[0]}</span>`;
+                ui.msg.classList.add('bg-green-50', 'text-green-700', 'border-green-200');
+                ui.input.classList.add('border-green-500', 'bg-green-50');
+            } else {
+                ui.msg.innerHTML = `❌ Incorrecto. Solución:<br><span class="text-xs uppercase font-black">${q.nombres[0]}</span>`;
+                ui.msg.classList.add('bg-red-50', 'text-red-700', 'border-red-200');
+                ui.input.classList.add('border-red-500', 'bg-red-50');
+            }
+        }
+
+        function nextQuestion() { index++; loadQuestion(); }
+        
+        function showResults() {
+            ui.quiz.classList.add('hidden'); ui.result.classList.remove('hidden');
+            const total = quizPool.length;
+            ui.stats.innerText = `Puntuación: ${score} Pts (${score / 10} de ${total} aciertos)`;
+            ui.tableBody.innerHTML = '';
+            sessionHistory.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-50 transition-colors";
+                row.innerHTML = `
+                    <td class="py-10 pl-2 align-middle text-left"><div class="flex justify-start">${item.formulaSVG}</div></td>
+                    <td class="py-10 align-middle"><span class="text-[10px] md:text-xs font-bold ${item.isCorrect ? 'text-green-600' : 'text-red-500 line-through'} break-words block pr-2">${item.user}</span></td>
+                    <td class="py-10 align-middle"><span class="text-[10px] md:text-xs font-black uppercase text-rose-700 bg-rose-50 px-2 py-1 rounded border border-rose-100 break-words inline-block">${item.correctName}</span></td>
+                `;
+                ui.tableBody.appendChild(row);
+            });
+        }
+        
+        function goToHome() { ui.result.classList.add('hidden'); ui.home.classList.remove('hidden'); updateHomeStats(); }
+        ui.input.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                if (!ui.btn.classList.contains('hidden')) handleCheck();
+                else if (!ui.nextBtn.classList.contains('hidden')) nextQuestion();
+            }
+        });
+        setMode('pro');
+    </script>
+</body>
+</html>

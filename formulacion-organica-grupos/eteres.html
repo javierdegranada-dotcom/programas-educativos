@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maestro de Nomenclatura PRO: Éteres</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .chem-text { font-family: 'Roboto Mono', monospace; font-weight: bold; }
+        svg { display: block; transition: all 0.4s ease-in-out; }
+        .formula-card { background: radial-gradient(circle at center, #ffffff 0%, #fffbeb 100%); }
+        .btn-fancy { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn-fancy:active { transform: scale(0.95); }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-stone-100 min-h-screen flex items-center justify-center p-2 md:p-4">
+
+    <div id="app" class="bg-white shadow-2xl rounded-3xl p-4 md:p-8 w-full max-w-5xl border border-stone-200 overflow-hidden">
+        
+        <!-- PANTALLA DE INICIO -->
+        <div id="home-screen" class="py-10 text-center">
+            <div class="inline-block p-4 bg-amber-50 rounded-full mb-6">
+                <span class="text-6xl">🏺</span>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-black text-amber-900 uppercase tracking-tighter mb-2 text-balance">Máster de Éteres</h1>
+            <p class="text-slate-600 font-bold mb-2 text-sm italic px-4 text-balance">Este programa está realizado por Javier Gijón profesor del IES María Moliner de Segovia</p>
+            <p class="text-amber-500 font-medium mb-8 text-xs italic uppercase tracking-widest">Nomenclatura Alcoxi- y Radicofuncional • 60 Retos</p>
+            
+            <div class="max-w-md mx-auto grid grid-cols-1 gap-4">
+                <div class="bg-stone-50 p-4 rounded-2xl border border-stone-200">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 text-center">Configuración del Reto</p>
+                    <div class="flex gap-2">
+                        <button id="btn-mode-basic" onclick="setMode('basic')" class="flex-1 py-3 rounded-xl font-black text-xs uppercase border-2 border-amber-500 text-amber-600 bg-white transition-colors">Básica (30)</button>
+                        <button id="btn-mode-pro" onclick="setMode('pro')" class="flex-1 py-3 rounded-xl font-black text-xs uppercase bg-amber-600 text-white shadow-lg transition-colors shadow-amber-200">Extrema PRO (30)</button>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <button id="start-btn-5" onclick="setupQuiz(5)" class="btn-fancy w-full bg-stone-900 text-white font-black py-4 rounded-2xl hover:bg-black text-xl shadow-xl">
+                        Mazo de 5 Retos
+                    </button>
+                    <button id="start-btn-10" onclick="setupQuiz(10)" class="btn-fancy w-full bg-amber-700 text-white font-black py-4 rounded-2xl hover:bg-amber-800 text-xl shadow-xl">
+                        Mazo de 10 Retos
+                    </button>
+                </div>
+
+                <button onclick="resetGlobalHistory()" class="text-[9px] text-slate-400 uppercase font-bold hover:text-red-500 mt-4 underline decoration-dotted">
+                    Borrar historial de este nivel
+                </button>
+            </div>
+            
+            <p id="global-stats-text" class="mt-10 text-[11px] text-slate-500 font-bold uppercase tracking-widest bg-stone-50 inline-block px-4 py-2 rounded-full border border-stone-100"></p>
+        </div>
+
+        <!-- PANTALLA DE JUEGO -->
+        <div id="quiz-screen" class="hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3">
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black text-amber-900 uppercase tracking-tighter leading-none" id="quiz-title">Desafío de Éteres</h1>
+                    <p class="text-[10px] text-amber-800 font-bold uppercase tracking-widest italic mt-1">Javier Gijón - IES María Moliner (Segovia)</p>
+                </div>
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="flex-1 md:flex-none text-right">
+                        <span id="progress-text" class="block text-[9px] font-bold text-slate-400 mb-1 tracking-widest uppercase">1 / 10</span>
+                        <div class="w-full md:w-32 h-1.5 bg-stone-100 rounded-full overflow-hidden border">
+                            <div id="progress-bar" class="h-full bg-amber-500 transition-all duration-500"></div>
+                        </div>
+                    </div>
+                    <span id="score-badge" class="bg-stone-800 text-white px-3 py-1.5 rounded-xl text-xs font-black shadow-lg italic">0 Pts</span>
+                </div>
+            </div>
+
+            <div class="formula-card rounded-2xl p-4 md:p-6 mb-6 border border-stone-100 shadow-inner flex items-center justify-center overflow-hidden min-h-[220px]">
+                <div id="visual-formula-container" class="w-full flex justify-center items-center transition-all duration-700"></div>
+            </div>
+
+            <div class="max-w-xl mx-auto space-y-4">
+                <input type="text" id="answer-input" 
+                    class="w-full px-4 py-4 bg-stone-50 border-2 border-stone-200 rounded-2xl text-lg md:text-2xl outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all text-center font-bold text-slate-700 placeholder-slate-300 shadow-sm uppercase"
+                    placeholder="Nombre IUPAC..."
+                    autocomplete="off">
+                
+                <button onclick="handleCheck()" id="submit-btn"
+                    class="btn-fancy w-full bg-amber-600 hover:bg-amber-700 text-white font-black py-4 rounded-2xl shadow-xl text-sm md:text-lg uppercase tracking-widest">
+                    Verificar
+                </button>
+
+                <button onclick="nextQuestion()" id="next-btn"
+                    class="hidden btn-fancy w-full bg-stone-900 hover:bg-black text-white font-black py-4 rounded-2xl shadow-xl text-sm md:text-lg uppercase tracking-widest flex items-center justify-center gap-2">
+                    Siguiente desafío <span class="text-xl">→</span>
+                </button>
+            </div>
+
+            <div id="message-box" class="mt-6 p-4 rounded-2xl hidden text-center font-bold text-xs md:text-sm border-2"></div>
+        </div>
+
+        <!-- PANTALLA DE RESULTADOS -->
+        <div id="result-screen" class="hidden flex flex-col h-full max-h-[85vh]">
+            <div class="text-center mb-6">
+                <div class="inline-block p-4 bg-amber-100 rounded-full mb-2 text-3xl">📝</div>
+                <h2 class="text-2xl md:text-3xl font-black text-slate-800 uppercase tracking-tighter">Resultados de Evaluación</h2>
+                <p id="final-stats" class="text-slate-500 font-bold text-sm uppercase"></p>
+            </div>
+
+            <div class="flex-1 overflow-y-auto custom-scroll pr-2 border-y border-stone-100 py-4">
+                <table class="w-full text-left border-collapse table-fixed">
+                    <thead class="sticky top-0 bg-white z-10">
+                        <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-stone-200">
+                            <th class="pb-3 pl-2 w-1/2">Molécula</th>
+                            <th class="pb-3 w-1/4">Tu Respuesta</th>
+                            <th class="pb-3 w-1/4">Solución</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-table-body" class="divide-y divide-slate-50"></tbody>
+                </table>
+            </div>
+
+            <div class="pt-6 text-center">
+                <button onclick="goToHome()" 
+                    class="btn-fancy bg-slate-900 hover:bg-black text-white font-black py-4 px-10 rounded-2xl transition-all shadow-2xl uppercase tracking-widest text-xs">
+                    Regresar al menú
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * MOTOR GRÁFICO IUPAC AVANZADO PARA ÉTERES
+         */
+        function formatChemSVG(text, x, y, fontSize, color, anchor = "middle") {
+            let svgText = `<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" font-family="Roboto Mono" font-weight="bold" font-size="${fontSize}" fill="${color}">`;
+            for (let char of text) {
+                if (/\d/.test(char)) {
+                    svgText += `<tspan dy="0.35em" font-size="0.75em">${char}</tspan><tspan dy="-0.26em"></tspan>`;
+                } else {
+                    svgText += char;
+                }
+            }
+            svgText += `</text>`;
+            return svgText;
+        }
+
+        function drawMolecule(chain, substituents = [], bonds = [], revealed = false, mini = false) {
+            const spacingX = 42;
+            const spacingY = 40;
+            const fontSize = 11;
+            
+            // CONFIGURACIÓN DE ENLACES: 15px UNIFICADOS
+            // Horizontal: 42 - 13.5 - 13.5 = 15px
+            const hPad = 13.5;
+            // Vertical: 40 - 12.5 - 12.5 = 15px
+            const vPad = 12.5;
+
+            const neutralColor = "#1e293b";
+            const etherColor = revealed ? "#f59e0b" : neutralColor;
+            const radColor = revealed ? "#2563eb" : neutralColor;
+            const oxyColor = revealed ? "#f43f5e" : neutralColor;
+            const alcoColor = revealed ? "#0ea5e9" : neutralColor;
+
+            let maxLevelsUp = 1;
+            let maxLevelsDown = 1;
+            substituents.forEach(s => {
+                let lv = (s.type.includes('CH2') || s.type === 'CH(CH3)2' || s.type === 'CH=CH2') ? 2 : 1;
+                if (s.dir === 'up') maxLevelsUp = Math.max(maxLevelsUp, lv);
+                else maxLevelsDown = Math.max(maxLevelsDown, lv);
+            });
+
+            const margin = 35;
+            const midY = (maxLevelsUp * spacingY) + margin;
+            const dynamicHeight = (maxLevelsUp + maxLevelsDown) * spacingY + (margin * 2);
+            const viewWidth = (chain.length + 1) * spacingX;
+
+            let svg = `<svg viewBox="0 0 ${viewWidth} ${dynamicHeight}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="width: ${mini ? '200px' : '100%'}; height: auto; max-width: 550px;">`;
+
+            chain.forEach((atom, i) => {
+                const x = (i + 1) * spacingX;
+                
+                // Enlaces horizontales
+                if (i < chain.length - 1) {
+                    const bond = bonds.find(b => b.pos === i + 1) || { type: 1 };
+                    // Padding ajustado para 15px de longitud horizontal
+                    const x1 = x + hPad, x2 = x + spacingX - hPad;
+                    
+                    if (bond.type === 2) {
+                        svg += `<line x1="${x1}" y1="${midY-2}" x2="${x2}" y2="${midY-2}" stroke="${neutralColor}" stroke-width="1.5" />`;
+                        svg += `<line x1="${x1}" y1="${midY+2}" x2="${x2}" y2="${midY+2}" stroke="${neutralColor}" stroke-width="1.5" />`;
+                    } else if (bond.type === 3) {
+                        svg += `<line x1="${x1}" y1="${midY-3}" x2="${x2}" y2="${midY-3}" stroke="${neutralColor}" stroke-width="1.5" />`;
+                        svg += `<line x1="${x1}" y1="${midY}" x2="${x2}" y2="${midY}" stroke="${neutralColor}" stroke-width="1.5" />`;
+                        svg += `<line x1="${x1}" y1="${midY+3}" x2="${x2}" y2="${midY+3}" stroke="${neutralColor}" stroke-width="1.5" />`;
+                    } else {
+                        svg += `<line x1="${x1}" y1="${midY}" x2="${x2}" y2="${midY}" stroke="${neutralColor}" stroke-width="2" stroke-linecap="round" />`;
+                    }
+                }
+
+                // Cálculo de valencia para el texto del carbono
+                let vAtom = 4;
+                if (atom === 'O') {
+                    svg += formatChemSVG(atom, x, midY, fontSize + 1, etherColor);
+                } else if (atom === 'N' || atom === 'NH') {
+                    svg += formatChemSVG(atom, x, midY, fontSize + 1, neutralColor);
+                } else if (atom === 'Ph') {
+                     svg += formatChemSVG(atom, x, midY, fontSize + 1, neutralColor);
+                } else {
+                    const bPrev = bonds.find(b => b.pos === i);
+                    const bNext = bonds.find(b => b.pos === i + 1);
+                    if (bPrev) vAtom -= bPrev.type; else if (i > 0) vAtom -= 1;
+                    if (bNext) vAtom -= bNext.type; else if (i < chain.length - 1) vAtom -= 1;
+
+                    const subsAtC = substituents.filter(s => s.pos === i + 1);
+                    subsAtC.forEach(s => {
+                        if (s.type === '=O') vAtom -= 2;
+                        else if (s.type === 'CH2CH3' || s.type === 'CH(CH3)2' || s.type === 'CH=CH2') vAtom -= 1;
+                        else vAtom -= 1;
+                    });
+
+                    // Manejo básico de valencia para visualización
+                    let atomText = "C";
+                    if (vAtom === 1) atomText = "CH";
+                    else if (vAtom === 2) atomText = "CH2";
+                    else if (vAtom === 3) atomText = "CH3";
+                    
+                    if (atom.length > 1 && !atom.startsWith('C')) atomText = atom;
+                    if (atom === 'Cl' || atom === 'Br') atomText = atom;
+
+                    svg += formatChemSVG(atomText, x, midY, fontSize + 1, neutralColor);
+
+                    // Dibujar sustituyentes verticales
+                    subsAtC.forEach(s => {
+                        const multiplier = s.dir === 'up' ? -1 : 1;
+                        const nextY = midY + (multiplier * spacingY);
+
+                        if (s.type === '=O') {
+                            const off = 2.5;
+                            // Usamos vPad para garantizar 15px de longitud vertical
+                            svg += `<line x1="${x - off}" y1="${midY + (multiplier * vPad)}" x2="${x - off}" y2="${nextY - (multiplier * vPad)}" stroke="${revealed ? '#f43f5e' : neutralColor}" stroke-width="1.5" />`;
+                            svg += `<line x1="${x + off}" y1="${midY + (multiplier * vPad)}" x2="${x + off}" y2="${nextY - (multiplier * vPad)}" stroke="${revealed ? '#f43f5e' : neutralColor}" stroke-width="1.5" />`;
+                            svg += formatChemSVG("O", x, nextY, fontSize + 2, oxyColor);
+                        } else {
+                            // Enlace simple vertical estándar: 15px longitud
+                            svg += `<line x1="${x}" y1="${midY + (multiplier * vPad)}" x2="${x}" y2="${nextY - (multiplier * vPad)}" stroke="${neutralColor}" stroke-width="1.5" />`;
+                            
+                            let sColor = radColor;
+                            if (s.type === 'OH') sColor = alcoColor;
+                            
+                            if (s.type === 'CH2CH3') {
+                                svg += formatChemSVG("CH2", x, nextY, fontSize, sColor);
+                                const nextY2 = nextY + (multiplier * spacingY);
+                                // Enlace interno del etilo: usando vPad para consistencia
+                                svg += `<line x1="${x}" y1="${nextY + (multiplier * vPad)}" x2="${x}" y2="${nextY2 - (multiplier * vPad)}" stroke="${neutralColor}" stroke-width="1.5" />`;
+                                svg += formatChemSVG("CH3", x, nextY2, fontSize, sColor);
+                            } else if (s.type === 'CH(CH3)2') {
+                                svg += formatChemSVG("CH", x, nextY, fontSize, sColor);
+                                const forkY = nextY + (multiplier * 25);
+                                svg += `<line x1="${x}" y1="${nextY+multiplier*8}" x2="${x-15}" y2="${forkY-8}" stroke="${neutralColor}" stroke-width="1"/>`;
+                                svg += `<line x1="${x}" y1="${nextY+multiplier*8}" x2="${x+15}" y2="${forkY-8}" stroke="${neutralColor}" stroke-width="1"/>`;
+                                svg += formatChemSVG("CH3", x-15, forkY, fontSize-1, sColor);
+                                svg += formatChemSVG("CH3", x+15, forkY, fontSize-1, sColor);
+                            } else if (s.type === 'CH=CH2') {
+                                svg += formatChemSVG("CH", x, nextY, fontSize, sColor);
+                                const nextY2 = nextY + (multiplier * 35);
+                                // Enlace interno del vinilo: se mantiene lógica específica geométrica
+                                svg += `<line x1="${x-2}" y1="${nextY + (multiplier * 10)}" x2="${x-2}" y2="${nextY2 - (multiplier * 10)}" stroke="${neutralColor}" stroke-width="1" />`;
+                                svg += `<line x1="${x+2}" y1="${nextY + (multiplier * 10)}" x2="${x+2}" y2="${nextY2 - (multiplier * 10)}" stroke="${neutralColor}" stroke-width="1" />`;
+                                svg += formatChemSVG("CH2", x, nextY2, fontSize, sColor);
+                            } else {
+                                svg += formatChemSVG(s.type, x, nextY, fontSize, sColor);
+                            }
+                        }
+                    });
+                }
+            });
+
+            return svg + `</svg>`;
+        }
+
+        /**
+         * BASES DE DATOS (30 BASIC / 30 PRO)
+         */
+        const DB_BASIC = [
+            { id: 1, chain: ['CH3', 'O', 'CH3'], subs: [], bonds: [], nombres: ["dimetil eter", "metoximetano"] },
+            { id: 2, chain: ['CH3', 'O', 'CH2', 'CH3'], subs: [], bonds: [], nombres: ["etil metil eter", "metoxietano"] },
+            { id: 3, chain: ['CH3', 'CH2', 'O', 'CH2', 'CH3'], subs: [], bonds: [], nombres: ["dietil eter", "etoxietano"] },
+            { id: 4, chain: ['CH3', 'O', 'CH2', 'CH2', 'CH3'], subs: [], bonds: [], nombres: ["metil propil eter", "1-metoxipropano"] },
+            { id: 5, chain: ['CH3', 'CH2', 'O', 'CH2', 'CH2', 'CH3'], subs: [], bonds: [], nombres: ["etil propil eter", "1-etoxipropano"] },
+            { id: 6, chain: ['CH3', 'O', 'CH', 'CH3'], subs: [{pos:3, type:'CH3', dir:'down'}], bonds: [], nombres: ["isopropil metil eter", "2-metoxipropano"] },
+            { id: 7, chain: ['CH3', 'CH2', 'O', 'CH', 'CH3'], subs: [{pos:4, type:'CH3', dir:'down'}], bonds: [], nombres: ["etil isopropil eter", "2-etoxipropano"] },
+            { id: 8, chain: ['CH2', 'CH', 'O', 'CH3'], subs: [], bonds: [{pos:1, type:2}], nombres: ["metil vinil eter", "metoxieteno"] },
+            { id: 9, chain: ['CH3', 'CH2', 'CH2', 'O', 'CH2', 'CH2', 'CH3'], subs: [], bonds: [], nombres: ["dipropil eter", "1-propoxipropano"] },
+            { id: 10, chain: ['CH3', 'O', 'CH2', 'CH2', 'CH2', 'CH3'], subs: [], nombres: ["butil metil eter", "1-metoxibutano"] },
+            { id: 11, chain: ['CH3', 'CH2', 'O', 'CH2', 'CH2', 'CH2', 'CH3'], subs: [], nombres: ["butil etil eter", "1-etoxibutano"] },
+            // REPLACED ID 12 (Duplicate) with Methyl Pentyl Ether
+            { id: 12, chain: ['CH3', 'O', 'CH2', 'CH2', 'CH2', 'CH2', 'CH3'], subs: [], nombres: ["1-metoxipentano", "metil pentil eter"] },
+            // REPLACED ID 13 (Duplicate) with Ethyl Pentyl Ether
+            { id: 13, chain: ['CH3', 'CH2', 'O', 'CH2', 'CH2', 'CH2', 'CH2', 'CH3'], subs: [], nombres: ["1-etoxipentano", "etil pentil eter"] },
+            { id: 14, chain: ['CH2', 'CH', 'O', 'CH2', 'CH3'], subs: [], bonds: [{pos:1, type:2}], nombres: ["etil vinil eter", "etoxieteno"] },
+            { id: 15, chain: ['CH3', 'O', 'CH', 'CH2', 'CH3'], subs: [{pos:3, type:'CH3', dir:'up'}], nombres: ["sec-butil metil eter", "2-metoxibutano"] },
+            { id: 16, chain: ['CH3', 'O', 'C', 'CH3'], subs: [{pos:3, type:'CH3', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres: ["ter-butil metil eter", "2-metoxi-2-metilpropano"] },
+            { id: 17, chain: ['CH3', 'CH2', 'O', 'CH', 'CH2', 'CH3'], subs: [{pos:4, type:'CH3', dir:'up'}], nombres: ["sec-butil etil eter", "2-etoxibutano"] },
+            { id: 18, chain: ['CH3', 'CH2', 'CH2', 'CH2', 'O', 'CH2', 'CH2', 'CH2', 'CH3'], subs: [], nombres: ["dibutil eter", "1-butoxibutano"] },
+            { id: 19, chain: ['CH3', 'O', 'CH2', 'CH', 'CH3'], subs: [{pos:4, type:'CH3', dir:'down'}], nombres: ["isobutil metil eter", "1-metoxi-2-metilpropano"] },
+            { id: 20, chain: ['CH3', 'CH2', 'O', 'CH2', 'CH', 'CH3'], subs: [{pos:5, type:'CH3', dir:'down'}], nombres: ["etoxiisobutano", "1-etoxi-2-metilpropano"] },
+            { id: 21, chain: ['CH3', 'O', 'CH2', 'CH2', 'OH'], subs: [], nombres: ["2-metoxietanol"] },
+            { id: 22, chain: ['CH3', 'O', 'CH2', 'CHO'], subs: [], nombres: ["metoxietanal"] },
+            { id: 23, chain: ['CH3', 'O', 'CH2', 'CH2', 'NH2'], subs: [], nombres: ["2-metoxietanamina"] },
+            { id: 24, chain: ['CH3', 'CH2', 'O', 'CH2', 'CH2', 'OH'], subs: [], nombres: ["2-etoxietanol"] },
+            { id: 25, chain: ['CH3', 'O', 'CH', 'CH3'], subs:[{pos:3, type:'OH', dir:'down'}], nombres:["1-metoxipropan-2-ol"] },
+            { id: 26, chain: ['CH', 'C', 'O', 'CH3'], subs: [], bonds: [{pos:1, type:3}], nombres: ["metil etinil eter", "metoxietino"] },
+            { id: 27, chain: ['CH3', 'O', 'CH2', 'CH', 'CH2'], subs: [], bonds: [{pos:4, type:2}], nombres: ["3-metoxipropeno", "alil metil eter"] },
+            { id: 28, chain: ['CH3', 'CH2', 'O', 'CH2', 'CH', 'CH2'], subs: [], bonds: [{pos:5, type:2}], nombres: ["3-etoxipropeno", "alil etil eter"] },
+            { id: 29, chain: ['CH3', 'O', 'CH2', 'CH2', 'CH2', 'OH'], subs: [], nombres: ["3-metoxipropan-1-ol"] },
+            { id: 30, chain: ['CH3', 'O', 'CH2', 'CH2', 'CN'], subs: [], nombres: ["3-metoxipropanonitrilo"] }
+        ];
+
+        const DB_PRO = [
+            { id: 101, chain: ['CH3', 'O', 'CH2', 'C', 'CH3'], subs: [{pos:4, type:'=O', dir:'up'}], nombres: ["1-metoxipropan-2-ona", "metoxiacetona"] },
+            { id: 102, chain: ['CH3', 'O', 'CH', 'CH', 'C', 'CH3'], bonds: [{pos:3, type:2}], subs: [{pos:5, type:'=O', dir:'up'}], nombres: ["4-metoxibut-3-en-2-ona"] },
+            { id: 103, chain: ['CH3', 'O', 'CH2', 'C', 'CH'], bonds: [{pos:4, type:3}], nombres: ["3-metoxiprop-1-ino", "metil propargil eter"] },
+            { id: 104, chain: ['CH3', 'CH2', 'O', 'CH2', 'CH2', 'NH2'], nombres: ["2-etoxietanamina"] },
+            { id: 105, chain: ['CH3', 'O', 'CH2', 'CH', 'CH2', 'O', 'CH3'], subs: [{pos:4, type:'OH', dir:'up'}], nombres: ["1,3-dimetoxipropan-2-ol"] },
+            { id: 106, chain: ['CH3', 'O', 'CH', 'C', 'CH'], subs: [{pos:3, type:'CH3', dir:'up'}], bonds: [{pos:4, type:3}], nombres: ["3-metoxibut-1-ino"] },
+            { id: 107, chain: ['CH3', 'O', 'CH', 'CH', 'C', 'CH'], bonds: [{pos:3, type:2}, {pos:5, type:3}], nombres: ["1-metoxibut-1-en-3-ino"] },
+            { id: 108, chain: ['CH2', 'CH', 'O', 'CH2', 'CH2', 'OH'], bonds: [{pos:1, type:2}], nombres: ["2-(viniloxi)etanol", "2-vinoxietanol"] },
+            { id: 109, chain: ['CH3', 'CH', 'O', 'CH2', 'CH2', 'NH2'], subs: [{pos:2, type:'CH3', dir:'up'}], nombres: ["2-isopropoxietanamina"] },
+            { id: 110, chain: ['CH3', 'O', 'CH2', 'CH2', 'CH2', 'CN'], nombres: ["4-metoxibutanonitrilo"] },
+            // REPLACED ID 111 (Duplicate) with Ethyl Propargyl Ether
+            { id: 111, chain: ['CH3', 'CH2', 'O', 'CH2', 'C', 'CH'], bonds: [{pos:5, type:3}], nombres: ["3-etoxiprop-1-ino", "etil propargil eter"] },
+            { id: 112, chain: ['CH3', 'O', 'CH2', 'CH', 'O', 'CH3'], subs: [{pos:4, type:'CH3', dir:'down'}], nombres: ["1,2-dimetoxipropano"] },
+            { id: 113, chain: ['CH3', 'O', 'CH2', 'CH2', 'O', 'CH3'], nombres: ["1,2-dimetoxietano", "glima"] },
+            { id: 114, chain: ['CH3', 'O', 'CH2', 'CH2', 'NO2'], nombres: ["1-metoxi-2-nitroetano"] },
+            { id: 115, chain: ['CH3', 'O', 'CH2', 'CH', 'CH2', 'OH'], subs: [{pos:4, type:'OH', dir:'up'}], nombres: ["3-metoxipropan-1,2-diol"] },
+            { id: 116, chain: ['CH3', 'CH2', 'O', 'CH2', 'CH', 'CH3'], subs: [{pos:5, type:'OH', dir:'up'}], nombres: ["1-etoxipropan-2-ol"] },
+            { id: 117, chain: ['HO', 'CH2', 'CH2', 'O', 'CH2', 'CH2', 'OH'], nombres: ["2,2'-oxidietanol", "dietilenglicol"] },
+            { id: 118, chain: ['CH3', 'O', 'CH2', 'CH2', 'CH2', 'Cl'], nombres: ["1-cloro-3-metoxipropano"] },
+            { id: 119, chain: ['CH3', 'O', 'CH2', 'CH', 'CH', 'CH3'], bonds: [{pos:4, type:2}], nombres: ["1-metoxibut-2-eno", "crotil metil eter"] },
+            { id: 120, chain: ['CH3', 'O', 'Ph'], nombres: ["metoxibenceno", "anisol"] },
+            { id: 121, chain: ['CH3', 'CH2', 'O', 'Ph'], nombres: ["etoxibenceno", "fenetol"] },
+            { id: 122, chain: ['CH3', 'CH', 'O', 'CH2', 'C', 'CH'], subs: [{pos:2, type:'CH3', dir:'up'}], bonds: [{pos:5, type:3}], nombres: ["3-isopropoxiprop-1-ino"] },
+            { id: 123, chain: ['CH3', 'O', 'CH2', 'CH2', 'C', 'CH'], bonds: [{pos:5, type:3}], nombres: ["4-metoxibut-1-ino"] },
+            { id: 124, chain: ['CH3', 'O', 'CH2', 'O', 'CH3'], nombres: ["dimetoximetano", "metilal"] },
+            { id: 125, chain: ['CH3', 'O', 'C', 'CH', 'CH2', 'OH'], subs: [{pos:3, type:'CH3', dir:'up'}], bonds: [{pos:3, type:2}], nombres: ["3-metoxibut-2-en-1-ol"] },
+            { id: 126, chain: ['CH3', 'CH2', 'O', 'C', 'CH3'], subs: [{pos:4, type:'CH3', dir:'up'}, {pos:4, type:'CH3', dir:'down'}], nombres: ["2-etoxi-2-metilpropano", "ter-butil etil eter"] },
+            { id: 127, chain: ['CH3', 'O', 'CH2', 'CH2', 'C', 'CH2', 'CH3'], subs: [{pos:5, type:'=O', dir:'up'}], nombres: ["1-metoxipentan-3-ona"] },
+            { id: 128, chain: ['CH3', 'O', 'CH', 'C', 'CH3'], subs: [{pos:3, type:'CH3', dir:'down'}, {pos:4, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}], nombres: ["3-metoxi-2-metilbutan-2-ol"] },
+            { id: 129, chain: ['CH3', 'O', 'CH2', 'CH2', 'O', 'CH2', 'CH2', 'OH'], nombres: ["2-(2-metoxietoxi)etanol"] },
+            { id: 130, chain: ['CH3', 'C', 'O', 'CH', 'CH3'], subs: [{pos:2, type:'CH3', dir:'up'}, {pos:2, type:'CH3', dir:'down'}, {pos:4, type:'CH3', dir:'down'}], nombres: ["2-isopropoxi-2-metilpropano", "ter-butil isopropil eter"] }
+        ];
+
+        let currentMode = 'basic';
+        let quizPool = [], index = 0, score = 0, sessionHistory = [];
+
+        const ui = {
+            home: document.getElementById('home-screen'),
+            quiz: document.getElementById('quiz-screen'),
+            result: document.getElementById('result-screen'),
+            view: document.getElementById('visual-formula-container'),
+            input: document.getElementById('answer-input'),
+            msg: document.getElementById('message-box'),
+            prog: document.getElementById('progress-text'),
+            bar: document.getElementById('progress-bar'),
+            scoreBadge: document.getElementById('score-badge'),
+            stats: document.getElementById('final-stats'),
+            tableBody: document.getElementById('results-table-body'),
+            btn: document.getElementById('submit-btn'),
+            nextBtn: document.getElementById('next-btn'),
+            statsText: document.getElementById('global-stats-text'),
+            title: document.getElementById('quiz-title')
+        };
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('btn-mode-basic').className = mode === 'basic' ? 'flex-1 py-3 rounded-xl font-black text-xs uppercase bg-amber-600 text-white shadow-lg transition-colors' : 'flex-1 py-3 rounded-xl font-black text-xs uppercase border-2 border-amber-500 text-amber-500 bg-white transition-colors';
+            document.getElementById('btn-mode-pro').className = mode === 'pro' ? 'flex-1 py-3 rounded-xl font-black text-xs uppercase bg-amber-600 text-white shadow-lg transition-colors' : 'flex-1 py-3 rounded-xl font-black text-xs uppercase border-2 border-amber-500 text-amber-500 bg-white transition-colors';
+            updateHomeStats();
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function normalize(s) { return s.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "").replace(/-/g, "").replace(/,/g, ""); }
+        function getGlobalHistory() { const data = localStorage.getItem(`quim_eter_vfinal_fix_${currentMode}`); return data ? JSON.parse(data).map(Number) : []; }
+        function saveToGlobalHistory(id) { let seen = getGlobalHistory(); if (!seen.includes(Number(id))) { seen.push(Number(id)); localStorage.setItem(`quim_eter_vfinal_fix_${currentMode}`, JSON.stringify(seen)); } }
+        function resetGlobalHistory() { localStorage.removeItem(`quim_eter_vfinal_fix_${currentMode}`); updateHomeStats(); }
+        
+        function updateHomeStats() { 
+            const db = currentMode === 'basic' ? DB_BASIC : DB_PRO;
+            const seenCount = getGlobalHistory().length; 
+            ui.statsText.innerText = `Has visto ${seenCount} de ${db.length} retos de este nivel.`; 
+        }
+
+        function setupQuiz(count) {
+            const db = currentMode === 'basic' ? DB_BASIC : DB_PRO;
+            const seen = getGlobalHistory();
+            let available = db.filter(item => !seen.includes(Number(item.id)));
+            
+            if (available.length < count) {
+                localStorage.removeItem(`quim_eter_vfinal_fix_${currentMode}`);
+                available = [...db];
+                ui.statsText.innerHTML = `<span class="text-rose-600 font-black italic">Mazo completado. Reiniciando ciclo...</span>`;
+                setTimeout(updateHomeStats, 2000);
+            }
+
+            quizPool = shuffle([...available]).slice(0, count);
+            index = 0; score = 0; sessionHistory = [];
+            ui.home.classList.add('hidden'); ui.quiz.classList.remove('hidden');
+            ui.title.innerText = `Nivel ${currentMode === 'basic' ? 'Básico' : 'Extrema PRO'}`;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (index < quizPool.length) {
+                const q = quizPool[index];
+                ui.view.innerHTML = drawMolecule(q.chain, q.subs, q.bonds, false, false);
+                ui.prog.innerText = `${index + 1} / ${quizPool.length}`;
+                ui.bar.style.width = `${((index + 1) / quizPool.length) * 100}%`;
+                ui.input.value = ""; ui.input.disabled = false; ui.input.focus();
+                ui.msg.classList.add('hidden'); ui.btn.classList.remove('hidden'); ui.nextBtn.classList.add('hidden');
+                ui.input.className = ui.input.className.replace(/border-(green|red)-500|bg-(green|red)-50/, "border-stone-200 bg-stone-50 shadow-sm");
+            } else { showResults(); }
+        }
+
+        function handleCheck() {
+            const userVal = ui.input.value;
+            const userNorm = normalize(userVal);
+            if (!userNorm) return;
+            const q = quizPool[index];
+            const correct = q.nombres.some(n => normalize(n) === userNorm);
+            saveToGlobalHistory(q.id);
+            
+            ui.view.innerHTML = drawMolecule(q.chain, q.subs, q.bonds, true, false);
+
+            sessionHistory.push({ formulaSVG: drawMolecule(q.chain, q.subs, q.bonds, true, true), user: userVal || "-", correctName: q.nombres[0], isCorrect: correct });
+            ui.input.disabled = true; ui.btn.classList.add('hidden'); ui.nextBtn.classList.remove('hidden');
+            ui.msg.classList.remove('hidden', 'bg-green-50', 'text-green-700', 'bg-red-50', 'text-red-700');
+            
+            if (correct) {
+                score += 10; ui.scoreBadge.innerText = `${score} Pts`;
+                ui.msg.innerHTML = `✨ ¡Correcto! Estructura dominada. <br><span class="text-[10px] uppercase font-bold">${q.nombres[0]}</span>`;
+                ui.msg.classList.add('bg-green-50', 'text-green-700', 'border-green-200');
+                ui.input.classList.add('border-green-500', 'bg-green-50');
+            } else {
+                ui.msg.innerHTML = `❌ Incorrecto. Solución IUPAC:<br><span class="text-xs uppercase font-black">${q.nombres[0]}</span>`;
+                ui.msg.classList.add('bg-red-50', 'text-red-700', 'border-red-200');
+                ui.input.classList.add('border-red-500', 'bg-red-50');
+            }
+        }
+
+        function nextQuestion() { index++; loadQuestion(); }
+        
+        function showResults() {
+            ui.quiz.classList.add('hidden'); ui.result.classList.remove('hidden');
+            const total = quizPool.length;
+            ui.stats.innerText = `Evaluación Final: ${score} Puntos (${score / 10} de ${total} aciertos)`;
+            ui.tableBody.innerHTML = '';
+            sessionHistory.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = "hover:bg-stone-50 transition-colors";
+                row.innerHTML = `
+                    <td class="py-10 pl-2 align-middle text-left"><div class="flex justify-start">${item.formulaSVG}</div></td>
+                    <td class="py-10 align-middle"><span class="text-[10px] md:text-xs font-bold ${item.isCorrect ? 'text-amber-600' : 'text-red-500 line-through'} break-words block pr-2">${item.user}</span></td>
+                    <td class="py-10 align-middle"><span class="text-[10px] md:text-xs font-black uppercase text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-100 break-words inline-block">${item.correctName}</span></td>
+                `;
+                ui.tableBody.appendChild(row);
+            });
+        }
+        
+        function goToHome() { ui.result.classList.add('hidden'); ui.home.classList.remove('hidden'); updateHomeStats(); }
+        ui.input.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                if (!ui.btn.classList.contains('hidden')) handleCheck();
+                else if (!ui.nextBtn.classList.contains('hidden')) nextQuestion();
+            }
+        });
+        
+        setMode('basic');
+    </script>
+</body>
+</html>
