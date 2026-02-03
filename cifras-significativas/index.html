@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Cifras Significativas - Práctica Interactiva</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .exercise-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .mode-btn {
+            padding: 15px;
+            border: 2px solid #667eea;
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+            font-weight: 600;
+            color: #667eea;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .mode-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .mode-btn:active {
+            transform: translateY(0);
+        }
+
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .exercise-area {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .question {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .number-display {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 2em;
+            text-align: center;
+            color: #667eea;
+            font-weight: bold;
+            margin: 20px 0;
+            border: 3px solid #667eea;
+        }
+
+        .input-group {
+            margin: 20px 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1.1em;
+            transition: border-color 0.3s;
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Eliminar flechas de input number en móvil */
+        .input-group input[type=number]::-webkit-inner-spin-button,
+        .input-group input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .calculator {
+            background: #2c3e50;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .calc-display {
+            background: #34495e;
+            color: #2ecc71;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 1.8em;
+            text-align: right;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .calc-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .calc-btn {
+            padding: 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.3em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #34495e;
+            color: white;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        .calc-btn:hover {
+            background: #4a5f7f;
+            transform: scale(1.05);
+        }
+
+        .calc-btn:active {
+            transform: scale(0.95);
+            background: #5a6f8f;
+        }
+
+        .calc-btn.operator {
+            background: #e67e22;
+        }
+
+        .calc-btn.operator:hover {
+            background: #d35400;
+        }
+
+        .calc-btn.equals {
+            background: #2ecc71;
+            grid-column: span 2;
+        }
+
+        .calc-btn.equals:hover {
+            background: #27ae60;
+        }
+
+        .calc-btn.clear {
+            background: #e74c3c;
+        }
+
+        .calc-btn.clear:hover {
+            background: #c0392b;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-secondary:active {
+            background: #6f7c7d;
+        }
+
+        .feedback {
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+            display: block;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .rules-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .rules-box h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .rules-box ul {
+            margin-left: 20px;
+            color: #856404;
+        }
+
+        .rules-box li {
+            margin: 5px 0;
+        }
+
+        .video-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            color: white;
+        }
+
+        .video-box h3 {
+            color: white;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .video-thumbnail {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 */
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .video-thumbnail:hover {
+            transform: scale(1.02);
+        }
+
+        .video-thumbnail-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+        }
+
+        .play-button {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .video-thumbnail:hover .play-button {
+            transform: scale(1.1);
+            background: white;
+        }
+
+        .play-icon {
+            width: 0;
+            height: 0;
+            border-left: 25px solid #667eea;
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            margin-left: 8px;
+        }
+
+        .video-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            text-align: center;
+            color: white;
+            padding: 0 20px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .video-subtitle {
+            font-size: 0.9em;
+            margin-top: 8px;
+            opacity: 0.95;
+            text-align: center;
+        }
+
+        .video-link {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .video-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+                margin-bottom: 5px;
+            }
+
+            .subtitle {
+                font-size: 0.9em;
+            }
+
+            .header {
+                padding: 20px 15px;
+                margin-bottom: 15px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .card h2 {
+                font-size: 1.2em;
+                margin-bottom: 15px;
+            }
+
+            .exercise-selector {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .mode-btn {
+                padding: 12px;
+                font-size: 0.95em;
+            }
+
+            .rules-box {
+                padding: 12px;
+                font-size: 0.9em;
+            }
+
+            .rules-box h3 {
+                font-size: 1em;
+            }
+
+            .rules-box ul {
+                margin-left: 15px;
+            }
+
+            .exercise-area {
+                padding: 15px;
+            }
+
+            .question {
+                font-size: 1.1em;
+                margin-bottom: 15px;
+            }
+
+            .number-display {
+                font-size: 1.5em;
+                padding: 15px;
+                margin: 15px 0;
+            }
+
+            .input-group {
+                margin: 15px 0;
+            }
+
+            .input-group label {
+                font-size: 0.95em;
+                margin-bottom: 8px;
+            }
+
+            .input-group input {
+                padding: 12px;
+                font-size: 1em;
+            }
+
+            .calculator {
+                padding: 15px;
+                margin: 15px 0;
+            }
+
+            .calc-display {
+                font-size: 1.3em;
+                padding: 15px;
+                min-height: 50px;
+            }
+
+            .calc-buttons {
+                gap: 6px;
+            }
+
+            .calc-btn {
+                padding: 12px 8px;
+                font-size: 1em;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 1em;
+                margin: 3px;
+                width: calc(50% - 6px);
+                display: inline-block;
+            }
+
+            .feedback {
+                padding: 15px;
+                font-size: 0.9em;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .stat-box {
+                padding: 15px;
+            }
+
+            .stat-number {
+                font-size: 1.5em;
+            }
+
+            .stat-label {
+                font-size: 0.85em;
+            }
+
+            .footer {
+                font-size: 0.8em;
+                margin-top: 20px;
+            }
+
+            .video-box {
+                padding: 15px;
+            }
+
+            .video-box h3 {
+                font-size: 1em;
+            }
+
+            .video-title {
+                font-size: 1.1em;
+                padding: 0 15px;
+            }
+
+            .video-subtitle {
+                font-size: 0.8em;
+            }
+
+            .play-button {
+                width: 60px;
+                height: 60px;
+                margin-bottom: 15px;
+            }
+
+            .play-icon {
+                border-left: 20px solid #667eea;
+                border-top: 12px solid transparent;
+                border-bottom: 12px solid transparent;
+                margin-left: 6px;
+            }
+        }
+
+        /* Ajustes adicionales para pantallas muy pequeñas */
+        @media (max-width: 400px) {
+            h1 {
+                font-size: 1.3em;
+            }
+
+            .number-display {
+                font-size: 1.3em;
+                padding: 12px;
+            }
+
+            .calc-btn {
+                padding: 10px 6px;
+                font-size: 0.9em;
+            }
+
+            .btn {
+                width: 100%;
+                margin: 3px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔢 Cifras Significativas</h1>
+            <p class="subtitle">Práctica interactiva para dominar las cifras significativas</p>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>📚 Tipo de Ejercicio</h2>
+                <div class="exercise-selector">
+                    <button class="mode-btn active" onclick="changeMode('contar')">
+                        Contar Cifras
+                    </button>
+                    <button class="mode-btn" onclick="changeMode('ajustar')">
+                        Ajustar Número
+                    </button>
+                    <button class="mode-btn" onclick="changeMode('operaciones')">
+                        Operaciones
+                    </button>
+                    <button class="mode-btn" onclick="changeMode('cientifica')">
+                        Notación Científica
+                    </button>
+                </div>
+
+                <div class="rules-box">
+                    <h3>💡 Recuerda las reglas:</h3>
+                    <ul id="rulesContent">
+                        <!-- Se llenará dinámicamente -->
+                    </ul>
+                </div>
+
+                <div id="videoSection" style="display: none;">
+                    <!-- Se llenará dinámicamente con vídeos -->
+                </div>
+
+                <div class="exercise-area">
+                    <div id="exerciseContent">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+
+                <div class="feedback" id="feedback"></div>
+
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-number" id="correctCount">0</div>
+                        <div class="stat-label">✅ Correctas</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="incorrectCount">0</div>
+                        <div class="stat-label">❌ Incorrectas</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="percentage">0%</div>
+                        <div class="stat-label">📊 Acierto</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            Desarrollado por Javier Gijón - IES María Moliner, Segovia
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'contar';
+        let currentExercise = {};
+        let stats = {
+            correct: 0,
+            incorrect: 0
+        };
+        let availableExercises = {
+            contar: [],
+            ajustar: [],
+            operaciones: [],
+            cientifica: []
+        };
+
+        const rules = {
+            contar: [
+                'Todos los dígitos distintos de cero son significativos',
+                'Los ceros entre dígitos distintos de cero son significativos',
+                'Los ceros a la izquierda NO son significativos',
+                'Los ceros a la derecha SÍ son significativos si hay coma decimal',
+                'En notación científica, todas las cifras del coeficiente son significativas'
+            ],
+            ajustar: [
+                'Redondea al número de cifras significativas indicado',
+                'Si el siguiente dígito es ≥5, redondea hacia arriba',
+                'Si el siguiente dígito es <5, mantén el dígito',
+                'Mantén los ceros finales si son significativos'
+            ],
+            operaciones: [
+                'SUMA Y RESTA: El resultado tiene tantos decimales como el número con menos decimales',
+                'MULTIPLICACIÓN Y DIVISIÓN: El resultado tiene tantas cifras significativas como el número con menos cifras',
+                'OPERACIONES COMBINADAS: Resuelve primero el paréntesis aplicando sus reglas, luego opera con ese resultado',
+                'Usa la calculadora virtual para hacer las operaciones',
+                'Introduce el resultado ajustado correctamente'
+            ],
+            cientifica: [
+                'Formato: a × 10ⁿ donde 1 ≤ a < 10',
+                'Usa × para la multiplicación (no x ni *)',
+                'Usa superíndices para el exponente: ⁰¹²³⁴⁵⁶⁷⁸⁹⁻',
+                'Solo usa signo negativo (⁻) para exponentes negativos',
+                'Ejemplos: 3.45 × 10⁶ o 2.1 × 10⁻³',
+                'Mantén las cifras significativas del número original'
+            ]
+        };
+
+        function updateRules() {
+            const rulesContent = document.getElementById('rulesContent');
+            rulesContent.innerHTML = rules[currentMode].map(rule => `<li>${rule}</li>`).join('');
+            updateVideos();
+        }
+
+        function updateVideos() {
+            const videoSection = document.getElementById('videoSection');
+            
+            if (currentMode === 'contar') {
+                videoSection.style.display = 'block';
+                videoSection.innerHTML = `
+                    <div class="video-box">
+                        <h3>🎥 Vídeo explicativo - Cifras Significativas</h3>
+                        <a href="https://www.youtube.com/watch?v=uCgnDfaOL04" target="_blank" style="text-decoration: none;">
+                            <div class="video-thumbnail">
+                                <div class="video-thumbnail-content">
+                                    <div class="play-button">
+                                        <div class="play-icon"></div>
+                                    </div>
+                                    <div class="video-title">Cifras Significativas</div>
+                                    <div class="video-subtitle">Haz clic para ver en YouTube</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                `;
+            } else if (currentMode === 'operaciones') {
+                videoSection.style.display = 'block';
+                videoSection.innerHTML = `
+                    <div class="video-box">
+                        <h3>🎥 Vídeo explicativo - Operaciones con Cifras Significativas</h3>
+                        <a href="https://www.youtube.com/watch?v=uCgnDfaOL04&t=451" target="_blank" style="text-decoration: none;">
+                            <div class="video-thumbnail">
+                                <div class="video-thumbnail-content">
+                                    <div class="play-button">
+                                        <div class="play-icon"></div>
+                                    </div>
+                                    <div class="video-title">Operaciones con Cifras Significativas</div>
+                                    <div class="video-subtitle">Empieza en min 7:31 • Haz clic para ver</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                `;
+            } else if (currentMode === 'cientifica') {
+                videoSection.style.display = 'block';
+                videoSection.innerHTML = `
+                    <div class="video-box">
+                        <h3>🎥 Vídeo explicativo - Notación Científica</h3>
+                        <a href="https://www.youtube.com/watch?v=Y5h8Tx3kJ7I" target="_blank" style="text-decoration: none;">
+                            <div class="video-thumbnail">
+                                <div class="video-thumbnail-content">
+                                    <div class="play-button">
+                                        <div class="play-icon"></div>
+                                    </div>
+                                    <div class="video-title">Notación Científica</div>
+                                    <div class="video-subtitle">Haz clic para ver en YouTube</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                `;
+            } else {
+                videoSection.style.display = 'none';
+            }
+        }
+
+        function changeMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            updateRules();
+            availableExercises[mode] = [];
+            generateExercise();
+            hideFeedback();
+        }
+
+        function generateExercise() {
+            if (currentMode === 'contar') {
+                generateCountExercise();
+            } else if (currentMode === 'ajustar') {
+                generateAdjustExercise();
+            } else if (currentMode === 'operaciones') {
+                generateOperationExercise();
+            } else if (currentMode === 'cientifica') {
+                generateScientificExercise();
+            }
+        }
+
+        function generateCountExercise() {
+            const fixedNumbers = [
+                { num: '0.00456', cs: 3 },
+                { num: '1200', cs: 2 },
+                { num: '1200.0', cs: 5 },
+                { num: '2.00 × 10³', cs: 3 },
+                { num: '0.020400', cs: 5 },
+                { num: '100', cs: 1 },
+                { num: '0.007080', cs: 4 }
+            ];
+
+            if (availableExercises.contar.length === 0) {
+                availableExercises.contar = [...fixedNumbers];
+                
+                for (let i = 0; i < 13; i++) {
+                    availableExercises.contar.push(generateRandomCountExercise());
+                }
+                
+                availableExercises.contar = shuffleArray(availableExercises.contar);
+            }
+
+            currentExercise = availableExercises.contar.shift();
+
+            document.getElementById('exerciseContent').innerHTML = `
+                <div class="question">¿Cuántas cifras significativas tiene el siguiente número?</div>
+                <div class="number-display">${currentExercise.num}</div>
+                <div class="input-group">
+                    <label>Número de cifras significativas:</label>
+                    <input type="number" inputmode="numeric" pattern="[0-9]*" id="answerInput" min="1" max="10" placeholder="Escribe tu respuesta">
+                </div>
+                <button class="btn btn-primary" onclick="checkAnswer()">Comprobar ✓</button>
+                <button class="btn btn-secondary" onclick="generateExercise()">Nuevo Ejercicio 🔄</button>
+                <div style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                    Ejercicios restantes: ${availableExercises.contar.length}
+                </div>
+            `;
+        }
+
+        function generateRandomCountExercise() {
+            const types = ['decimal_small', 'decimal_large', 'integer', 'scientific'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            let num, cs;
+            
+            switch(type) {
+                case 'decimal_small':
+                    const zeros = Math.floor(Math.random() * 3) + 1;
+                    const digits = Math.floor(Math.random() * 3) + 2;
+                    let numStr = '0.' + '0'.repeat(zeros);
+                    for (let i = 0; i < digits; i++) {
+                        numStr += Math.floor(Math.random() * 9) + 1;
+                    }
+                    if (Math.random() > 0.5) {
+                        numStr += '0'.repeat(Math.floor(Math.random() * 2) + 1);
+                        cs = numStr.replace('0.', '').replace(/^0+/, '').length;
+                    } else {
+                        cs = digits;
+                    }
+                    return { num: numStr, cs: cs };
+                    
+                case 'decimal_large':
+                    const intPart = Math.floor(Math.random() * 900) + 100;
+                    const decPart = Math.floor(Math.random() * 1000);
+                    num = `${intPart}.${decPart}`;
+                    cs = countSignificantFigures(num);
+                    return { num: num, cs: cs };
+                    
+                case 'integer':
+                    const base = Math.floor(Math.random() * 90) + 10;
+                    const trailingZeros = Math.floor(Math.random() * 3) + 1;
+                    num = base * Math.pow(10, trailingZeros);
+                    // Sin punto decimal - siempre entero simple
+                    cs = base.toString().length;
+                    return { num: num.toString(), cs: cs };
+                    
+                case 'scientific':
+                    const coefficient = (Math.random() * 9 + 1).toFixed(Math.floor(Math.random() * 2) + 1);
+                    const exponent = Math.floor(Math.random() * 7) - 3;
+                    cs = coefficient.replace('.', '').length;
+                    const expStr = numberToSuperscript(exponent);
+                    return { num: `${coefficient} × 10${expStr}`, cs: cs };
+            }
+        }
+
+        function generateAdjustExercise() {
+            const fixedNumbers = [
+                { num: 45.678, cs: 3 },
+                { num: 0.012345, cs: 2 },
+                { num: 1234.56, cs: 4 },
+                { num: 0.9876, cs: 2 },
+                { num: 123.456, cs: 3 },
+                { num: 0.0045678, cs: 3 },
+                { num: 9876.543, cs: 5 }
+            ];
+
+            if (availableExercises.ajustar.length === 0) {
+                availableExercises.ajustar = [...fixedNumbers];
+                
+                for (let i = 0; i < 13; i++) {
+                    availableExercises.ajustar.push(generateRandomAdjustExercise());
+                }
+                
+                availableExercises.ajustar = shuffleArray(availableExercises.ajustar);
+            }
+
+            const selected = availableExercises.ajustar.shift();
+            
+            currentExercise = {
+                original: selected.num,
+                targetCS: selected.cs,
+                answer: adjustToSignificantFigures(selected.num, selected.cs)
+            };
+
+            document.getElementById('exerciseContent').innerHTML = `
+                <div class="question">Ajusta el siguiente número a ${currentExercise.targetCS} cifras significativas:</div>
+                <div class="number-display">${currentExercise.original}</div>
+                <div class="input-group">
+                    <label>Número ajustado a ${currentExercise.targetCS} cifras significativas:</label>
+                    <input type="text" inputmode="decimal" id="answerInput" placeholder="Ejemplo: 1.23 o 0.0045">
+                </div>
+                <button class="btn btn-primary" onclick="checkAnswer()">Comprobar ✓</button>
+                <button class="btn btn-secondary" onclick="generateExercise()">Nuevo Ejercicio 🔄</button>
+                <div style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                    Ejercicios restantes: ${availableExercises.ajustar.length}
+                </div>
+            `;
+        }
+
+        function generateRandomAdjustExercise() {
+            // Generar un número con suficientes cifras significativas (entre 4 y 7)
+            const totalCS = Math.floor(Math.random() * 4) + 4; // 4-7 cifras
+            // Pedir ajustar a menos cifras (entre 2 y totalCS-1)
+            const targetCS = Math.floor(Math.random() * (totalCS - 2)) + 2; // mínimo 2, máximo totalCS-1
+            
+            const magnitude = Math.floor(Math.random() * 6) - 3; // -3 a +2
+            const baseNum = (Math.random() * 9 + 1) * Math.pow(10, magnitude);
+            const num = parseFloat(baseNum.toFixed(Math.max(0, Math.abs(magnitude) + totalCS - 2)));
+            
+            return { num: num, cs: targetCS };
+        }
+
+        function generateOperationExercise() {
+            const fixedOperations = [
+                { type: 'suma', a: 12.34, b: 5.6, op: '+', combined: false },
+                { type: 'resta', a: 45.678, b: 12.3, op: '-', combined: false },
+                { type: 'mult', a: 4.5, b: 2.34, op: '×', combined: false },
+                { type: 'combined', a: 15.5, b: 3.2, c: 2.1, op1: '+', op2: '×', combined: true },
+                { type: 'combined', a: 45.6, b: 12.3, c: 3.45, op1: '-', op2: '÷', combined: true },
+                { type: 'combined', a: 8.5, b: 2.0, c: 3.45, op1: '×', op2: '+', combined: true },
+                { type: 'combined', a: 100.5, b: 25.3, c: 4.2, op1: '-', op2: '×', combined: true }
+            ];
+
+            if (availableExercises.operaciones.length === 0) {
+                availableExercises.operaciones = [...fixedOperations];
+                
+                for (let i = 0; i < 6; i++) {
+                    availableExercises.operaciones.push(generateRandomSimpleOperation());
+                }
+                for (let i = 0; i < 7; i++) {
+                    availableExercises.operaciones.push(generateRandomCombinedOperation());
+                }
+                
+                availableExercises.operaciones = shuffleArray(availableExercises.operaciones);
+            }
+
+            const selected = availableExercises.operaciones.shift();
+            
+            if (selected.combined) {
+                currentExercise = {
+                    a: selected.a,
+                    b: selected.b,
+                    c: selected.c,
+                    op1: selected.op1,
+                    op2: selected.op2,
+                    type: 'combined',
+                    combined: true,
+                    answer: calculateCombinedOperation(selected.a, selected.b, selected.c, selected.op1, selected.op2)
+                };
+            } else {
+                currentExercise = {
+                    a: selected.a,
+                    b: selected.b,
+                    op: selected.op,
+                    type: selected.type,
+                    combined: false,
+                    answer: calculateOperation(selected.a, selected.b, selected.type)
+                };
+            }
+
+            document.getElementById('exerciseContent').innerHTML = `
+                <div class="question">Realiza la siguiente operación y da el resultado con las cifras significativas correctas:</div>
+                <div class="number-display">${currentExercise.combined ? 
+                    `(${currentExercise.a} ${currentExercise.op1} ${currentExercise.b}) ${currentExercise.op2} ${currentExercise.c} = ?` :
+                    `${currentExercise.a} ${currentExercise.op} ${currentExercise.b} = ?`
+                }</div>
+                
+                <div class="calculator">
+                    <div class="calc-display" id="calcDisplay">0</div>
+                    <div class="calc-buttons">
+                        <button class="calc-btn" onclick="addToCalc('7')">7</button>
+                        <button class="calc-btn" onclick="addToCalc('8')">8</button>
+                        <button class="calc-btn" onclick="addToCalc('9')">9</button>
+                        <button class="calc-btn operator" onclick="addToCalc('÷')">÷</button>
+                        
+                        <button class="calc-btn" onclick="addToCalc('4')">4</button>
+                        <button class="calc-btn" onclick="addToCalc('5')">5</button>
+                        <button class="calc-btn" onclick="addToCalc('6')">6</button>
+                        <button class="calc-btn operator" onclick="addToCalc('×')">×</button>
+                        
+                        <button class="calc-btn" onclick="addToCalc('1')">1</button>
+                        <button class="calc-btn" onclick="addToCalc('2')">2</button>
+                        <button class="calc-btn" onclick="addToCalc('3')">3</button>
+                        <button class="calc-btn operator" onclick="addToCalc('-')">-</button>
+                        
+                        <button class="calc-btn" onclick="addToCalc('0')">0</button>
+                        <button class="calc-btn" onclick="addToCalc('.')">.</button>
+                        <button class="calc-btn clear" onclick="clearCalc()">C</button>
+                        <button class="calc-btn operator" onclick="addToCalc('+')">+</button>
+                        
+                        <button class="calc-btn" onclick="addToCalc('(')">(</button>
+                        <button class="calc-btn" onclick="addToCalc(')')">)</button>
+                        <button class="calc-btn equals" onclick="calculateCalc()">=</button>
+                        <button class="calc-btn" onclick="deleteLastCalc()">←</button>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Resultado con cifras significativas correctas:</label>
+                    <input type="text" inputmode="decimal" id="answerInput" placeholder="Escribe el resultado ajustado">
+                </div>
+                <button class="btn btn-primary" onclick="checkAnswer()">Comprobar ✓</button>
+                <button class="btn btn-secondary" onclick="generateExercise()">Nuevo Ejercicio 🔄</button>
+                <div style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                    Ejercicios restantes: ${availableExercises.operaciones.length}
+                </div>
+            `;
+        }
+
+        function generateRandomSimpleOperation() {
+            const types = ['suma', 'resta', 'mult', 'div'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const ops = {suma: '+', resta: '-', mult: '×', div: '÷'};
+            
+            const a = parseFloat((Math.random() * 90 + 10).toFixed(Math.floor(Math.random() * 2) + 1));
+            const b = parseFloat((Math.random() * 9 + 1).toFixed(Math.floor(Math.random() * 2) + 1));
+            
+            return {
+                type: type,
+                a: a,
+                b: b,
+                op: ops[type],
+                combined: false
+            };
+        }
+
+        function generateRandomCombinedOperation() {
+            const ops = ['+', '-', '×', '÷'];
+            const op1 = ops[Math.floor(Math.random() * ops.length)];
+            const op2 = ops[Math.floor(Math.random() * ops.length)];
+            
+            const a = parseFloat((Math.random() * 90 + 10).toFixed(Math.floor(Math.random() * 2) + 1));
+            const b = parseFloat((Math.random() * 9 + 1).toFixed(Math.floor(Math.random() * 2) + 1));
+            const c = parseFloat((Math.random() * 9 + 1).toFixed(Math.floor(Math.random() * 2) + 1));
+            
+            return {
+                type: 'combined',
+                a: a,
+                b: b,
+                c: c,
+                op1: op1,
+                op2: op2,
+                combined: true
+            };
+        }
+
+        function generateScientificExercise() {
+            const fixedNumbers = [
+                { num: 45000, answer: '4.5 × 10⁴' },
+                { num: 0.00067, answer: '6.7 × 10⁻⁴' },
+                { num: 123000, answer: '1.23 × 10⁵' },
+                { num: 0.000456, answer: '4.56 × 10⁻⁴' },
+                { num: 78900, answer: '7.89 × 10⁴' },
+                { num: 0.00234, answer: '2.34 × 10⁻³' },
+                { num: 5670000, answer: '5.67 × 10⁶' }
+            ];
+
+            if (availableExercises.cientifica.length === 0) {
+                availableExercises.cientifica = [...fixedNumbers];
+                
+                for (let i = 0; i < 13; i++) {
+                    availableExercises.cientifica.push(generateRandomScientificExercise());
+                }
+                
+                availableExercises.cientifica = shuffleArray(availableExercises.cientifica);
+            }
+
+            currentExercise = availableExercises.cientifica.shift();
+
+            document.getElementById('exerciseContent').innerHTML = `
+                <div class="question">Expresa el siguiente número en notación científica:</div>
+                <div class="number-display">${currentExercise.num}</div>
+                
+                <div style="background: white; padding: 15px; border-radius: 10px; margin: 20px 0;">
+                    <div style="font-weight: 600; margin-bottom: 10px; color: #667eea;">🔢 Teclado de superíndices:</div>
+                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 10px;">
+                        <button class="calc-btn" onclick="addToInput('⁰')" style="padding: 10px;">⁰</button>
+                        <button class="calc-btn" onclick="addToInput('¹')" style="padding: 10px;">¹</button>
+                        <button class="calc-btn" onclick="addToInput('²')" style="padding: 10px;">²</button>
+                        <button class="calc-btn" onclick="addToInput('³')" style="padding: 10px;">³</button>
+                        <button class="calc-btn" onclick="addToInput('⁴')" style="padding: 10px;">⁴</button>
+                        <button class="calc-btn" onclick="addToInput('⁵')" style="padding: 10px;">⁵</button>
+                        <button class="calc-btn" onclick="addToInput('⁶')" style="padding: 10px;">⁶</button>
+                        <button class="calc-btn" onclick="addToInput('⁷')" style="padding: 10px;">⁷</button>
+                        <button class="calc-btn" onclick="addToInput('⁸')" style="padding: 10px;">⁸</button>
+                        <button class="calc-btn" onclick="addToInput('⁹')" style="padding: 10px;">⁹</button>
+                        <button class="calc-btn operator" onclick="addToInput('⁻')" style="padding: 10px; grid-column: span 2;">⁻</button>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="calc-btn operator" onclick="addToInput(' × 10')" style="padding: 10px; flex: 1;">× 10</button>
+                        <button class="calc-btn clear" onclick="clearInput()" style="padding: 10px;">Borrar</button>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>Número en notación científica:</label>
+                    <input type="text" id="answerInput" placeholder="Ejemplo: 3.45 × 10⁶" style="font-size: 1.2em;">
+                </div>
+                <button class="btn btn-primary" onclick="checkAnswer()">Comprobar ✓</button>
+                <button class="btn btn-secondary" onclick="generateExercise()">Nuevo Ejercicio 🔄</button>
+                <div style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                    Ejercicios restantes: ${availableExercises.cientifica.length}
+                </div>
+            `;
+        }
+
+        function generateRandomScientificExercise() {
+            // Generar exponente aleatorio entre -5 y 6
+            const exponent = Math.floor(Math.random() * 12) - 5;
+            // Generar coeficiente entre 1 y 10 con 2-3 cifras significativas
+            const coefficient = parseFloat((Math.random() * 9 + 1).toFixed(Math.floor(Math.random() * 2) + 1));
+            
+            // Calcular el número original
+            const num = coefficient * Math.pow(10, exponent);
+            
+            // Crear la respuesta en notación científica con superíndices
+            const answer = toScientificNotation(num);
+            
+            return { num: num, answer: answer };
+        }
+
+        function toScientificNotation(num) {
+            if (num === 0) return '0';
+            
+            const exponent = Math.floor(Math.log10(Math.abs(num)));
+            const coefficient = num / Math.pow(10, exponent);
+            
+            // Formatear el coeficiente manteniendo cifras significativas
+            let coefStr = coefficient.toPrecision(countSignificantFiguresFromNumber(num));
+            coefStr = parseFloat(coefStr).toString(); // Eliminar ceros innecesarios
+            
+            // Convertir exponente a superíndice
+            const expStr = numberToSuperscript(exponent);
+            
+            return `${coefStr} × 10${expStr}`;
+        }
+
+        function numberToSuperscript(num) {
+            const superscripts = {
+                '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
+                '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+                '-': '⁻'
+            };
+            
+            // Convertir a string y eliminar el signo + si existe
+            const numStr = num.toString().replace('+', '');
+            return numStr.split('').map(char => superscripts[char] || char).join('');
+        }
+
+        function countSignificantFiguresFromNumber(num) {
+            // Contar cifras significativas de un número
+            const str = num.toString();
+            if (str.includes('e')) {
+                return str.split('e')[0].replace('.', '').replace('-', '').length;
+            }
+            return countSignificantFigures(str);
+        }
+
+        function addToInput(text) {
+            const input = document.getElementById('answerInput');
+            input.value += text;
+            input.focus();
+        }
+
+        function clearInput() {
+            const input = document.getElementById('answerInput');
+            input.value = '';
+            input.focus();
+        }
+
+        let calcExpression = '0';
+        let calcResult = null;
+
+        function addToCalc(value) {
+            const display = document.getElementById('calcDisplay');
+            if (calcExpression === '0' && value !== '.') {
+                calcExpression = value;
+            } else {
+                calcExpression += value;
+            }
+            display.textContent = calcExpression;
+        }
+
+        function clearCalc() {
+            calcExpression = '0';
+            calcResult = null;
+            document.getElementById('calcDisplay').textContent = '0';
+        }
+
+        function deleteLastCalc() {
+            if (calcExpression.length > 1) {
+                calcExpression = calcExpression.slice(0, -1);
+            } else {
+                calcExpression = '0';
+            }
+            document.getElementById('calcDisplay').textContent = calcExpression;
+        }
+
+        function calculateCalc() {
+            try {
+                let expression = calcExpression.replace(/×/g, '*').replace(/÷/g, '/');
+                calcResult = eval(expression);
+                document.getElementById('calcDisplay').textContent = calcResult;
+                calcExpression = calcResult.toString();
+            } catch (error) {
+                document.getElementById('calcDisplay').textContent = 'Error';
+            }
+        }
+
+        function adjustToSignificantFigures(num, sigFigs) {
+            if (num === 0) return 0;
+            const multiplier = Math.pow(10, sigFigs - Math.floor(Math.log10(Math.abs(num))) - 1);
+            return Math.round(num * multiplier) / multiplier;
+        }
+
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        function calculateOperation(a, b, type) {
+            let result;
+            switch (type) {
+                case 'suma':
+                    result = a + b;
+                    const decimalsA = (a.toString().split('.')[1] || '').length;
+                    const decimalsB = (b.toString().split('.')[1] || '').length;
+                    const minDecimals = Math.min(decimalsA, decimalsB);
+                    return result.toFixed(minDecimals);
+                case 'resta':
+                    result = a - b;
+                    const decimalsA2 = (a.toString().split('.')[1] || '').length;
+                    const decimalsB2 = (b.toString().split('.')[1] || '').length;
+                    const minDecimals2 = Math.min(decimalsA2, decimalsB2);
+                    return result.toFixed(minDecimals2);
+                case 'mult':
+                    result = a * b;
+                    const csA = countSignificantFigures(a.toString());
+                    const csB = countSignificantFigures(b.toString());
+                    return adjustToSignificantFigures(result, Math.min(csA, csB));
+                case 'div':
+                    result = a / b;
+                    const csA2 = countSignificantFigures(a.toString());
+                    const csB2 = countSignificantFigures(b.toString());
+                    return adjustToSignificantFigures(result, Math.min(csA2, csB2));
+            }
+        }
+
+        function calculateCombinedOperation(a, b, c, op1, op2) {
+            let intermediate;
+            let intermediateType;
+            
+            if (op1 === '+') {
+                intermediate = a + b;
+                intermediateType = 'suma';
+            } else if (op1 === '-') {
+                intermediate = a - b;
+                intermediateType = 'resta';
+            } else if (op1 === '×') {
+                intermediate = a * b;
+                intermediateType = 'mult';
+            } else if (op1 === '÷') {
+                intermediate = a / b;
+                intermediateType = 'div';
+            }
+
+            let intermediateResult;
+            if (intermediateType === 'suma' || intermediateType === 'resta') {
+                const decimalsA = (a.toString().split('.')[1] || '').length;
+                const decimalsB = (b.toString().split('.')[1] || '').length;
+                const minDecimals = Math.min(decimalsA, decimalsB);
+                intermediateResult = parseFloat(intermediate.toFixed(minDecimals));
+            } else {
+                const csA = countSignificantFigures(a.toString());
+                const csB = countSignificantFigures(b.toString());
+                intermediateResult = adjustToSignificantFigures(intermediate, Math.min(csA, csB));
+            }
+
+            let finalResult;
+            let finalType;
+            
+            if (op2 === '+') {
+                finalResult = intermediateResult + c;
+                finalType = 'suma';
+            } else if (op2 === '-') {
+                finalResult = intermediateResult - c;
+                finalType = 'resta';
+            } else if (op2 === '×') {
+                finalResult = intermediateResult * c;
+                finalType = 'mult';
+            } else if (op2 === '÷') {
+                finalResult = intermediateResult / c;
+                finalType = 'div';
+            }
+
+            if (finalType === 'suma' || finalType === 'resta') {
+                const decimalsInt = (intermediateResult.toString().split('.')[1] || '').length;
+                const decimalsC = (c.toString().split('.')[1] || '').length;
+                const minDecimals = Math.min(decimalsInt, decimalsC);
+                return finalResult.toFixed(minDecimals);
+            } else {
+                const csInt = countSignificantFigures(intermediateResult.toString());
+                const csC = countSignificantFigures(c.toString());
+                return adjustToSignificantFigures(finalResult, Math.min(csInt, csC));
+            }
+        }
+
+        function countSignificantFigures(numStr) {
+            numStr = numStr.replace(/×.*/, '').trim();
+            if (numStr.includes('.')) {
+                return numStr.replace('.', '').replace(/^0+/, '').length;
+            } else {
+                return numStr.replace(/0+$/, '').length;
+            }
+        }
+
+        function checkAnswer() {
+            const input = document.getElementById('answerInput').value.trim();
+            const feedback = document.getElementById('feedback');
+            let isCorrect = false;
+
+            if (!input) {
+                feedback.className = 'feedback incorrect';
+                feedback.textContent = '⚠️ Por favor, introduce una respuesta';
+                feedback.style.display = 'block';
+                return;
+            }
+
+            if (currentMode === 'contar') {
+                isCorrect = parseInt(input) === currentExercise.cs;
+                if (isCorrect) {
+                    feedback.className = 'feedback correct';
+                    feedback.textContent = `🎉 ¡Correcto! El número ${currentExercise.num} tiene ${currentExercise.cs} cifras significativas.`;
+                } else {
+                    feedback.className = 'feedback incorrect';
+                    feedback.textContent = `❌ Incorrecto. El número ${currentExercise.num} tiene ${currentExercise.cs} cifras significativas. Revisa las reglas y vuelve a intentarlo.`;
+                }
+            } else if (currentMode === 'ajustar') {
+                const userAnswer = parseFloat(input);
+                const correctAnswer = parseFloat(currentExercise.answer);
+                isCorrect = Math.abs(userAnswer - correctAnswer) < 0.0001;
+                if (isCorrect) {
+                    feedback.className = 'feedback correct';
+                    feedback.textContent = `🎉 ¡Correcto! ${currentExercise.original} ajustado a ${currentExercise.targetCS} cifras es ${currentExercise.answer}.`;
+                } else {
+                    feedback.className = 'feedback incorrect';
+                    feedback.textContent = `❌ Incorrecto. La respuesta correcta es ${currentExercise.answer}. Recuerda redondear correctamente.`;
+                }
+            } else if (currentMode === 'operaciones') {
+                const userAnswer = parseFloat(input);
+                const correctAnswer = parseFloat(currentExercise.answer);
+                isCorrect = Math.abs(userAnswer - correctAnswer) < 0.001;
+                if (isCorrect) {
+                    feedback.className = 'feedback correct';
+                    feedback.textContent = `🎉 ¡Correcto! El resultado es ${currentExercise.answer} con las cifras significativas apropiadas.`;
+                } else {
+                    feedback.className = 'feedback incorrect';
+                    if (currentExercise.combined) {
+                        feedback.textContent = `❌ Incorrecto. El resultado correcto es ${currentExercise.answer}. Recuerda: primero resuelve el paréntesis aplicando sus reglas, luego opera con ese resultado.`;
+                    } else {
+                        feedback.textContent = `❌ Incorrecto. El resultado correcto es ${currentExercise.answer}. Recuerda aplicar las reglas de operaciones con cifras significativas.`;
+                    }
+                }
+            } else if (currentMode === 'cientifica') {
+                // Normalizar espacios para comparación
+                const normalizedInput = input.replace(/\s+/g, ' ').trim();
+                const normalizedAnswer = currentExercise.answer.replace(/\s+/g, ' ').trim();
+                isCorrect = normalizedInput === normalizedAnswer;
+                
+                if (isCorrect) {
+                    feedback.className = 'feedback correct';
+                    feedback.textContent = `🎉 ¡Correcto! ${currentExercise.num} en notación científica es ${currentExercise.answer}.`;
+                } else {
+                    feedback.className = 'feedback incorrect';
+                    feedback.textContent = `❌ Incorrecto. La respuesta correcta es ${currentExercise.answer}. Recuerda el formato: a × 10ⁿ donde 1 ≤ a < 10.`;
+                }
+            }
+
+            feedback.style.display = 'block';
+            updateStats(isCorrect);
+        }
+
+        function updateStats(isCorrect) {
+            if (isCorrect) {
+                stats.correct++;
+            } else {
+                stats.incorrect++;
+            }
+
+            document.getElementById('correctCount').textContent = stats.correct;
+            document.getElementById('incorrectCount').textContent = stats.incorrect;
+
+            const total = stats.correct + stats.incorrect;
+            const percentage = total > 0 ? Math.round((stats.correct / total) * 100) : 0;
+            document.getElementById('percentage').textContent = percentage + '%';
+        }
+
+        function hideFeedback() {
+            document.getElementById('feedback').style.display = 'none';
+        }
+
+        updateRules();
+        generateExercise();
+
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const input = document.getElementById('answerInput');
+                if (input === document.activeElement) {
+                    checkAnswer();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
