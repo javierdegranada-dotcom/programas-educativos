@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Velocidad Media y Aceleración Media</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: #f5f5f5;
+  color: #1a1a2e;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.app-header {
+  text-align: center;
+  padding: 20px 16px 10px;
+  background: #fff;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.app-header h1 {
+  font-size: clamp(1.3rem, 3.5vw, 2rem);
+  font-weight: 800;
+  color: #0066aa;
+}
+
+.app-header .subtitle {
+  font-size: 0.9rem;
+  color: #555;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+.mode-selector {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #fff;
+  flex-wrap: wrap;
+}
+
+.mode-btn {
+  font-family: 'Outfit', sans-serif;
+  padding: 10px 20px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  color: #888;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.mode-btn.active {
+  border-color: #0066aa;
+  background: #e8f4fd;
+  color: #0066aa;
+  box-shadow: 0 2px 10px rgba(0,102,170,0.12);
+}
+
+.mode-btn:hover:not(.active) { border-color: #aaa; color: #555; }
+
+.help-btn {
+  font-family: 'Outfit', sans-serif;
+  padding: 10px 20px;
+  border: 2px solid #ffd740;
+  border-radius: 10px;
+  background: #fff8e1;
+  color: #f57f17;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.help-btn:hover {
+  background: #ffe57f;
+  transform: translateY(-1px);
+}
+
+/* Modal Styles */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: #fff;
+  width: 100%;
+  max-width: 600px;
+  border-radius: 16px;
+  padding: 24px;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 12px;
+}
+
+.modal-header h2 {
+  font-size: 1.4rem;
+  color: #0066aa;
+  font-weight: 800;
+}
+
+.close-modal-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #888;
+  cursor: pointer;
+  padding: 0 8px;
+  transition: color 0.2s;
+}
+
+.close-modal-btn:hover { color: #d32f2f; }
+
+.modal-body p {
+  margin-bottom: 12px;
+  line-height: 1.5;
+  color: #444;
+}
+
+.modal-body strong { color: #e65100; }
+
+.modal-footer {
+  margin-top: 20px;
+  text-align: right;
+}
+
+.modal-ok-btn {
+  background: #0066aa;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+}
+
+.modal-ok-btn:hover { background: #00558f; }
+
+.canvas-container {
+  width: 100%;
+  max-width: 920px;
+  margin: 14px auto;
+  padding: 0 16px;
+}
+
+canvas {
+  width: 100%;
+  border-radius: 14px;
+  border: 2px solid #d0d0d0;
+  display: block;
+  background: #fff;
+}
+
+.graph-container {
+  width: 100%;
+  max-width: 920px;
+  margin: 10px auto;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.graph-header {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #555;
+  margin-left: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.graph-legend {
+  font-size: 0.75rem;
+  background: #eee;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #666;
+}
+
+#graphCanvas {
+  border-color: #b0bec5;
+  height: 220px; /* Altura fija para la gráfica */
+  background: #fff;
+}
+
+.controls-panel {
+  max-width: 920px;
+  margin: 10px auto;
+  padding: 0 16px;
+}
+
+.control-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+.control-group label {
+  font-size: 0.82rem;
+  color: #555;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.control-group input[type="number"] {
+  font-family: 'Space Mono', monospace;
+  width: 72px;
+  padding: 6px 8px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  background: #fafafa;
+  color: #0066aa;
+  font-size: 0.9rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+.control-group input[type="number"]:focus {
+  outline: none;
+  border-color: #0066aa;
+  background: #fff;
+}
+
+.sr-toggle, .direction-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+.sr-toggle label, .direction-indicator label {
+  font-size: 0.82rem;
+  color: #555;
+  font-weight: 600;
+}
+
+.toggle-btn {
+  font-family: 'Outfit', sans-serif;
+  padding: 6px 16px;
+  border: 2px solid #e65100;
+  border-radius: 8px;
+  background: #fff3e0;
+  color: #e65100;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-btn:hover { background: #ffe0b2; }
+
+.dir-btn {
+  font-family: 'Outfit', sans-serif;
+  padding: 6px 16px;
+  border: 2px solid #2e7d32;
+  border-radius: 8px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dir-btn:hover { background: #c8e6c9; }
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin: 14px 0;
+}
+
+.action-btn {
+  font-family: 'Outfit', sans-serif;
+  padding: 11px 26px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-start { background: #2e7d32; color: #fff; }
+.btn-start:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(46,125,50,0.3); }
+.btn-stop { background: #c62828; color: #fff; }
+.btn-stop:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(198,40,40,0.3); }
+.btn-reset { background: #fff; color: #777; border: 2px solid #ccc; }
+.btn-reset:hover { color: #333; border-color: #999; }
+.btn-new { background: #0066aa; color: #fff; }
+.btn-new:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,102,170,0.3); }
+
+.results-panel {
+  max-width: 920px;
+  margin: 10px auto;
+  padding: 0 16px 30px;
+}
+
+.results-card {
+  background: #fff;
+  border: 2px solid #ddd;
+  border-radius: 14px;
+  padding: 18px 22px;
+  display: none;
+}
+
+.results-card.visible { display: block; animation: fadeIn 0.4s ease; }
+
+@keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+.results-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #e65100;
+  margin-bottom: 14px;
+}
+
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.data-item {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: center;
+  border: 1px solid #eee;
+}
+
+.data-item .data-label {
+  font-size: 0.72rem;
+  color: #888;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.data-item .data-value {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.15rem;
+  color: #0066aa;
+  margin-top: 3px;
+  font-weight: 700;
+}
+
+.data-row-label {
+  grid-column: 1 / -1;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 4px 0 0;
+  border-top: 1px solid #eee;
+  margin-top: 2px;
+}
+
+.data-row-label:first-child {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.formula-box {
+  background: #e8f4fd;
+  border: 2px solid #b3d9f2;
+  border-radius: 12px;
+  padding: 18px 20px;
+  text-align: center;
+}
+
+.formula-box .formula-label {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.formula-box .formula-result {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.35rem;
+  color: #2e7d32;
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+.frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  margin: 0 3px;
+}
+
+.frac .frac-num,
+.frac .frac-den {
+  padding: 2px 8px;
+  text-align: center;
+  line-height: 1.35;
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.frac .frac-num {
+  border-bottom: 2.5px solid #666;
+}
+
+.frac-big .frac-num,
+.frac-big .frac-den {
+  font-size: 1rem;
+  padding: 3px 12px;
+}
+
+.frac-big .frac-num {
+  border-bottom-width: 3px;
+  border-color: #0066aa;
+}
+
+.frac-result .frac-num,
+.frac-result .frac-den {
+  color: #0066aa;
+  font-size: 1.05rem;
+  padding: 3px 10px;
+}
+
+.frac-result .frac-num {
+  border-color: #0066aa;
+  border-bottom-width: 3px;
+}
+
+.formula-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 12px 0;
+  flex-wrap: wrap;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.95rem;
+  color: #333;
+  font-weight: 700;
+}
+
+.formula-line .sym {
+  font-size: 1.1rem;
+  color: #555;
+}
+
+.formula-interpretation {
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: #888;
+  font-weight: 500;
+}
+
+.velocity-inputs { display: none; }
+.velocity-inputs.visible { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.info-badge {
+  display: inline-block;
+  background: #fff3e0;
+  border: 1px solid #ffcc80;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  color: #e65100;
+  font-weight: 500;
+}
+
+@media (max-width: 600px) {
+  .control-group { padding: 6px 10px; }
+  .control-group input[type="number"] { width: 62px; }
+  .data-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .data-item { padding: 8px 6px; }
+  .data-item .data-label { font-size: 0.62rem; }
+  .data-item .data-value { font-size: 0.95rem; }
+  .action-btn { padding: 9px 16px; font-size: 0.84rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1>🚗 Velocidad Media y Aceleración Media</h1>
+  <div class="subtitle">Programa realizado por Javier Gijón. Prof del IES María Moliner (Segovia).</div>
+</div>
+
+<div class="mode-selector">
+  <button class="mode-btn active" onclick="setMode('velocity')">📏 Velocidad Media</button>
+  <button class="mode-btn" onclick="setMode('acceleration')">🏎️ Aceleración Media</button>
+  <button class="help-btn" onclick="toggleHelp()">❓ Ayuda</button>
+</div>
+
+<!-- Modal de Ayuda -->
+<div class="modal-overlay" id="helpModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>¿Cómo funciona?</h2>
+      <button class="close-modal-btn" onclick="toggleHelp()">×</button>
+    </div>
+    <div class="modal-body">
+      <p>Bienvenido al simulador de cinemática.</p>
+      <p><strong>📏 Modo Velocidad Media:</strong><br>
+      Elige la posición inicial y la velocidad constante del coche. Pulsa <em>"Mover Coche"</em> para ver cómo avanza. Al pulsar <em>"Parar"</em>, se calculará automáticamente la velocidad media usando el desplazamiento y el tiempo transcurrido.</p>
+      
+      <p><strong>🏎️ Modo Aceleración Media:</strong><br>
+      Configura la velocidad inicial. El programa generará una <strong>aceleración secreta</strong> aleatoria. Debes dejar que el coche se mueva unos segundos y pararlo. El programa te mostrará cómo ha cambiado la velocidad y calculará la aceleración media.</p>
+      
+      <p>¡Usa la gráfica inferior para analizar el movimiento en tiempo real!</p>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-ok-btn" onclick="toggleHelp()">¡Entendido!</button>
+    </div>
+  </div>
+</div>
+
+<div class="canvas-container">
+  <canvas id="simCanvas" width="900" height="320"></canvas>
+</div>
+
+<div class="controls-panel">
+  <div class="control-row" style="justify-content: center;">
+    <div class="sr-toggle">
+      <label>Eje X:</label>
+      <button class="toggle-btn" id="toggleSR" onclick="toggleAxisDirection()">→ Derecha (+)</button>
+    </div>
+    <div class="direction-indicator">
+      <label>Mover coche:</label>
+      <button class="dir-btn" id="toggleDir" onclick="toggleCarDirection()">→ Derecha</button>
+    </div>
+  </div>
+
+  <div class="control-row" style="justify-content: center;">
+    <div class="control-group">
+      <label>Pos. inicial (m):</label>
+      <input type="number" id="posInicial" value="0" step="10">
+    </div>
+    <div class="control-group" id="carSpeedGroup">
+      <label>Vel. coche (m/s):</label>
+      <input type="number" id="carSpeed" value="20" min="5" max="80" step="5">
+    </div>
+    <div class="control-group velocity-input-inline" id="v0Group" style="display:none;">
+      <label>v₀ (m/s):</label>
+      <input type="number" id="v0Input" value="10" step="5" min="0">
+    </div>
+    <div class="control-group">
+      <label>t₀ (s):</label>
+      <input type="number" id="t0Input" value="0" min="0" step="1">
+    </div>
+  </div>
+
+  <div class="control-row velocity-inputs" id="velInputs" style="justify-content: center;">
+    <div class="info-badge">⚡ El coche tiene una aceleración oculta (entre −5 y +5 m/s²). ¡Para el coche y calcúlala!</div>
+  </div>
+
+  <div class="action-buttons">
+    <button class="action-btn btn-start" id="btnStart" onclick="startSimulation()">▶ Mover Coche</button>
+    <button class="action-btn btn-stop" id="btnStop" onclick="stopSimulation()" style="display:none;">⏹ Parar</button>
+    <button class="action-btn btn-reset" onclick="resetSimulation()">↺ Reiniciar</button>
+    <button class="action-btn btn-new" onclick="generateRandom()">🎲 Aleatorio</button>
+  </div>
+</div>
+
+<div class="graph-container">
+  <div class="graph-header">
+    <span id="graphTitle">📈 Gráfica: Posición vs Tiempo (x-t)</span>
+    <span class="graph-legend" id="graphLegend">Eje Y: Posición (m)</span>
+  </div>
+  <canvas id="graphCanvas" width="900" height="220"></canvas>
+</div>
+
+<div class="results-panel">
+  <div class="results-card" id="resultsCard">
+    <div class="results-title" id="resultsTitle">📊 Datos del movimiento</div>
+    <div class="data-grid" id="dataGrid"></div>
+    <div class="formula-box" id="formulaBox"></div>
+  </div>
+</div>
+
+<script>
+var canvas = document.getElementById('simCanvas');
+var ctx = canvas.getContext('2d');
+
+var graphCanvas = document.getElementById('graphCanvas');
+var gCtx = graphCanvas.getContext('2d');
+
+var ROAD_Y = 195;
+var ROAD_HEIGHT = 60;
+var SCALE = 3;
+var CANVAS_W = 900;
+var CANVAS_H = 320;
+var CAR_W = 62;
+var CAR_H = 28;
+
+var mode = 'velocity';
+var axisRight = true;
+var carDirRight = true;
+var isAnimating = false;
+var animId = null;
+var carWorldX = 0;
+var carStartX = 0;
+var startTime = 0;
+var elapsedTime = 0;
+var currentSpeed = 0;
+var markerStart = null;
+var markerEnd = null;
+var cameraX = 0;
+
+// Acceleration mode state
+var accelMode = false;       // is acceleration mode active in this run
+var accelRate = 0;           // acceleration in m/s² (world, signed)
+var currentWorldSpeed = 0;   // current speed in m/s (signed, world coords)
+var targetVfDefined = false; // was vf specified by user?
+var targetVf = 0;            // target vf in m/s (absolute, unsigned)
+var finalVfReached = 0;      // actual vf when stopped (signed, axis frame)
+var hiddenAccelForResults = 0; // hidden acceleration in axis frame (for verification)
+
+// Graph state
+var graphData = [];
+
+function toggleHelp() {
+  var modal = document.getElementById('helpModal');
+  if (modal.style.display === 'flex') {
+    modal.style.display = 'none';
+  } else {
+    modal.style.display = 'flex';
+  }
+}
+
+// Close modal when clicking outside
+document.getElementById('helpModal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    this.style.display = 'none';
+  }
+});
+
+function setMode(m) {
+  mode = m;
+  var btns = document.querySelectorAll('.mode-btn');
+  btns[0].classList.toggle('active', m === 'velocity');
+  btns[1].classList.toggle('active', m === 'acceleration');
+  var isAccel = m === 'acceleration';
+  document.getElementById('velInputs').classList.toggle('visible', isAccel);
+  document.getElementById('carSpeedGroup').style.display = isAccel ? 'none' : 'flex';
+  document.getElementById('v0Group').style.display = isAccel ? 'flex' : 'none';
+  document.getElementById('resultsCard').classList.remove('visible');
+  
+  // Update graph title
+  if (isAccel) {
+    document.getElementById('graphTitle').innerText = '📈 Gráfica: Velocidad vs Tiempo (v-t)';
+    document.getElementById('graphLegend').innerText = 'Eje Y: Velocidad (m/s)';
+  } else {
+    document.getElementById('graphTitle').innerText = '📈 Gráfica: Posición vs Tiempo (x-t)';
+    document.getElementById('graphLegend').innerText = 'Eje Y: Posición (m)';
+  }
+  
+  resetSimulation();
+}
+
+function toggleAxisDirection() {
+  axisRight = !axisRight;
+  document.getElementById('toggleSR').textContent = axisRight ? '\u2192 Derecha (+)' : '\u2190 Izquierda (+)';
+  if (!isAnimating) {
+      drawScene();
+      // Redraw graph if data exists (to flip values)
+      if (graphData.length > 0) {
+          recalcGraphDataOnAxisChange();
+          drawGraph();
+      }
+  }
+}
+
+function toggleCarDirection() {
+  carDirRight = !carDirRight;
+  document.getElementById('toggleDir').textContent = carDirRight ? '\u2192 Derecha' : '\u2190 Izquierda';
+  if (!isAnimating) drawScene();
+}
+
+// ─── Graph Logic ───
+
+function initGraph() {
+    graphData = [];
+    drawGraph();
+}
+
+function recalcGraphDataOnAxisChange() {
+    // If user flips axis after stop, we simply negate the Y values for consistency
+    for(var i=0; i<graphData.length; i++) {
+        graphData[i].y = -graphData[i].y;
+    }
+}
+
+function drawGraph() {
+    var w = graphCanvas.width;
+    var h = graphCanvas.height;
+    gCtx.clearRect(0, 0, w, h);
+    
+    // Config
+    var margin = { top: 20, right: 30, bottom: 30, left: 50 };
+    var gw = w - margin.left - margin.right;
+    var gh = h - margin.top - margin.bottom;
+
+    // Draw Background Grid
+    gCtx.strokeStyle = '#eee';
+    gCtx.lineWidth = 1;
+    gCtx.beginPath();
+    // Horizontal lines
+    for(var i=0; i<=4; i++) {
+        var y = margin.top + (gh * i) / 4;
+        gCtx.moveTo(margin.left, y);
+        gCtx.lineTo(w - margin.right, y);
+    }
+    // Vertical lines
+    for(var i=0; i<=5; i++) {
+        var x = margin.left + (gw * i) / 5;
+        gCtx.moveTo(x, margin.top);
+        gCtx.lineTo(x, h - margin.bottom);
+    }
+    gCtx.stroke();
+
+    if (graphData.length === 0) {
+        // Draw empty axes
+        drawGraphAxes(margin, gw, gh, 0, 10, -10, 10);
+        gCtx.fillStyle = '#aaa';
+        gCtx.textAlign = 'center';
+        gCtx.font = '14px Outfit, sans-serif';
+        gCtx.fillText('Dale a "Mover Coche" para ver la gráfica', w/2, h/2);
+        return;
+    }
+
+    // Determine Ranges
+    // Modification: Always start Time at 0 (Origin) per request
+    var minT = 0;
+    var maxT = graphData[graphData.length-1].t;
+    
+    // Ensure at least 5 seconds on X
+    if (maxT < 5) maxT = 5;
+
+    var minY = Infinity, maxY = -Infinity;
+    for(var i=0; i<graphData.length; i++) {
+        if(graphData[i].y < minY) minY = graphData[i].y;
+        if(graphData[i].y > maxY) maxY = graphData[i].y;
+    }
+
+    // Add padding to Y
+    var rangeY = maxY - minY;
+    if (rangeY === 0) rangeY = 10;
+    
+    // Modification: Try to include Y=0 if it is within reasonable range (100% of range height)
+    if (minY > 0 && minY <= rangeY) minY = 0;
+    if (maxY < 0 && maxY >= -rangeY) maxY = 0;
+
+    minY -= rangeY * 0.1;
+    maxY += rangeY * 0.1;
+
+    // Center Y axis if possible (e.g. if crossing zero)
+    // (Already handled above with stricter check, but ensuring bounds)
+    if (minY > 0 && minY < rangeY/2) minY = 0;
+    if (maxY < 0 && maxY > -rangeY/2) maxY = 0;
+    
+    // Symmetrical Y axis for better view if close to 0
+    if (minY < 0 && maxY > 0) {
+        var maxAbs = Math.max(Math.abs(minY), Math.abs(maxY));
+        minY = -maxAbs;
+        maxY = maxAbs;
+    }
+
+    drawGraphAxes(margin, gw, gh, minT, maxT, minY, maxY);
+    drawGraphLine(margin, gw, gh, minT, maxT, minY, maxY);
+}
+
+function drawGraphAxes(margin, gw, gh, minT, maxT, minY, maxY) {
+    gCtx.strokeStyle = '#666';
+    gCtx.lineWidth = 2;
+    gCtx.font = '11px "Space Mono", monospace';
+    gCtx.fillStyle = '#444';
+    gCtx.textAlign = 'center';
+    gCtx.textBaseline = 'middle';
+
+    // X Axis
+    gCtx.beginPath();
+    gCtx.moveTo(margin.left, margin.top + gh);
+    gCtx.lineTo(margin.left + gw, margin.top + gh);
+    gCtx.stroke();
+    
+    // X Labels (min, mid, max)
+    gCtx.fillText(minT.toFixed(1) + 's', margin.left, margin.top + gh + 15);
+    gCtx.fillText(maxT.toFixed(1) + 's', margin.left + gw, margin.top + gh + 15);
+
+    // Y Axis
+    gCtx.beginPath();
+    gCtx.moveTo(margin.left, margin.top);
+    gCtx.lineTo(margin.left, margin.top + gh);
+    gCtx.stroke();
+
+    // Y Labels (min, max, zero if present)
+    gCtx.textAlign = 'right';
+    gCtx.fillText(maxY.toFixed(1), margin.left - 8, margin.top);
+    gCtx.fillText(minY.toFixed(1), margin.left - 8, margin.top + gh);
+    
+    // Draw Zero Line if visible
+    if (minY < 0 && maxY > 0) {
+        var zeroY = margin.top + gh - ((0 - minY) / (maxY - minY)) * gh;
+        gCtx.strokeStyle = '#bbb';
+        gCtx.lineWidth = 1;
+        gCtx.beginPath();
+        gCtx.moveTo(margin.left, zeroY);
+        gCtx.lineTo(margin.left + gw, zeroY);
+        gCtx.stroke();
+        gCtx.fillStyle = '#666';
+        gCtx.fillText('0', margin.left - 8, zeroY);
+    }
+}
+
+function drawGraphLine(margin, gw, gh, minT, maxT, minY, maxY) {
+    gCtx.strokeStyle = mode === 'velocity' ? '#0066aa' : '#e65100';
+    gCtx.lineWidth = 3;
+    gCtx.lineJoin = 'round';
+    gCtx.beginPath();
+
+    for(var i=0; i<graphData.length; i++) {
+        var d = graphData[i];
+        // Normalize
+        var normT = (d.t - minT) / (maxT - minT);
+        var normY = (d.y - minY) / (maxY - minY);
+        
+        var px = margin.left + normT * gw;
+        var py = margin.top + gh - (normY * gh);
+
+        if (i === 0) gCtx.moveTo(px, py);
+        else gCtx.lineTo(px, py);
+    }
+    gCtx.stroke();
+    
+    // Helper to plot point with dashed projections
+    function plotPoint(dataPoint, color) {
+        var normT = (dataPoint.t - minT) / (maxT - minT);
+        var normY = (dataPoint.y - minY) / (maxY - minY);
+        var px = margin.left + normT * gw;
+        var py = margin.top + gh - (normY * gh);
+
+        // Draw Dashed Projections
+        gCtx.save();
+        gCtx.setLineDash([4, 3]);
+        gCtx.lineWidth = 1.5;
+        gCtx.strokeStyle = color;
+        gCtx.globalAlpha = 0.6; 
+
+        // Vertical line to X axis
+        gCtx.beginPath();
+        gCtx.moveTo(px, py);
+        gCtx.lineTo(px, margin.top + gh);
+        gCtx.stroke();
+        
+        // Horizontal line to Y axis
+        gCtx.beginPath();
+        gCtx.moveTo(px, py);
+        gCtx.lineTo(margin.left, py);
+        gCtx.stroke();
+        gCtx.restore();
+
+        // Draw Point Circle
+        gCtx.fillStyle = '#fff';
+        gCtx.strokeStyle = color;
+        gCtx.lineWidth = 2;
+        gCtx.beginPath();
+        gCtx.arc(px, py, 4, 0, Math.PI*2);
+        gCtx.fill();
+        gCtx.stroke();
+        
+        // Draw Axis Labels with background
+        gCtx.font = '700 11px "Space Mono", monospace';
+        
+        // X Label (Time)
+        var txtX = dataPoint.t.toFixed(1) + 's';
+        var widthX = gCtx.measureText(txtX).width;
+        var bgPad = 2;
+        
+        gCtx.fillStyle = 'rgba(255,255,255,0.85)';
+        gCtx.fillRect(px - widthX/2 - bgPad, margin.top + gh + 2, widthX + bgPad*2, 14);
+        
+        gCtx.textAlign = 'center';
+        gCtx.textBaseline = 'top';
+        gCtx.fillStyle = color;
+        gCtx.fillText(txtX, px, margin.top + gh + 4);
+
+        // Y Label (Value)
+        var txtY = dataPoint.y.toFixed(1);
+        var widthY = gCtx.measureText(txtY).width;
+        
+        gCtx.fillStyle = 'rgba(255,255,255,0.85)';
+        gCtx.fillRect(margin.left - widthY - 6 - bgPad, py - 7, widthY + bgPad*2, 14);
+
+        gCtx.textAlign = 'right';
+        gCtx.textBaseline = 'middle';
+        gCtx.fillStyle = color;
+        gCtx.fillText(txtY, margin.left - 6, py);
+    }
+
+    // Draw Start Point (Index 0)
+    if (graphData.length > 0) {
+        plotPoint(graphData[0], '#2e7d32'); // Green for start
+    }
+
+    // Draw End/Current Point (Last Index)
+    if (graphData.length > 1) {
+        var lastColor = (mode === 'velocity') ? '#0066aa' : '#e65100';
+        plotPoint(graphData[graphData.length-1], lastColor);
+    }
+}
+
+
+// ─── Camera ───
+
+function updateCamera() {
+  var carPxRaw = CANVAS_W / 2 + carWorldX * SCALE;
+  var margin = 150;
+  var carScreenX = carPxRaw + cameraX;
+  if (carScreenX < margin) {
+    cameraX = margin - carPxRaw;
+  } else if (carScreenX > CANVAS_W - margin) {
+    cameraX = (CANVAS_W - margin) - carPxRaw;
+  }
+}
+
+function getCarScreenX() {
+  return CANVAS_W / 2 + carWorldX * SCALE + cameraX;
+}
+
+function worldToScreen(worldMeters) {
+  return CANVAS_W / 2 + worldMeters * SCALE + cameraX;
+}
+
+// ─── Drawing ───
+
+function drawSky() {
+  var grad = ctx.createLinearGradient(0, 0, 0, ROAD_Y - ROAD_HEIGHT);
+  grad.addColorStop(0, '#d4e8f7');
+  grad.addColorStop(1, '#eaf4fc');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, CANVAS_W, ROAD_Y - ROAD_HEIGHT);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  drawCloud(120, 40, 40);
+  drawCloud(400, 25, 35);
+  drawCloud(700, 50, 30);
+  drawCloud(550, 65, 25);
+}
+
+function drawCloud(x, y, size) {
+  ctx.beginPath();
+  ctx.arc(x, y, size * 0.5, 0, Math.PI * 2);
+  ctx.arc(x + size * 0.4, y - size * 0.15, size * 0.4, 0, Math.PI * 2);
+  ctx.arc(x + size * 0.8, y, size * 0.45, 0, Math.PI * 2);
+  ctx.arc(x + size * 0.35, y + size * 0.1, size * 0.35, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawMountains() {
+  var baseY = ROAD_Y - ROAD_HEIGHT;
+  var left = -cameraX - 200;
+  var right = -cameraX + CANVAS_W + 200;
+
+  ctx.fillStyle = '#8cb89c';
+  ctx.beginPath();
+  ctx.moveTo(left, baseY);
+  for (var i = left; i <= right; i += 60) {
+    var h = 25 + 30 * Math.sin(i * 0.007) + 15 * Math.cos(i * 0.013);
+    ctx.lineTo(i, baseY - h);
+  }
+  ctx.lineTo(right, baseY);
+  ctx.closePath(); ctx.fill();
+
+  ctx.fillStyle = '#a8d4b4';
+  ctx.beginPath();
+  ctx.moveTo(left, baseY);
+  for (var i = left; i <= right; i += 50) {
+    var h = 15 + 18 * Math.sin(i * 0.011 + 1) + 10 * Math.cos(i * 0.019);
+    ctx.lineTo(i, baseY - h);
+  }
+  ctx.lineTo(right, baseY);
+  ctx.closePath(); ctx.fill();
+}
+
+function drawRoad() {
+  var roadTop = ROAD_Y - ROAD_HEIGHT / 2;
+  var left = -cameraX - 200;
+  var right = -cameraX + CANVAS_W + 200;
+
+  // Grass
+  var grassGrad = ctx.createLinearGradient(0, ROAD_Y + ROAD_HEIGHT / 2, 0, CANVAS_H);
+  grassGrad.addColorStop(0, '#5aad5a');
+  grassGrad.addColorStop(1, '#3d8c3d');
+  ctx.fillStyle = grassGrad;
+  ctx.fillRect(left, ROAD_Y + ROAD_HEIGHT / 2, right - left, CANVAS_H);
+
+  // Road
+  ctx.fillStyle = '#555';
+  ctx.fillRect(left, roadTop, right - left, ROAD_HEIGHT);
+
+  // Edges
+  ctx.strokeStyle = '#777';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(left, roadTop); ctx.lineTo(right, roadTop);
+  ctx.moveTo(left, roadTop + ROAD_HEIGHT); ctx.lineTo(right, roadTop + ROAD_HEIGHT);
+  ctx.stroke();
+
+  // Dashed line
+  ctx.strokeStyle = '#f0c030';
+  ctx.lineWidth = 3;
+  ctx.setLineDash([22, 18]);
+  ctx.beginPath();
+  ctx.moveTo(left, ROAD_Y); ctx.lineTo(right, ROAD_Y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function drawAxis() {
+  var originPx = CANVAS_W / 2;
+  var axisY = ROAD_Y + ROAD_HEIGHT / 2 + 32;
+  var left = -cameraX - 200;
+  var right = -cameraX + CANVAS_W + 200;
+
+  // Axis line
+  ctx.strokeStyle = '#e6c700';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(left, axisY); ctx.lineTo(right, axisY);
+  ctx.stroke();
+
+  // Origin marker
+  ctx.strokeStyle = '#e6c700';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(originPx, axisY - 9); ctx.lineTo(originPx, axisY + 9);
+  ctx.stroke();
+
+  ctx.font = '700 13px "Space Mono", monospace';
+  ctx.fillStyle = '#e6c700';
+  ctx.textAlign = 'center';
+  ctx.fillText('O', originPx, axisY + 24);
+
+  // Tick marks - wide range
+  ctx.font = '400 10px "Space Mono", monospace';
+  ctx.fillStyle = '#ccc';
+  ctx.strokeStyle = '#bbb';
+  ctx.lineWidth = 1.5;
+  for (var m = -1000; m <= 1000; m += 50) {
+    if (m === 0) continue;
+    var px = originPx + m * SCALE;
+    // Only draw if on screen (in translated space, screen is [-cameraX, -cameraX + CANVAS_W])
+    if (px < left || px > right) continue;
+    ctx.beginPath();
+    ctx.moveTo(px, axisY - 5); ctx.lineTo(px, axisY + 5);
+    ctx.stroke();
+    ctx.textAlign = 'center';
+    ctx.fillText(m + 'm', px, axisY + 20);
+  }
+}
+
+function drawAxisOverlay() {
+  // Arrow and labels drawn in SCREEN space (no translate), always visible at edge
+  var axisY = ROAD_Y + ROAD_HEIGHT / 2 + 32;
+
+  var arrowDir = axisRight ? 1 : -1;
+  var arrowX = axisRight ? CANVAS_W - 20 : 20;
+  ctx.beginPath();
+  ctx.moveTo(arrowX, axisY);
+  ctx.lineTo(arrowX - arrowDir * 14, axisY - 7);
+  ctx.lineTo(arrowX - arrowDir * 14, axisY + 7);
+  ctx.closePath();
+  ctx.fillStyle = '#e6c700';
+  ctx.fill();
+
+  ctx.font = '800 15px Outfit, sans-serif';
+  ctx.fillStyle = '#e6c700';
+  ctx.textAlign = axisRight ? 'left' : 'right';
+  ctx.fillText('x', axisRight ? CANVAS_W - 12 : 8, axisY + 5);
+
+  ctx.font = '700 12px Outfit, sans-serif';
+  ctx.fillStyle = '#ffd740';
+  ctx.textAlign = 'center';
+  ctx.fillText('(+)', axisRight ? CANVAS_W - 45 : 40, axisY - 12);
+}
+
+function drawPositionMarker(screenPx, label, color) {
+  if (screenPx < -50 || screenPx > CANVAS_W + 50) return;
+  var markerY = ROAD_Y - ROAD_HEIGHT / 2 - 6;
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath();
+  ctx.moveTo(screenPx, markerY);
+  ctx.lineTo(screenPx, ROAD_Y + ROAD_HEIGHT / 2 + 26);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(screenPx, markerY);
+  ctx.lineTo(screenPx - 5, markerY - 8);
+  ctx.lineTo(screenPx + 5, markerY - 8);
+  ctx.closePath(); ctx.fill();
+
+  ctx.font = '700 11px "Space Mono", monospace';
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.fillText(label, screenPx, markerY - 12);
+}
+
+function drawCar(screenPx, dirRight) {
+  var carY = ROAD_Y - 6;
+  var x = screenPx - CAR_W / 2;
+  var y = carY - CAR_H / 2;
+
+  ctx.save();
+  if (!dirRight) {
+    ctx.translate(screenPx, carY);
+    ctx.scale(-1, 1);
+    ctx.translate(-screenPx, -carY);
+  }
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.beginPath();
+  ctx.ellipse(screenPx, carY + CAR_H / 2 + 4, CAR_W / 2 + 5, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Body
+  var bodyGrad = ctx.createLinearGradient(x, y, x, y + CAR_H);
+  bodyGrad.addColorStop(0, '#d32f2f');
+  bodyGrad.addColorStop(1, '#b71c1c');
+  ctx.fillStyle = bodyGrad;
+  ctx.beginPath();
+  ctx.roundRect(x + 2, y + 6, CAR_W - 4, CAR_H - 6, 5);
+  ctx.fill();
+
+  // Cabin
+  ctx.fillStyle = '#c62828';
+  ctx.beginPath();
+  ctx.moveTo(x + 18, y + 6);
+  ctx.lineTo(x + 22, y - 4);
+  ctx.lineTo(x + 44, y - 4);
+  ctx.lineTo(x + 50, y + 6);
+  ctx.closePath(); ctx.fill();
+
+  // Windows
+  ctx.fillStyle = '#90caf9';
+  ctx.globalAlpha = 0.75;
+  ctx.beginPath();
+  ctx.moveTo(x + 20, y + 5); ctx.lineTo(x + 23, y - 2);
+  ctx.lineTo(x + 32, y - 2); ctx.lineTo(x + 32, y + 5);
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(x + 34, y + 5); ctx.lineTo(x + 34, y - 2);
+  ctx.lineTo(x + 43, y - 2); ctx.lineTo(x + 48, y + 5);
+  ctx.closePath(); ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // Headlight
+  ctx.fillStyle = '#fdd835';
+  ctx.beginPath();
+  ctx.roundRect(x + CAR_W - 7, y + 10, 6, 7, 2);
+  ctx.fill();
+
+  // Taillight
+  ctx.fillStyle = '#f44336';
+  ctx.beginPath();
+  ctx.roundRect(x + 1, y + 11, 4, 6, 2);
+  ctx.fill();
+
+  // Wheels
+  ctx.fillStyle = '#333';
+  ctx.beginPath(); ctx.arc(x + 14, y + CAR_H, 7, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x + CAR_W - 14, y + CAR_H, 7, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#888';
+  ctx.beginPath(); ctx.arc(x + 14, y + CAR_H, 3, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x + CAR_W - 14, y + CAR_H, 3, 0, Math.PI * 2); ctx.fill();
+
+  ctx.restore();
+
+  // Position label with background
+  var displayPos = axisRight ? carWorldX : -carWorldX;
+  var labelText = displayPos.toFixed(1) + ' m';
+  ctx.font = '700 15px "Space Mono", monospace';
+  var labelW = ctx.measureText(labelText).width;
+  var labelX = screenPx;
+  var labelY = carY - CAR_H / 2 - 28;
+
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.beginPath();
+  ctx.roundRect(labelX - labelW / 2 - 6, labelY - 12, labelW + 12, 18, 6);
+  ctx.fill();
+
+  ctx.fillStyle = '#0066aa';
+  ctx.textAlign = 'center';
+  ctx.fillText(labelText, labelX, labelY);
+}
+
+// ─── Main Draw ───
+
+function drawScene() {
+  ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+
+  // Sky (fixed, no camera)
+  drawSky();
+
+  // World elements (shifted by camera via ctx.translate)
+  ctx.save();
+  ctx.translate(cameraX, 0);
+  drawMountains();
+  drawRoad();
+  drawAxis();
+  ctx.restore();
+
+  // Axis arrow overlay (screen-fixed)
+  drawAxisOverlay();
+
+  // Position markers (screen space)
+  if (markerStart !== null) {
+    var ds = axisRight ? markerStart : -markerStart;
+    drawPositionMarker(worldToScreen(markerStart), 'x\u2080=' + ds.toFixed(1) + 'm', '#2e7d32');
+  }
+  if (markerEnd !== null) {
+    var de = axisRight ? markerEnd : -markerEnd;
+    drawPositionMarker(worldToScreen(markerEnd), 'xf=' + de.toFixed(1) + 'm', '#c62828');
+  }
+
+  // Car (screen space)
+  drawCar(getCarScreenX(), carDirRight);
+}
+
+// ─── Simulation ───
+
+function startSimulation() {
+  if (isAnimating) return;
+
+  var posIniInput = parseFloat(document.getElementById('posInicial').value) || 0;
+  var t0 = parseFloat(document.getElementById('t0Input').value) || 0;
+
+  carWorldX = axisRight ? posIniInput : -posIniInput;
+  carStartX = carWorldX;
+  markerStart = carWorldX;
+  markerEnd = null;
+  elapsedTime = 0;
+  startTime = t0;
+  cameraX = 0;
+
+  var dirMult = carDirRight ? 1 : -1;
+
+  if (mode === 'velocity') {
+    accelMode = false;
+    var speed = parseFloat(document.getElementById('carSpeed').value) || 20;
+    currentSpeed = (speed / 60) * dirMult;
+    currentWorldSpeed = speed * dirMult;
+    accelRate = 0;
+  } else {
+    accelMode = true;
+    var v0abs = parseFloat(document.getElementById('v0Input').value) || 10;
+
+    currentWorldSpeed = v0abs * dirMult; // m/s signed in world (pixels)
+    currentSpeed = currentWorldSpeed / 60; // m/frame
+
+    // Hidden random acceleration between -5 and +5 m/s² in AXIS frame
+    var hiddenAccelAxis = (Math.random() * 10 - 5); // -5 to +5 in axis units
+    // Round to 1 decimal for clean results
+    hiddenAccelAxis = Math.round(hiddenAccelAxis * 10) / 10;
+    // Avoid near-zero values
+    if (Math.abs(hiddenAccelAxis) < 0.5) hiddenAccelAxis = hiddenAccelAxis >= 0 ? 1 : -1;
+    // Store the axis-frame acceleration for results
+    hiddenAccelForResults = hiddenAccelAxis;
+    // Convert to world frame: if axis right, world = axis. If axis left, world = -axis.
+    accelRate = axisRight ? hiddenAccelAxis : -hiddenAccelAxis;
+
+    targetVfDefined = false;
+    targetVf = 0;
+  }
+  
+  // Clear Graph Data
+  initGraph();
+  // Add initial point
+  var initialT = startTime;
+  var initialY;
+  if (mode === 'velocity') {
+      // Plot X
+      initialY = axisRight ? carWorldX : -carWorldX;
+  } else {
+      // Plot V
+      initialY = axisRight ? currentWorldSpeed : -currentWorldSpeed;
+  }
+  graphData.push({t: initialT, y: initialY});
+  drawGraph();
+
+  updateCamera();
+
+  isAnimating = true;
+  document.getElementById('btnStart').style.display = 'none';
+  document.getElementById('btnStop').style.display = 'inline-flex';
+  document.getElementById('resultsCard').classList.remove('visible');
+
+  animate();
+}
+
+function animate() {
+  if (!isAnimating) return;
+
+  var dt = 1 / 60;
+
+  if (accelMode) {
+    var prevSpeed = currentWorldSpeed;
+    currentWorldSpeed += accelRate * dt;
+
+    // If deceleration made the car reverse direction, snap to v=0 and stop
+    var dirMult = carDirRight ? 1 : -1;
+    if (dirMult * currentWorldSpeed < 0) {
+      // Calculate exact time to reach v=0
+      var dtToZero = Math.abs(prevSpeed / accelRate);
+      carWorldX += (prevSpeed / 60) * (dtToZero * 60);
+      elapsedTime += dtToZero;
+      currentWorldSpeed = 0;
+      currentSpeed = 0;
+
+      updateCamera();
+      drawScene();
+      drawTimeLabel();
+      
+      // Update Graph one last time with V=0
+      var t = startTime + elapsedTime;
+      var val = 0; 
+      graphData.push({t: t, y: val});
+      drawGraph();
+
+      stopSimulation();
+      return;
+    }
+
+    currentSpeed = currentWorldSpeed / 60;
+  }
+
+  carWorldX += currentSpeed;
+  elapsedTime += dt;
+
+  // Graph Data Push
+  // We don't need to push every frame (60fps is too much data for canvas line sometimes), 
+  // but for 10-20 seconds it's fine (1200 points). Let's push every 3 frames.
+  if (Math.floor(elapsedTime * 60) % 3 === 0) {
+      var t = startTime + elapsedTime;
+      var val;
+      if (mode === 'velocity') {
+          // Plot Position
+          val = axisRight ? carWorldX : -carWorldX;
+      } else {
+          // Plot Velocity
+          val = axisRight ? currentWorldSpeed : -currentWorldSpeed;
+      }
+      graphData.push({t: t, y: val});
+      drawGraph();
+  }
+
+  updateCamera();
+  drawScene();
+  drawTimeLabel();
+
+  animId = requestAnimationFrame(animate);
+}
+
+function drawTimeLabel() {
+  ctx.font = '700 14px "Space Mono", monospace';
+  ctx.fillStyle = '#e65100';
+  ctx.textAlign = 'left';
+  ctx.fillText('t = ' + (startTime + elapsedTime).toFixed(1) + ' s', 20, 28);
+}
+
+function stopSimulation() {
+  isAnimating = false;
+  if (animId) cancelAnimationFrame(animId);
+
+  document.getElementById('btnStart').style.display = 'inline-flex';
+  document.getElementById('btnStop').style.display = 'none';
+
+  markerEnd = carWorldX;
+  
+  // Ensure final point is plotted
+  var t = startTime + elapsedTime;
+  var val;
+  if (mode === 'velocity') {
+      val = axisRight ? carWorldX : -carWorldX;
+  } else {
+      val = axisRight ? currentWorldSpeed : -currentWorldSpeed;
+  }
+  // Avoid duplicate time points if animation stopped exactly on frame
+  if (graphData.length > 0 && Math.abs(graphData[graphData.length-1].t - t) > 0.01) {
+      graphData.push({t: t, y: val});
+      drawGraph();
+  }
+
+  drawScene();
+  showResults();
+}
+
+function frac(num, den, cls) {
+  cls = cls || '';
+  return '<span class="frac ' + cls + '"><span class="frac-num">' + num + '</span><span class="frac-den">' + den + '</span></span>';
+}
+
+function showResults() {
+  var t0 = parseFloat(document.getElementById('t0Input').value) || 0;
+  var tf = t0 + elapsedTime;
+  var dt = elapsedTime;
+
+  if (dt < 0.05) return;
+
+  var card = document.getElementById('resultsCard');
+  var grid = document.getElementById('dataGrid');
+  var formula = document.getElementById('formulaBox');
+  var title = document.getElementById('resultsTitle');
+
+  var posIni = axisRight ? carStartX : -carStartX;
+  var posFin = axisRight ? carWorldX : -carWorldX;
+  var displacement = posFin - posIni;
+
+  if (mode === 'velocity') {
+    var vm = displacement / dt;
+
+    title.innerHTML = '📊 Datos: Velocidad Media';
+    grid.innerHTML =
+      '<div class="data-row-label">Posición</div>' +
+      '<div class="data-item"><div class="data-label">Inicial (x₀)</div><div class="data-value">' + posIni.toFixed(1) + ' m</div></div>' +
+      '<div class="data-item"><div class="data-label">Final (x<sub>f</sub>)</div><div class="data-value">' + posFin.toFixed(1) + ' m</div></div>' +
+      '<div class="data-item"><div class="data-label">Desplazamiento (\u0394x)</div><div class="data-value" style="color:' + (displacement >= 0 ? '#2e7d32' : '#c62828') + '">' + (displacement >= 0 ? '+' : '') + displacement.toFixed(1) + ' m</div></div>' +
+      '<div class="data-row-label">Tiempo</div>' +
+      '<div class="data-item"><div class="data-label">Inicial (t₀)</div><div class="data-value">' + t0.toFixed(1) + ' s</div></div>' +
+      '<div class="data-item"><div class="data-label">Final (t<sub>f</sub>)</div><div class="data-value">' + tf.toFixed(1) + ' s</div></div>' +
+      '<div class="data-item"><div class="data-label">Intervalo (\u0394t)</div><div class="data-value">' + dt.toFixed(1) + ' s</div></div>';
+
+    var signVm = vm >= 0 ? '+' : '';
+    var pIniStr = posIni >= 0 ? posIni.toFixed(1) : '(' + posIni.toFixed(1) + ')';
+
+    formula.innerHTML =
+      '<div class="formula-label">F\u00f3rmula de la velocidad media</div>' +
+      '<div class="formula-line">' +
+        'v<sub>m</sub> <span class="sym">=</span> ' +
+        frac('\u0394x', '\u0394t') +
+        ' <span class="sym">=</span> ' +
+        frac('x<sub>f</sub> \u2212 x\u2080', 't<sub>f</sub> \u2212 t\u2080') +
+      '</div>' +
+      '<div class="formula-line">' +
+        'v<sub>m</sub> <span class="sym">=</span> ' +
+        frac(posFin.toFixed(1) + ' \u2212 ' + pIniStr, tf.toFixed(1) + ' \u2212 ' + t0.toFixed(1), 'frac-big') +
+      '</div>' +
+      '<div class="formula-line">' +
+        'v<sub>m</sub> <span class="sym">=</span> ' +
+        frac(displacement.toFixed(1), dt.toFixed(1), 'frac-result') +
+      '</div>' +
+      '<div class="formula-result">v<sub>m</sub> = ' + signVm + vm.toFixed(2) + ' m/s</div>' +
+      '<div class="formula-interpretation">' +
+      (vm > 0 ? '\u2192 Velocidad positiva: se mueve en el sentido (+) del eje' : vm < 0 ? '\u2192 Velocidad negativa: se mueve en el sentido (\u2212) del eje' : '\u2192 El coche no se ha desplazado') +
+      '</div>';
+
+  } else {
+    var v0abs = parseFloat(document.getElementById('v0Input').value) || 0;
+    // v0 in world frame was: v0abs * dirMult (where dirMult = carDirRight ? 1 : -1)
+    var v0world = v0abs * (carDirRight ? 1 : -1);
+    // Convert world speed to axis frame
+    // If axis right: axis = world. If axis left: axis = -world.
+    var v0axis = axisRight ? v0world : -v0world;
+    var vfaxis = axisRight ? currentWorldSpeed : -currentWorldSpeed;
+
+    // Round vf for clean display
+    vfaxis = Math.round(vfaxis * 10) / 10;
+
+    var dv = vfaxis - v0axis;
+    var am = dv / dt;
+
+    title.innerHTML = '📊 Datos: Aceleraci\u00f3n Media';
+    grid.innerHTML =
+      '<div class="data-row-label">Velocidad</div>' +
+      '<div class="data-item"><div class="data-label">Inicial (v₀)</div><div class="data-value" style="color:' + (v0axis >= 0 ? '#2e7d32' : '#c62828') + '">' + (v0axis >= 0 ? '+' : '') + v0axis.toFixed(1) + ' m/s</div></div>' +
+      '<div class="data-item"><div class="data-label">Final (v<sub>f</sub>)</div><div class="data-value" style="color:' + (vfaxis >= 0 ? '#2e7d32' : '#c62828') + '">' + (vfaxis >= 0 ? '+' : '') + vfaxis.toFixed(1) + ' m/s</div></div>' +
+      '<div class="data-item"><div class="data-label">Cambio (\u0394v)</div><div class="data-value" style="color:' + (dv >= 0 ? '#2e7d32' : '#c62828') + '">' + (dv >= 0 ? '+' : '') + dv.toFixed(1) + ' m/s</div></div>' +
+      '<div class="data-row-label">Tiempo</div>' +
+      '<div class="data-item"><div class="data-label">Inicial (t₀)</div><div class="data-value">' + t0.toFixed(1) + ' s</div></div>' +
+      '<div class="data-item"><div class="data-label">Final (t<sub>f</sub>)</div><div class="data-value">' + tf.toFixed(1) + ' s</div></div>' +
+      '<div class="data-item"><div class="data-label">Intervalo (\u0394t)</div><div class="data-value">' + dt.toFixed(1) + ' s</div></div>';
+
+    var signAm = am >= 0 ? '+' : '';
+    var v0str = v0axis >= 0 ? v0axis.toFixed(1) : '(' + v0axis.toFixed(1) + ')';
+    var vfstr = vfaxis >= 0 ? vfaxis.toFixed(1) : '(' + vfaxis.toFixed(1) + ')';
+
+    formula.innerHTML =
+      '<div class="formula-label">F\u00f3rmula de la aceleraci\u00f3n media</div>' +
+      '<div class="formula-line">' +
+        'a<sub>m</sub> <span class="sym">=</span> ' +
+        frac('\u0394v', '\u0394t') +
+        ' <span class="sym">=</span> ' +
+        frac('v<sub>f</sub> \u2212 v\u2080', 't<sub>f</sub> \u2212 t\u2080') +
+      '</div>' +
+      '<div class="formula-line">' +
+        'a<sub>m</sub> <span class="sym">=</span> ' +
+        frac(vfstr + ' \u2212 ' + v0str, tf.toFixed(1) + ' \u2212 ' + t0.toFixed(1), 'frac-big') +
+      '</div>' +
+      '<div class="formula-line">' +
+        'a<sub>m</sub> <span class="sym">=</span> ' +
+        frac(dv.toFixed(1), dt.toFixed(1), 'frac-result') +
+      '</div>' +
+      '<div class="formula-result">a<sub>m</sub> = ' + signAm + am.toFixed(2) + ' m/s\u00B2</div>' +
+      '<div class="formula-interpretation">' +
+      (am > 0 ? '\u2192 Aceleraci\u00f3n positiva: la velocidad aumenta en sentido (+)' : am < 0 ? '\u2192 Aceleraci\u00f3n negativa: la velocidad disminuye en sentido (+)' : '\u2192 No hay cambio de velocidad') +
+      '</div>';
+  }
+
+  card.classList.add('visible');
+}
+
+function resetSimulation() {
+  isAnimating = false;
+  if (animId) cancelAnimationFrame(animId);
+
+  document.getElementById('btnStart').style.display = 'inline-flex';
+  document.getElementById('btnStop').style.display = 'none';
+
+  var posIniInput = parseFloat(document.getElementById('posInicial').value) || 0;
+  carWorldX = axisRight ? posIniInput : -posIniInput;
+  carStartX = carWorldX;
+  markerStart = null;
+  markerEnd = null;
+  elapsedTime = 0;
+  cameraX = 0;
+  updateCamera();
+
+  // Clear graph on reset
+  initGraph();
+  
+  document.getElementById('resultsCard').classList.remove('visible');
+  drawScene();
+}
+
+function generateRandom() {
+  resetSimulation();
+
+  var positions = [-80, -60, -40, -20, 0, 20, 40, 60, 80];
+  var speeds = [10, 15, 20, 25, 30, 40, 50];
+  var times = [0, 1, 2, 3, 5];
+
+  document.getElementById('posInicial').value = positions[Math.floor(Math.random() * positions.length)];
+  document.getElementById('carSpeed').value = speeds[Math.floor(Math.random() * speeds.length)];
+  document.getElementById('t0Input').value = times[Math.floor(Math.random() * times.length)];
+
+  axisRight = Math.random() > 0.5;
+  document.getElementById('toggleSR').textContent = axisRight ? '\u2192 Derecha (+)' : '\u2190 Izquierda (+)';
+
+  carDirRight = Math.random() > 0.5;
+  document.getElementById('toggleDir').textContent = carDirRight ? '\u2192 Derecha' : '\u2190 Izquierda';
+
+  if (mode === 'acceleration') {
+    var v0s = [5, 10, 15, 20, 25, 30];
+    document.getElementById('v0Input').value = v0s[Math.floor(Math.random() * v0s.length)];
+  }
+
+  var posIniInput = parseFloat(document.getElementById('posInicial').value);
+  carWorldX = axisRight ? posIniInput : -posIniInput;
+  carStartX = carWorldX;
+  cameraX = 0;
+  updateCamera();
+  drawScene();
+  initGraph();
+}
+
+function setupCanvas() {
+  canvas.width = CANVAS_W;
+  canvas.height = CANVAS_H;
+  // Graph resize handled via fixed pixel width for simplicity in logic,
+  // but CSS will scale it. For drawing, we used internal coords.
+  graphCanvas.width = 900;
+  graphCanvas.height = 220;
+  
+  drawScene();
+  drawGraph();
+}
+
+setupCanvas();
+window.addEventListener('resize', setupCanvas);
+
+document.getElementById('posInicial').addEventListener('change', function() {
+  if (!isAnimating) {
+    var val = parseFloat(this.value) || 0;
+    carWorldX = axisRight ? val : -val;
+    carStartX = carWorldX;
+    cameraX = 0;
+    updateCamera();
+    drawScene();
+    initGraph();
+  }
+});
+
+// Init graph on load
+setMode('velocity');
+</script>
+
+</body>
+</html>
