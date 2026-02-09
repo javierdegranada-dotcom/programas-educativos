@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio de Sistemas de Referencia - IES María Moliner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;700&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif;
+        }
+        .mono { 
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* Clase para la flecha vectorial robusta */
+        .vector-arrow {
+            position: relative;
+            display: inline-block;
+        }
+        .vector-arrow::after {
+            content: '→'; /* Flecha estándar que siempre funciona */
+            position: absolute;
+            top: -0.55em; /* Ajuste vertical para que quede encima */
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 0.8em;
+            font-weight: bold;
+            line-height: 1;
+        }
+        
+        /* Estilo para los sliders */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #3b82f6;
+            margin-top: -7px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #e5e7eb;
+            border-radius: 2px;
+        }
+        
+        .canvas-container {
+            cursor: crosshair;
+            position: relative;
+        }
+
+        /* Animación suave */
+        * {
+            transition: background-color 0.2s ease;
+        }
+        
+        /* Estilo para el modal */
+        .modal-open {
+            display: flex !important;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 text-slate-800 h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm z-10">
+        <div>
+            <h1 class="text-xl font-bold text-slate-900">🎯 Cinemática Relativa</h1>
+            <p class="text-sm text-slate-500">Transformación de vectores según el Sistema de Referencia (SR)</p>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="toggleHelp()" class="px-4 py-2.5 rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-200 transition font-medium text-sm shadow-sm flex items-center gap-2 border border-amber-200">
+                <span>❓</span> Ayuda
+            </button>
+            <div class="w-px h-8 bg-slate-200 mx-1"></div>
+            <button onclick="setScenario('horizontal')" id="btn-hor" 
+                class="px-5 py-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition font-medium text-sm shadow-md ring-2 ring-indigo-600 ring-offset-2">
+                📏 Horizontal
+            </button>
+            <button onclick="setScenario('building')" id="btn-build" 
+                class="px-5 py-2.5 rounded-lg bg-white text-slate-700 border-2 border-slate-300 hover:bg-slate-50 transition font-medium text-sm shadow-sm">
+                🏢 Edificio
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col overflow-hidden relative">
+        
+        <!-- Top: Canvas Area (MUY ALTO) -->
+        <div class="relative bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center p-6" 
+             style="height: calc(100vh - 80px - 240px);" id="canvas-wrapper">
+            <canvas id="simCanvas" class="bg-white rounded-2xl shadow-2xl border-2 border-slate-300"></canvas>
+        </div>
+
+        <!-- Bottom: Controls & Data (240px de altura con scroll) -->
+        <div class="bg-white border-t-2 border-slate-200 shadow-2xl h-[240px] overflow-y-auto">
+            <div class="flex h-full">
+                
+                <!-- Left: Controles del SR -->
+                <div class="p-5 border-r-2 border-slate-100 w-[340px] flex flex-col justify-between shrink-0">
+                    <div>
+                        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
+                            <span class="w-1 h-4 bg-indigo-600 rounded"></span>
+                            Sistema de Referencia
+                        </h2>
+                        
+                        <div class="space-y-4">
+                            <!-- Rotación -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-semibold text-slate-700">Rotación (α)</label>
+                                    <span id="angle-display" class="mono text-sm bg-indigo-100 px-2 py-1 rounded text-indigo-700 font-bold">0°</span>
+                                </div>
+                                <input type="range" id="angle-slider" min="-180" max="180" value="0" step="5">
+                                <div class="flex justify-between text-[10px] text-slate-400 mt-1 px-1">
+                                    <span>-180°</span>
+                                    <span>0°</span>
+                                    <span>180°</span>
+                                </div>
+                            </div>
+
+                            <!-- Botones -->
+                            <div class="flex gap-2">
+                                <button onclick="resetSR()" 
+                                    class="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm rounded-lg transition font-medium shadow-sm">
+                                    ↺ Resetear
+                                </button>
+                                <button onclick="centerSROnObject()" 
+                                    class="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg transition font-semibold shadow-md">
+                                    🎯 r₀=0
+                                </button>
+                            </div>
+                            <div class="flex gap-2 mt-2">
+                                <button onclick="alignSRWithGround()" 
+                                    class="flex-1 py-2 px-3 bg-amber-600 hover:bg-amber-700 text-white text-sm rounded-lg transition font-semibold shadow-md">
+                                    ⬍ Y'₀=0
+                                </button>
+                                <button onclick="randomizePhysics()" 
+                                    class="flex-1 py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition font-semibold shadow-md">
+                                    🎲 Nueva
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Créditos -->
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-[10px] text-slate-400 text-center">
+                        Programa realizado por <strong>Javier Gijón</strong>.<br>Profesor de IES María Moliner (Segovia).
+                    </div>
+                </div>
+
+                <!-- Right: Panel de Datos (EN FILAS) -->
+                <div class="flex-1 p-5 bg-slate-50">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
+                        <span class="w-1 h-4 bg-emerald-600 rounded"></span>
+                        Condiciones Iniciales (en tu SR)
+                    </h2>
+                    
+                    <div class="space-y-3">
+                        <!-- Posición Inicial (fila) -->
+                        <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-l-purple-500 flex gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <div class="w-2 h-2 rounded-full bg-purple-500"></div>
+                                    <h3 class="text-xs font-bold text-slate-800">Posición r₀</h3>
+                                </div>
+                                <div class="space-y-1 mono text-xs">
+                                    <div>
+                                        <span class="text-slate-500" id="label-r0x">X' = |r₀|·cos(0°)</span>
+                                        <span class="text-slate-700"> = </span>
+                                        <span id="val-r0x" class="font-bold text-slate-900">0.00</span>
+                                        <span class="text-slate-500"> m</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-500" id="label-r0y">Y' = |r₀|·sen(0°)</span>
+                                        <span class="text-slate-700"> = </span>
+                                        <span id="val-r0y" class="font-bold text-slate-900">0.00</span>
+                                        <span class="text-slate-500"> m</span>
+                                    </div>
+                                    <div class="pt-1 border-t border-slate-100">
+                                        <span class="text-slate-500">|r₀| = </span>
+                                        <span id="val-r0-mod" class="font-bold text-slate-700">0.00 m</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-center px-3 bg-purple-50 rounded">
+                                <div class="mono text-lg font-bold text-purple-900 pt-2">
+                                    <span class="mr-1"><span class="vector-arrow">r</span><sub>0</sub> =</span>
+                                    <span id="vec-r0x" class="mx-1">0.00</span><span class="font-bold italic text-purple-700">i</span>
+                                    <span id="vec-r0-sign" class="mx-1">+</span>
+                                    <span id="vec-r0y" class="mx-1">0.00</span><span class="font-bold italic text-purple-700">j</span>
+                                    <span class="text-sm ml-1">m</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Velocidad Inicial (fila) -->
+                        <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-l-emerald-500 flex gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                    <h3 class="text-xs font-bold text-slate-800">Velocidad v₀</h3>
+                                </div>
+                                <div class="space-y-1 mono text-xs">
+                                    <div>
+                                        <span class="text-slate-500" id="label-v0x">v'ₓ = |v₀|·cos(0°)</span>
+                                        <span class="text-slate-700"> = </span>
+                                        <span id="val-v0x" class="font-bold text-slate-900">0.00</span>
+                                        <span class="text-slate-500"> m/s</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-500" id="label-v0y">v'ᵧ = |v₀|·sen(0°)</span>
+                                        <span class="text-slate-700"> = </span>
+                                        <span id="val-v0y" class="font-bold text-slate-900">0.00</span>
+                                        <span class="text-slate-500"> m/s</span>
+                                    </div>
+                                    <div class="pt-1 border-t border-slate-100">
+                                        <span class="text-slate-500">|v₀| = </span>
+                                        <span id="val-v0-mod" class="font-bold text-slate-700">0.00 m/s</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-center px-3 bg-emerald-50 rounded">
+                                <div class="mono text-lg font-bold text-emerald-900 pt-2">
+                                    <span class="mr-1"><span class="vector-arrow">v</span><sub>0</sub> =</span>
+                                    <span id="vec-v0x" class="mx-1">0.00</span><span class="font-bold italic text-emerald-700">i</span>
+                                    <span id="vec-v0-sign" class="mx-1">+</span>
+                                    <span id="vec-v0y" class="mx-1">0.00</span><span class="font-bold italic text-emerald-700">j</span>
+                                    <span class="text-sm ml-1">m/s</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Aceleración (fila) -->
+                        <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-l-rose-500 flex gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <div class="w-2 h-2 rounded-full bg-rose-500"></div>
+                                    <h3 class="text-xs font-bold text-slate-800">Aceleración a₀</h3>
+                                </div>
+                                <div class="space-y-1 mono text-xs">
+                                    <div>
+                                        <span class="text-slate-500" id="label-ax">a'ₓ = |a₀|·cos(0°)</span>
+                                        <span class="text-slate-700"> = </span>
+                                        <span id="val-ax" class="font-bold text-slate-900">0.00</span>
+                                        <span class="text-slate-500"> m/s²</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-500" id="label-ay">a'ᵧ = |a₀|·sen(0°)</span>
+                                        <span class="text-slate-700"> = </span>
+                                        <span id="val-ay" class="font-bold text-slate-900">0.00</span>
+                                        <span class="text-slate-500"> m/s²</span>
+                                    </div>
+                                    <div class="pt-1 border-t border-slate-100">
+                                        <span class="text-slate-500">|a₀| = </span>
+                                        <span id="val-a-mod" class="font-bold text-slate-700">0.00 m/s²</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-center px-3 bg-rose-50 rounded">
+                                <div class="mono text-lg font-bold text-rose-900 pt-2">
+                                    <span class="mr-1"><span class="vector-arrow">a</span><sub>0</sub> =</span>
+                                    <span id="vec-ax" class="mx-1">0.00</span><span class="font-bold italic text-rose-700">i</span>
+                                    <span id="vec-a-sign" class="mx-1">+</span>
+                                    <span id="vec-ay" class="mx-1">0.00</span><span class="font-bold italic text-rose-700">j</span>
+                                    <span class="text-sm ml-1">m/s²</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Help Modal -->
+        <div id="help-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4 backdrop-blur-sm transition-all duration-300">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all scale-100">
+                <div class="bg-indigo-600 px-6 py-4 flex justify-between items-center">
+                    <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                        <span>💡</span> ¿Cómo usar el simulador?
+                    </h3>
+                    <button onclick="toggleHelp()" class="text-white/80 hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Modal Body (Scrollable if needed) -->
+                <div class="p-6 space-y-4 text-slate-600 text-sm leading-relaxed overflow-y-auto max-h-[70vh]">
+                    
+                    <!-- Objetivo Didáctico -->
+                    <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 mb-2">
+                        <p class="text-blue-800 font-bold mb-1">🎓 Objetivo Didáctico</p>
+                        <p class="text-blue-700">Este programa busca que el alumno observe cómo cambian las componentes de los vectores (posición, velocidad y aceleración) al mover o girar el Sistema de Referencia.</p>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold shrink-0">1</div>
+                        <div>
+                            <p class="font-bold text-slate-800">Elige tu escenario</p>
+                            <p>Selecciona entre <strong>Horizontal</strong> (movimiento libre) o <strong>Edificio</strong> (tiro parabólico desde altura).</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold shrink-0">2</div>
+                        <div>
+                            <p class="font-bold text-slate-800">Mueve el Sistema de Referencia (SR)</p>
+                            <p>Arrastra con el ratón el <strong>punto central azul</strong> para colocar tu origen de coordenadas (0,0) donde quieras.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold shrink-0">3</div>
+                        <div>
+                            <p class="font-bold text-slate-800">Rota los Ejes</p>
+                            <p>Usa el deslizador de la izquierda para girar tus ejes X' e Y'. Observa cómo esto cambia los valores de los vectores.</p>
+                        </div>
+                    </div>
+
+                    <!-- Botones Rápidos -->
+                    <div class="flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold shrink-0">4</div>
+                        <div>
+                            <p class="font-bold text-slate-800">Usa los Botones Rápidos</p>
+                            <ul class="list-disc ml-4 mt-1 space-y-1 text-slate-600">
+                                <li><strong class="text-emerald-600">🎯 r₀=0</strong>: Coloca el origen del SR exactamente sobre el objeto.</li>
+                                <li><strong class="text-amber-600">⬍ Y'₀=0</strong>: Alinea la altura del SR con el objeto (hace la componente vertical cero).</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold shrink-0">5</div>
+                        <div>
+                            <p class="font-bold text-slate-800">Analiza los Vectores</p>
+                            <p>El panel inferior muestra instantáneamente las componentes medidas desde <strong>TU</strong> sistema de referencia.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 pt-4 border-t border-slate-100 text-center">
+                        <p class="font-semibold text-slate-800">Programa realizado por Javier Gijón</p>
+                        <p class="text-xs text-slate-500">Profesor de IES María Moliner (Segovia)</p>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-50 px-6 py-3 flex justify-end">
+                    <button onclick="toggleHelp()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-sm font-medium transition">Entendido</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ==================== CONFIGURACIÓN GLOBAL ====================
+        const SCALE = 2; // Escala: píxeles por metro en el mundo físico
+        
+        // Estado de la aplicación
+        const appState = {
+            scenario: 'horizontal', // 'horizontal' o 'building'
+            isDragging: false,
+            displayAngles: null // Almacena los ángulos calculados para dibujar
+        };
+
+        // Sistema de Referencia del usuario (SR móvil y rotable)
+        const userSR = {
+            origin: { x: 400, y: 300 }, // Posición en canvas (píxeles)
+            angle: 0 // Ángulo en grados (sentido antihorario)
+        };
+
+        // Objeto físico (en coordenadas del "mundo real")
+        const physicsObj = {
+            pos: { x: 0, y: 0 },   // Posición en metros
+            vel: { x: 0, y: 0 },   // Velocidad en m/s
+            acc: { x: 0, y: 0 }    // Aceleración en m/s²
+        };
+
+        // ==================== FUNCIONES DE INTERFAZ ====================
+        function toggleHelp() {
+            const modal = document.getElementById('help-modal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        // ==================== CANVAS Y RESPONSIVE ====================
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const wrapper = document.getElementById('canvas-wrapper');
+            const padding = 48; // 2*24px padding
+            canvas.width = wrapper.clientWidth - padding;
+            canvas.height = wrapper.clientHeight - padding;
+            
+            // Reposicionar SR si está fuera del canvas
+            if (userSR.origin.x > canvas.width - 30) {
+                userSR.origin.x = canvas.width / 2;
+            }
+            if (userSR.origin.y > canvas.height - 30) {
+                userSR.origin.y = getGroundLevel();
+            }
+            
+            draw();
+        }
+
+        // ==================== FUNCIONES MATEMÁTICAS ====================
+        
+        function toRadians(deg) {
+            return deg * Math.PI / 180;
+        }
+
+        // Transformar vector desde mundo real al SR del usuario
+        function transformToSR(worldVec, isPosition = false) {
+            let vecX = worldVec.x;
+            let vecY = worldVec.y;
+            
+            if (isPosition) {
+                // Para posiciones: restar el origen del SR (traslación)
+                const originMeters = screenToWorld(userSR.origin.x, userSR.origin.y);
+                vecX -= originMeters.x;
+                vecY -= originMeters.y;
+            }
+            
+            // Rotar según el ángulo del SR (rotación inversa)
+            const angleRad = toRadians(userSR.angle);
+            const cosA = Math.cos(angleRad);
+            const sinA = Math.sin(angleRad);
+            
+            return {
+                x: vecX * cosA + vecY * sinA,
+                y: -vecX * sinA + vecY * cosA
+            };
+        }
+
+        // Convertir coordenadas del mundo (metros) a pantalla (píxeles)
+        function worldToScreen(wx, wy) {
+            const groundY = getGroundLevel();
+            return {
+                x: wx * SCALE + canvas.width / 2,
+                y: groundY - wy * SCALE
+            };
+        }
+
+        // Convertir coordenadas de pantalla (píxeles) a mundo (metros)
+        function screenToWorld(sx, sy) {
+            const groundY = getGroundLevel();
+            return {
+                x: (sx - canvas.width / 2) / SCALE,
+                y: (groundY - sy) / SCALE
+            };
+        }
+
+        function getGroundLevel() {
+            return canvas.height * 0.70; // Suelo al 70% (más arriba, antes era 0.85)
+        }
+
+        // ==================== GENERACIÓN DE PROBLEMAS ====================
+        
+        function randomizePhysics() {
+            if (appState.scenario === 'horizontal') {
+                // Objeto en el suelo, MÁS CENTRADO en el canvas
+                physicsObj.pos = { 
+                    x: 10 + Math.random() * 60, // 10 a 70 metros (más centrado)
+                    y: 0 
+                };
+                
+                // Velocidad inicial con ángulos específicos para buena visualización
+                // Ángulos: 0°, 30°, 45°, 60°, 90°, 120°, 135°, 150°, 180°
+                const allowedAngles = [0, 30, 45, 60, 90, 120, 135, 150, 180];
+                const angle = allowedAngles[Math.floor(Math.random() * allowedAngles.length)];
+                const v0 = 15 + Math.random() * 25; // 15-40 m/s
+                
+                physicsObj.vel = {
+                    x: v0 * Math.cos(toRadians(angle)),
+                    y: v0 * Math.sin(toRadians(angle))
+                };
+                
+                // Aceleración HORIZONTAL aleatoria (MÁS GRANDE para que se vea)
+                physicsObj.acc = {
+                    x: -15 + Math.random() * 30, // -15 a 15 m/s² (más grande)
+                    y: 0 // Sin aceleración vertical
+                };
+                
+            } else { // building
+                // Objeto EN LA ESQUINA SUPERIOR DERECHA DEL EDIFICIO
+                const buildingHeight = 80; // metros
+                const buildingCenterX = -60; // metros
+                
+                // Calcular posición exacta en el borde visual del edificio
+                // Ancho visual: 140px. Escala: 2. Ancho real = 70m. Mitad = 35m.
+                // El borde derecho está a (buildingCenterX + 35) metros.
+                const buildingRightEdge = buildingCenterX + 35; 
+                
+                physicsObj.pos = { 
+                    x: buildingRightEdge, // Exactamente en el borde del muro
+                    y: buildingHeight // En lo alto del edificio
+                };
+                
+                // Velocidad inicial con ángulos específicos
+                const allowedAngles = [-45, -30, 0, 30, 45];
+                const angle = allowedAngles[Math.floor(Math.random() * allowedAngles.length)];
+                const v0 = 10 + Math.random() * 20; // 10-30 m/s
+                
+                physicsObj.vel = {
+                    x: v0 * Math.cos(toRadians(angle)),
+                    y: v0 * Math.sin(toRadians(angle))
+                };
+                
+                // SIEMPRE GRAVEDAD cuando está en el edificio
+                physicsObj.acc = { 
+                    x: 0, 
+                    y: -9.8 // Gravedad
+                };
+            }
+            
+            updateDataPanel();
+            draw();
+        }
+
+        function setScenario(scenario) {
+            appState.scenario = scenario;
+            
+            // Actualizar botones
+            const btnHor = document.getElementById('btn-hor');
+            const btnBuild = document.getElementById('btn-build');
+            
+            if (scenario === 'horizontal') {
+                btnHor.className = 'px-5 py-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition font-medium text-sm shadow-md ring-2 ring-indigo-600 ring-offset-2';
+                btnBuild.className = 'px-5 py-2.5 rounded-lg bg-white text-slate-700 border-2 border-slate-300 hover:bg-slate-50 transition font-medium text-sm shadow-sm';
+                
+                // Posicionar SR en el suelo a la izquierda
+                userSR.origin = { x: canvas.width * 0.25, y: getGroundLevel() };
+            } else {
+                btnBuild.className = 'px-5 py-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition font-medium text-sm shadow-md ring-2 ring-indigo-600 ring-offset-2';
+                btnHor.className = 'px-5 py-2.5 rounded-lg bg-white text-slate-700 border-2 border-slate-300 hover:bg-slate-50 transition font-medium text-sm shadow-sm';
+                
+                // Posicionar SR en el suelo a la derecha
+                userSR.origin = { x: canvas.width * 0.6, y: getGroundLevel() };
+            }
+            
+            randomizePhysics();
+        }
+
+        // ==================== DIBUJO EN CANVAS ====================
+        
+        function drawArrow(ctx, x, y, vx, vy, color, scale, label) {
+            if (vx === 0 && vy === 0) return;
+            
+            const endX = x + vx * scale;
+            const endY = y - vy * scale; // Invertir Y (canvas crece hacia abajo)
+            
+            // Flecha
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 3;
+            
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            
+            // Punta de flecha
+            const angle = Math.atan2(endY - y, endX - x);
+            const headLength = 12;
+            
+            ctx.beginPath();
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(
+                endX - headLength * Math.cos(angle - Math.PI / 6),
+                endY - headLength * Math.sin(angle - Math.PI / 6)
+            );
+            ctx.lineTo(
+                endX - headLength * Math.cos(angle + Math.PI / 6),
+                endY - headLength * Math.sin(angle + Math.PI / 6)
+            );
+            ctx.closePath();
+            ctx.fill();
+            
+            // Etiqueta
+            if (label) {
+                ctx.font = 'bold 16px Inter';
+                ctx.fillStyle = color;
+                const labelX = endX + 15 * Math.cos(angle);
+                const labelY = endY + 15 * Math.sin(angle);
+                ctx.fillText(label, labelX, labelY);
+            }
+        }
+        
+        function drawPosVector(ctx, fromX, fromY, toX, toY, color) {
+            // Flecha sólida para posición
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 2; // Un poco más fino que los vectores libres
+            ctx.setLineDash([]); // Sólida
+            
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.stroke();
+            
+            // Punta de flecha en el destino
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+            const headLength = 10;
+            
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(
+                toX - headLength * Math.cos(angle - Math.PI / 6),
+                toY - headLength * Math.sin(angle - Math.PI / 6)
+            );
+            ctx.lineTo(
+                toX - headLength * Math.cos(angle + Math.PI / 6),
+                toY - headLength * Math.sin(angle + Math.PI / 6)
+            );
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawAngleArc(ctx, x, y, vx, vy, scale, angleInfo, color, contextRotation = 0) {
+            if (!angleInfo || (vx === 0 && vy === 0)) return;
+            if (Math.abs(angleInfo.angle) < 1) return;
+            
+            const arcRadius = 40;
+            
+            ctx.save();
+            ctx.translate(x, y);
+            
+            // Calcular el ángulo del vector en el canvas (Y invertido)
+            const vectorAngle = Math.atan2(-vy, vx);
+            
+            // Calcular ángulos hacia los 4 ejes
+            const angleToXPos = vectorAngle; // Hacia X+ (0°)
+            const angleToYPos = vectorAngle - (-Math.PI / 2); // Hacia Y+ (-90°)
+            const angleToXNeg = vectorAngle - Math.PI; // Hacia X- (±180°)
+            const angleToYNeg = vectorAngle - (Math.PI / 2); // Hacia Y- (90°)
+            
+            // Normalizar ángulos a rango [-π, π]
+            function normalizeAngle(angle) {
+                while (angle > Math.PI) angle -= 2 * Math.PI;
+                while (angle < -Math.PI) angle += 2 * Math.PI;
+                return angle;
+            }
+            
+            const angles = [
+                { angle: normalizeAngle(angleToXPos), axis: 0, name: 'X+' },
+                { angle: normalizeAngle(angleToYPos), axis: -Math.PI / 2, name: 'Y+' },
+                { angle: normalizeAngle(angleToXNeg), axis: Math.PI, name: 'X-' },
+                { angle: normalizeAngle(angleToYNeg), axis: Math.PI / 2, name: 'Y-' }
+            ];
+            
+            // Elegir el ángulo más pequeño en valor absoluto
+            let minAngle = angles[0];
+            for (let i = 1; i < angles.length; i++) {
+                if (Math.abs(angles[i].angle) < Math.abs(minAngle.angle)) {
+                    minAngle = angles[i];
+                }
+            }
+            
+            // Dibujar arco desde el eje elegido hasta el vector
+            const startAngle = minAngle.axis;
+            const endAngle = vectorAngle;
+            
+            // Determinar dirección del arco (el camino más corto)
+            let arcStart = startAngle;
+            let arcEnd = endAngle;
+            
+            if (Math.abs(endAngle - startAngle) > Math.PI) {
+                // Camino largo, invertir dirección
+                if (endAngle > startAngle) {
+                    arcEnd = endAngle - 2 * Math.PI;
+                } else {
+                    arcEnd = endAngle + 2 * Math.PI;
+                }
+            }
+            
+            // Asegurar que dibujamos en sentido antihorario (de menor a mayor)
+            if (arcEnd < arcStart) {
+                [arcStart, arcEnd] = [arcEnd, arcStart];
+            }
+            
+            // Dibujar el arco
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(0, 0, arcRadius, arcStart, arcEnd, false);
+            ctx.stroke();
+            
+            // Etiqueta en el punto medio - SIEMPRE HORIZONTAL
+            const midAngle = (arcStart + arcEnd) / 2;
+            const labelDist = arcRadius + 20; // Un poco más lejos para claridad
+            const labelX = labelDist * Math.cos(midAngle);
+            const labelY = labelDist * Math.sin(midAngle);
+            
+            ctx.save();
+            ctx.translate(labelX, labelY);
+            
+            // Rotar inversamente al contexto actual para anular la rotación del SR
+            ctx.rotate(-contextRotation);
+            
+            ctx.font = 'bold 14px Inter';
+            ctx.fillStyle = color;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`${Math.abs(minAngle.angle * 180 / Math.PI).toFixed(0)}°`, 0, 0);
+            
+            ctx.restore();
+            
+            ctx.restore();
+        }
+
+        function drawAuxiliaryAxes(x, y, axisLength = 60) {
+            // Ejes auxiliares semi-transparentes (azul claro)
+            ctx.strokeStyle = 'rgba(59, 130, 246, 0.4)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 4]);
+            
+            // Eje X' auxiliar
+            ctx.beginPath();
+            ctx.moveTo(x - axisLength, y);
+            ctx.lineTo(x + axisLength, y);
+            ctx.stroke();
+            
+            // Eje Y' auxiliar
+            ctx.beginPath();
+            ctx.moveTo(x, y - axisLength);
+            ctx.lineTo(x, y + axisLength);
+            ctx.stroke();
+            
+            ctx.setLineDash([]);
+            
+            // Flechas pequeñas
+            ctx.fillStyle = 'rgba(59, 130, 246, 0.4)';
+            
+            // Flecha X'
+            ctx.beginPath();
+            ctx.moveTo(x + axisLength, y);
+            ctx.lineTo(x + axisLength - 8, y - 4);
+            ctx.lineTo(x + axisLength - 8, y + 4);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Flecha Y'
+            ctx.beginPath();
+            ctx.moveTo(x, y - axisLength);
+            ctx.lineTo(x - 4, y - axisLength + 8);
+            ctx.lineTo(x + 4, y - axisLength + 8);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Pequeño punto central
+            ctx.fillStyle = 'rgba(59, 130, 246, 0.5)';
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const groundY = getGroundLevel();
+            
+            // ===== FONDO Y ESCENARIO =====
+            
+            // Suelo (gris claro para que los ángulos se vean bien)
+            ctx.fillStyle = '#d1d5db'; // Gris claro
+            ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+            
+            // Línea del suelo
+            ctx.strokeStyle = '#9ca3af'; // Gris medio
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, groundY);
+            ctx.lineTo(canvas.width, groundY);
+            ctx.stroke();
+
+            // Edificio (si aplica)
+            if (appState.scenario === 'building') {
+                const buildingHeight = 80; // metros (debe coincidir con randomizePhysics)
+                const bHeightPixels = buildingHeight * SCALE;
+                const bWidth = 140; // 140px / 2 = 70m ancho real
+                
+                // Calcular posición X del edificio en pantalla (MÁS CENTRADO)
+                const buildingWorldX = -60; // metros (más centrado)
+                const buildingScreenPos = worldToScreen(buildingWorldX, 0);
+                const bX = buildingScreenPos.x - bWidth / 2; // Centrar el edificio
+                
+                // Edificio
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(bX, groundY - bHeightPixels, bWidth, bHeightPixels);
+                
+                // Borde
+                ctx.strokeStyle = '#64748b';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(bX, groundY - bHeightPixels, bWidth, bHeightPixels);
+                
+                // Ventanas
+                ctx.fillStyle = '#cbd5e1';
+                const windowSize = 25;
+                const windowSpacing = 45;
+                for (let i = 10; i < bHeightPixels - 30; i += windowSpacing) {
+                    for (let j = 0; j < 2; j++) {
+                        ctx.fillRect(
+                            bX + 30 + j * 60, 
+                            groundY - bHeightPixels + i, 
+                            windowSize, 
+                            windowSize
+                        );
+                    }
+                }
+                
+                // Techo
+                ctx.fillStyle = '#64748b';
+                ctx.beginPath();
+                ctx.moveTo(bX - 10, groundY - bHeightPixels);
+                ctx.lineTo(bX + bWidth / 2, groundY - bHeightPixels - 25);
+                ctx.lineTo(bX + bWidth + 10, groundY - bHeightPixels);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.strokeStyle = '#475569';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            // ===== SISTEMA DE REFERENCIA DEL USUARIO =====
+            
+            ctx.save();
+            ctx.translate(userSR.origin.x, userSR.origin.y);
+            ctx.rotate(-toRadians(userSR.angle));
+            
+            // Ejes con líneas punteadas extendidas (deben cubrir TODO el canvas)
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([8, 4]);
+            
+            // Calcular extensión suficiente para cubrir todo el canvas rotado
+            const maxExtension = Math.sqrt(canvas.width ** 2 + canvas.height ** 2);
+            
+            ctx.beginPath();
+            ctx.moveTo(-maxExtension, 0);
+            ctx.lineTo(maxExtension, 0);
+            ctx.moveTo(0, -maxExtension);
+            ctx.lineTo(0, maxExtension);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Ejes principales con flechas
+            ctx.lineWidth = 3;
+            
+            // Eje X'
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(120, 0);
+            ctx.stroke();
+            
+            // Flecha X'
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath();
+            ctx.moveTo(120, 0);
+            ctx.lineTo(110, -6);
+            ctx.lineTo(110, 6);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.font = 'bold 18px Inter';
+            ctx.fillText("X'", 130, 6);
+            
+            // Eje Y'
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, -120);
+            ctx.stroke();
+            
+            // Flecha Y'
+            ctx.beginPath();
+            ctx.moveTo(0, -120);
+            ctx.lineTo(-6, -110);
+            ctx.lineTo(6, -110);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.fillText("Y'", 8, -125);
+            
+            // DIBUJAR ARCOS DE ÁNGULOS EN EL SR ROTADO
+            if (appState.displayAngles) {
+                const r0_prime = transformToSR(physicsObj.pos, true);
+                const v0_prime = transformToSR(physicsObj.vel, false);
+                
+                // EJES AUXILIARES SOLO PARA v₀ (en la posición del objeto)
+                const v0PosX = r0_prime.x * SCALE;
+                const v0PosY = -r0_prime.y * SCALE;
+                drawAuxiliaryAxes(v0PosX, v0PosY, 60);
+                
+                // NO dibujar ejes ni arco para a₀ aquí (se dibuja fuera del SR rotado)
+                
+                // Arco para r₀ (contexto rotado por -userSR.angle)
+                drawAngleArc(ctx, 0, 0, r0_prime.x, r0_prime.y, SCALE, appState.displayAngles.r0, '#9333ea', -toRadians(userSR.angle));
+                
+                // Arco para v₀ (en la posición del objeto en el SR rotado)
+                drawAngleArc(ctx, v0PosX, v0PosY, 
+                            v0_prime.x, v0_prime.y, 8, appState.displayAngles.v0, '#10b981', -toRadians(userSR.angle));
+            }
+            
+            // Círculo central arrastrable
+            ctx.fillStyle = 'rgba(59, 130, 246, 0.25)';
+            ctx.beginPath();
+            ctx.arc(0, 0, 20, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath();
+            ctx.arc(0, 0, 6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(0, 0, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+
+            // ===== OBJETO Y VECTORES =====
+            
+            const screenPos = worldToScreen(physicsObj.pos.x, physicsObj.pos.y);
+
+            // ===== SR AUXILIAR DE a₀ FUERA DEL SR ROTADO =====
+            // Este SR se dibuja DESPUÉS del restore(), por lo que NO rota con el SR principal
+            // Se queda en el punto rojo de a₀ y gira independientemente
+            
+            // Calcular posición visual del vector aceleración según escenario
+            let accelPosX = screenPos.x;
+            let accelPosY = screenPos.y - 225; // Por defecto horizontal (225px arriba)
+
+            if (appState.scenario === 'building') {
+                // En el edificio: A la izquierda del edificio y más bajo (75px arriba)
+                // Ancho edificio = 140px. Objeto está a la derecha.
+                // Mover a la izquierda: restar ancho (140) y un margen (ej: 60)
+                accelPosX = screenPos.x - 200; 
+                accelPosY = screenPos.y - 75;
+            }
+            
+            if (appState.displayAngles) {
+                // Dibujar ejes auxiliares para a₀ (sin rotar con el SR principal)
+                ctx.save();
+                ctx.translate(accelPosX, accelPosY);
+                ctx.rotate(-toRadians(userSR.angle)); // Rotar con el SR principal
+                
+                const axisLength = 60;
+                
+                // Ejes auxiliares semi-transparentes (azul claro)
+                ctx.strokeStyle = 'rgba(59, 130, 246, 0.4)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([4, 4]);
+                
+                // Eje X' auxiliar
+                ctx.beginPath();
+                ctx.moveTo(-axisLength, 0);
+                ctx.lineTo(axisLength, 0);
+                ctx.stroke();
+                
+                // Eje Y' auxiliar
+                ctx.beginPath();
+                ctx.moveTo(0, -axisLength);
+                ctx.lineTo(0, axisLength);
+                ctx.stroke();
+                
+                ctx.setLineDash([]);
+                
+                // Flechas pequeñas
+                ctx.fillStyle = 'rgba(59, 130, 246, 0.4)';
+                
+                // Flecha X'
+                ctx.beginPath();
+                ctx.moveTo(axisLength, 0);
+                ctx.lineTo(axisLength - 8, -4);
+                ctx.lineTo(axisLength - 8, 4);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Flecha Y'
+                ctx.beginPath();
+                ctx.moveTo(0, -axisLength);
+                ctx.lineTo(-4, -axisLength + 8);
+                ctx.lineTo(4, -axisLength + 8);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Pequeño punto central
+                ctx.fillStyle = 'rgba(59, 130, 246, 0.5)';
+                ctx.beginPath();
+                ctx.arc(0, 0, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Dibujar arco del ángulo de a₀ aquí dentro (contexto rotado por -userSR.angle)
+                const a_prime = transformToSR(physicsObj.acc, false);
+                drawAngleArc(ctx, 0, 0, a_prime.x, a_prime.y, 12, appState.displayAngles.a, '#f43f5e', -toRadians(userSR.angle));
+                
+                ctx.restore();
+            }
+            
+            // ===== CONTINUAR CON VECTORES =====
+            
+            // Vector r₀ (posición) - AHORA SÓLIDO Y CON FLECHA
+            // Usamos la nueva función drawPosVector
+            drawPosVector(ctx, userSR.origin.x, userSR.origin.y, screenPos.x, screenPos.y, '#9333ea');
+            
+            // Etiqueta r₀
+            const midX = (userSR.origin.x + screenPos.x) / 2;
+            const midY = (userSR.origin.y + screenPos.y) / 2;
+            ctx.font = 'bold 16px Inter';
+            ctx.fillStyle = '#9333ea';
+            ctx.fillText('r₀', midX + 10, midY - 10);
+
+            // Objeto (círculo negro)
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath();
+            ctx.arc(screenPos.x, screenPos.y, 10, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Vector velocidad (verde, DESDE el objeto)
+            // Longitud fija entre 60 y 120 píxeles para visualización
+            const v0Mag = Math.sqrt(physicsObj.vel.x ** 2 + physicsObj.vel.y ** 2);
+            const minLengthV0 = 60;
+            const maxLengthV0 = 120;
+            let scaleV0 = 8;
+            
+            if (v0Mag > 0) {
+                const currentLength = v0Mag * scaleV0;
+                if (currentLength < minLengthV0) {
+                    scaleV0 = minLengthV0 / v0Mag;
+                } else if (currentLength > maxLengthV0) {
+                    scaleV0 = maxLengthV0 / v0Mag;
+                }
+            }
+            
+            drawArrow(ctx, screenPos.x, screenPos.y, 
+                     physicsObj.vel.x, physicsObj.vel.y, 
+                     '#10b981', scaleV0, 'v₀');
+
+            // Vector aceleración (rojo)
+            // Posición recalculada arriba según escenario
+            
+            // Punto de origen del vector aceleración
+            ctx.fillStyle = '#f43f5e';
+            ctx.beginPath();
+            ctx.arc(accelPosX, accelPosY, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Vector aceleración con escala adaptativa (longitud fija entre 40-100px)
+            const aMag = Math.sqrt(physicsObj.acc.x ** 2 + physicsObj.acc.y ** 2);
+            const minLengthA = 40; // Mínimo 40px
+            const maxLengthA = 100; // Máximo 100px
+            let scaleA = 12;
+            
+            if (aMag > 0) {
+                const currentLength = aMag * scaleA;
+                if (currentLength < minLengthA) {
+                    scaleA = minLengthA / aMag;
+                } else if (currentLength > maxLengthA) {
+                    scaleA = maxLengthA / aMag;
+                }
+            }
+            
+            drawArrow(ctx, accelPosX, accelPosY, 
+                     physicsObj.acc.x, physicsObj.acc.y, 
+                     '#f43f5e', scaleA, 'a₀');
+        }
+
+        // ==================== ACTUALIZACIÓN DE DATOS ====================
+        
+        function updateDataPanel() {
+            const r0_prime = transformToSR(physicsObj.pos, true);
+            const v0_prime = transformToSR(physicsObj.vel, false);
+            const a_prime = transformToSR(physicsObj.acc, false);
+
+            const fmt = (n) => n.toFixed(2);
+
+            // Calcular ángulos de los vectores respecto a los ejes del SR
+            const angleR0 = Math.atan2(r0_prime.y, r0_prime.x) * 180 / Math.PI;
+            const angleV0 = Math.atan2(v0_prime.y, v0_prime.x) * 180 / Math.PI;
+            const angleA = Math.atan2(a_prime.y, a_prime.x) * 180 / Math.PI;
+
+            // Determinar qué ángulo mostrar (SIEMPRE ≤ 45° con el eje más cercano)
+            function getAngleLabel(angle) {
+                // angle viene de atan2, está en rango [-180, 180]
+                
+                // Calcular el ángulo absoluto respecto al eje X
+                const absAngle = Math.abs(angle);
+                
+                // Calcular distancias a los ejes
+                let angleWithX, angleWithY;
+                
+                if (absAngle <= 90) {
+                    // Cerca del eje X o Y
+                    angleWithX = absAngle;
+                    angleWithY = 90 - absAngle;
+                } else {
+                    // Más cerca del eje X negativo
+                    angleWithX = 180 - absAngle;
+                    angleWithY = absAngle - 90;
+                }
+                
+                // Elegir el eje con el ángulo menor
+                if (angleWithX <= angleWithY) {
+                    return { axis: 'X', angle: angleWithX, useX: true };
+                } else {
+                    return { axis: 'Y', angle: angleWithY, useX: false };
+                }
+            }
+
+            const r0Angle = getAngleLabel(angleR0);
+            const v0Angle = getAngleLabel(angleV0);
+            const aAngle = getAngleLabel(angleA);
+
+            // Posición
+            document.getElementById('val-r0x').textContent = fmt(r0_prime.x);
+            document.getElementById('val-r0y').textContent = fmt(r0_prime.y);
+            document.getElementById('val-r0-mod').textContent = fmt(Math.sqrt(r0_prime.x ** 2 + r0_prime.y ** 2)) + ' m';
+            
+            // Notación vectorial para r₀
+            document.getElementById('vec-r0x').textContent = fmt(r0_prime.x);
+            document.getElementById('vec-r0y').textContent = Math.abs(r0_prime.y).toFixed(2);
+            document.getElementById('vec-r0-sign').textContent = r0_prime.y >= 0 ? '+' : '-';
+            
+            if (r0Angle.useX) {
+                document.getElementById('label-r0x').textContent = `X' = |r₀|·cos(${fmt(r0Angle.angle)}°)`;
+                document.getElementById('label-r0y').textContent = `Y' = |r₀|·sen(${fmt(r0Angle.angle)}°)`;
+            } else {
+                document.getElementById('label-r0x').textContent = `X' = |r₀|·sen(${fmt(r0Angle.angle)}°)`;
+                document.getElementById('label-r0y').textContent = `Y' = |r₀|·cos(${fmt(r0Angle.angle)}°)`;
+            }
+            
+            // Velocidad
+            document.getElementById('val-v0x').textContent = fmt(v0_prime.x);
+            document.getElementById('val-v0y').textContent = fmt(v0_prime.y);
+            document.getElementById('val-v0-mod').textContent = fmt(Math.sqrt(v0_prime.x ** 2 + v0_prime.y ** 2)) + ' m/s';
+            
+            // Notación vectorial para v₀
+            document.getElementById('vec-v0x').textContent = fmt(v0_prime.x);
+            document.getElementById('vec-v0y').textContent = Math.abs(v0_prime.y).toFixed(2);
+            document.getElementById('vec-v0-sign').textContent = v0_prime.y >= 0 ? '+' : '-';
+            
+            if (v0Angle.useX) {
+                document.getElementById('label-v0x').textContent = `v'ₓ = |v₀|·cos(${fmt(v0Angle.angle)}°)`;
+                document.getElementById('label-v0y').textContent = `v'ᵧ = |v₀|·sen(${fmt(v0Angle.angle)}°)`;
+            } else {
+                document.getElementById('label-v0x').textContent = `v'ₓ = |v₀|·sen(${fmt(v0Angle.angle)}°)`;
+                document.getElementById('label-v0y').textContent = `v'ᵧ = |v₀|·cos(${fmt(v0Angle.angle)}°)`;
+            }
+            
+            // Aceleración
+            document.getElementById('val-ax').textContent = fmt(a_prime.x);
+            document.getElementById('val-ay').textContent = fmt(a_prime.y);
+            document.getElementById('val-a-mod').textContent = fmt(Math.sqrt(a_prime.x ** 2 + a_prime.y ** 2)) + ' m/s²';
+            
+            // Notación vectorial para a₀
+            document.getElementById('vec-ax').textContent = fmt(a_prime.x);
+            document.getElementById('vec-ay').textContent = Math.abs(a_prime.y).toFixed(2);
+            document.getElementById('vec-a-sign').textContent = a_prime.y >= 0 ? '+' : '-';
+            
+            if (aAngle.useX) {
+                document.getElementById('label-ax').textContent = `a'ₓ = |a₀|·cos(${fmt(aAngle.angle)}°)`;
+                document.getElementById('label-ay').textContent = `a'ᵧ = |a₀|·sen(${fmt(aAngle.angle)}°)`;
+            } else {
+                document.getElementById('label-ax').textContent = `a'ₓ = |a₀|·sen(${fmt(aAngle.angle)}°)`;
+                document.getElementById('label-ay').textContent = `a'ᵧ = |a₀|·cos(${fmt(aAngle.angle)}°)`;
+            }
+
+            document.getElementById('angle-display').textContent = userSR.angle + '°';
+            
+            // Guardar ángulos para dibujar en el canvas
+            appState.displayAngles = { r0: r0Angle, v0: v0Angle, a: aAngle };
+        }
+
+        // ==================== EVENTOS DE INTERFAZ ====================
+        
+        // Slider de ángulo
+        const angleSlider = document.getElementById('angle-slider');
+        angleSlider.addEventListener('input', (e) => {
+            userSR.angle = parseInt(e.target.value);
+            updateDataPanel();
+            draw();
+        });
+
+        // Drag & Drop del SR
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            
+            const dist = Math.sqrt(
+                Math.pow(mx - userSR.origin.x, 2) + 
+                Math.pow(my - userSR.origin.y, 2)
+            );
+            
+            if (dist < 25) {
+                appState.isDragging = true;
+                canvas.style.cursor = 'grabbing';
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (appState.isDragging) {
+                const rect = canvas.getBoundingClientRect();
+                let mx = e.clientX - rect.left;
+                let my = e.clientY - rect.top;
+
+                // Limitar al canvas
+                mx = Math.max(30, Math.min(canvas.width - 30, mx));
+                my = Math.max(30, Math.min(canvas.height - 30, my));
+
+                userSR.origin = { x: mx, y: my };
+                updateDataPanel();
+                draw();
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            appState.isDragging = false;
+            canvas.style.cursor = 'crosshair';
+        });
+
+        function resetSR() {
+            userSR.angle = 0;
+            angleSlider.value = 0;
+            userSR.origin = { x: canvas.width / 2, y: getGroundLevel() };
+            updateDataPanel();
+            draw();
+        }
+
+        function centerSROnObject() {
+            if (!physicsObj.pos) return;
+            
+            // Calcular posición del objeto en pantalla
+            const screenPos = worldToScreen(physicsObj.pos.x, physicsObj.pos.y);
+            
+            // Colocar el SR en el centro del objeto
+            userSR.origin = { x: screenPos.x, y: screenPos.y };
+            
+            updateDataPanel();
+            draw();
+        }
+
+        function alignSRWithGround() {
+            if (!physicsObj.pos) return;
+            
+            // Calcular posición del objeto en pantalla
+            const screenPos = worldToScreen(physicsObj.pos.x, physicsObj.pos.y);
+            
+            // Mover el SR para que el eje X' quede a la altura del objeto
+            // (esto hace que la componente Y' de r₀ sea 0)
+            userSR.origin.y = screenPos.y;
+            
+            updateDataPanel();
+            draw();
+        }
+
+        // ==================== INICIALIZACIÓN ====================
+        
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Inicializar después de que el DOM esté listo
+        setTimeout(() => {
+            resizeCanvas();
+            setScenario('horizontal');
+        }, 100);
+
+    </script>
+</body>
+</html>
