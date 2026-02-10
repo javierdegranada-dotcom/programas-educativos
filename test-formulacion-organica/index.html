@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Avanzado de Formulación Orgánica</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #eee;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .question-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            display: none;
+            border-top: 4px solid #667eea;
+        }
+
+        .question-card.active {
+            display: block;
+            animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .question-number {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .question-number::before {
+            content: '📋';
+            font-size: 1.2em;
+        }
+
+        .question-text {
+            font-size: 1.15em;
+            line-height: 1.7;
+            color: #333;
+            margin-bottom: 25px;
+            font-weight: 500;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border: 2px solid #e9ecef;
+            padding: 18px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            font-size: 1em;
+            line-height: 1.6;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: #667eea;
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .option:hover::before {
+            transform: scaleY(1);
+        }
+
+        .option:hover {
+            background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+            border-color: #667eea;
+            transform: translateX(8px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .option.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            transform: translateX(5px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .option.selected::before {
+            background: white;
+            transform: scaleY(1);
+        }
+
+        .option.correct {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-color: #28a745;
+            animation: correctPulse 0.5s ease;
+        }
+
+        .option.correct::before {
+            background: white;
+            transform: scaleY(1);
+        }
+
+        @keyframes correctPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.03);
+            }
+        }
+
+        .option.incorrect {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border-color: #dc3545;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-10px);
+            }
+            75% {
+                transform: translateX(10px);
+            }
+        }
+
+        .option.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .explanation {
+            background: linear-gradient(135deg, #fff3cd 0%, #fffaeb 100%);
+            border-left: 5px solid #ffc107;
+            padding: 20px;
+            margin-top: 25px;
+            border-radius: 12px;
+            display: none;
+            font-size: 0.95em;
+            line-height: 1.7;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+        }
+
+        .explanation.show {
+            display: block;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .explanation-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .explanation-title::before {
+            content: '💡';
+            font-size: 1.3em;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-selection {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 20px 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-selection::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-selection:hover::before {
+            left: 100%;
+        }
+
+        .btn-selection:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-selection.selected {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.5);
+            transform: scale(1.05);
+        }
+
+        .btn-selection .question-count {
+            display: block;
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .btn-selection .question-label {
+            font-size: 0.8em;
+            opacity: 0.9;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 18px 50px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);
+            margin: 0 auto;
+            display: block;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 30px rgba(245, 87, 108, 0.6);
+        }
+
+        .molecule-decoration {
+            font-size: 3em;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .chemistry-icon {
+            display: inline-block;
+            margin: 0 10px;
+            font-size: 2.5em;
+            opacity: 0.3;
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .selection-container {
+            margin: 40px 0;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-radius: 20px;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 25px;
+            font-size: 1.05em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #5568d3 0%, #6a3d8f 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 25px;
+            font-size: 1.05em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #5a6268 0%, #4e555b 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .start-screen, .results-screen {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .results-screen {
+            display: none;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            margin: 20px auto;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .details {
+            text-align: left;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease-out;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .question-text {
+                font-size: 1em;
+            }
+
+            .option {
+                padding: 12px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Test Avanzado de Formulación Orgánica</h1>
+            <p class="subtitle">Nomenclatura IUPAC • Prioridades • Reglas de numeración</p>
+            <div style="font-size: 1.5em; opacity: 0.2; margin-top: 10px; letter-spacing: 10px;">
+                ⬡─⬢─⬡─⬢─⬡
+            </div>
+            <p class="author" style="font-size: 0.75em; color: #888; margin-top: 10px; font-style: italic;">Programa realizado por Javier Gijón<br>Profesor del IES María Moliner (Segovia)</p>
+            <div class="stats" id="stats" style="display: none;">
+                <div class="stat">
+                    <div class="stat-label">Pregunta</div>
+                    <div class="stat-value"><span id="current-q">0</span>/<span id="total-q">0</span></div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Correctas</div>
+                    <div class="stat-value" id="correct-count">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Acierto</div>
+                    <div class="stat-value" id="accuracy">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="start-screen" id="start-screen">
+            <div class="molecule-decoration">⬡ ⬢ ⬡</div>
+            <h2 style="color: #667eea; margin-bottom: 20px;">Bienvenido al Test de Máximo Nivel</h2>
+            <p style="margin-bottom: 15px; line-height: 1.6;">Este test evalúa tu conocimiento profundo sobre:</p>
+            <ul style="text-align: left; margin: 20px auto; max-width: 400px; line-height: 2;">
+                <li>🔬 Orden de prioridad de grupos funcionales</li>
+                <li>⚗️ Nomenclatura como radicales vs. grupos principales</li>
+                <li>📊 Criterios de desempate en numeración</li>
+                <li>🔗 Elección de cadena principal</li>
+                <li>✏️ Detección de errores en nombres IUPAC</li>
+            </ul>
+            <p style="margin: 20px 0; font-weight: bold; color: #667eea; font-size: 1.1em;">
+                <span class="chemistry-icon">⚛</span>
+                100+ preguntas teóricas desafiantes
+                <span class="chemistry-icon">🧪</span>
+            </p>
+            
+            <div class="selection-container">
+                <p style="font-weight: bold; margin-bottom: 25px; color: #333; font-size: 1.2em;">¿Cuántas preguntas quieres responder?</p>
+                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; max-width: 600px; margin: 0 auto;">
+                    <button class="btn-selection" onclick="selectQuestionCount(10)" id="btn-10">
+                        <span class="question-count">10</span>
+                        <span class="question-label">Test Rápido</span>
+                    </button>
+                    <button class="btn-selection" onclick="selectQuestionCount(20)" id="btn-20">
+                        <span class="question-count">20</span>
+                        <span class="question-label">Test Medio</span>
+                    </button>
+                    <button class="btn-selection" onclick="selectQuestionCount(30)" id="btn-30">
+                        <span class="question-count">30</span>
+                        <span class="question-label">Test Completo</span>
+                    </button>
+                </div>
+            </div>
+            
+            <button class="btn-start" id="start-btn" onclick="startTest()" style="display: none;">
+                🚀 Comenzar Test
+            </button>
+        </div>
+
+        <div class="progress-bar" id="progress-bar" style="display: none;">
+            <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
+        </div>
+
+        <div class="question-card" id="question-card"></div>
+
+        <div class="results-screen" id="results-screen"></div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "En una molécula con un grupo alcohol (-OH) y un grupo carbonilo (C=O), ¿qué grupo tiene prioridad para ser el grupo principal?",
+                options: [
+                    "El grupo alcohol, porque está más a la izquierda en la tabla periódica",
+                    "El grupo carbonilo, siempre tiene prioridad sobre alcoholes",
+                    "El que esté en el carbono con menor número de posición",
+                    "Depende de si el carbonilo es aldehído o cetona",
+                    "Ambos grupos tienen igual prioridad según IUPAC"
+                ],
+                correct: 3,
+                explanation: "La prioridad depende del tipo de carbonilo. Los aldehídos (-CHO) tienen mayor prioridad que los alcoholes, pero los alcoholes tienen mayor prioridad que las cetonas. Por tanto, es crucial identificar si el carbonilo es aldehído o cetona."
+            },
+            {
+                question: "¿Qué error tiene el nombre '3-metilpropano'?",
+                options: [
+                    "No tiene error, está correctamente nombrado",
+                    "El propano solo tiene 3 carbonos, no existe posición 3 para un sustituyente",
+                    "Debería ser '1-metilpropano'",
+                    "Falta el prefijo 'mono-'",
+                    "Debería escribirse '3metilpropano' sin guion"
+                ],
+                correct: 1,
+                explanation: "El propano tiene solo 3 carbonos en línea. Si añades un metil en cualquier posición, formas una cadena de 4 carbonos. El nombre correcto sería 'butano' o '2-metilpropano' si el metil está en el carbono central, pero entonces sería también 'butano'."
+            },
+            {
+                question: "Identifica el error en '4-metilbutano':",
+                options: [
+                    "Debería ser 'butano-4-metil'",
+                    "Falta indicar que es 'mono-metil'",
+                    "Si hay un metil en posición 4 de un butano, la cadena principal sería de 5 carbonos: 'pentano'",
+                    "El número 4 no existe en el butano",
+                    "Está correctamente nombrado"
+                ],
+                correct: 2,
+                explanation: "Un butano tiene 4 carbonos. Si pones un metil en posición 4 (el último carbono), en realidad estás extendiendo la cadena a 5 carbonos. El nombre correcto sería 'pentano' o, si realmente hay una ramificación, debería renumerarse como '2-metilbutano'."
+            },
+            {
+                question: "¿Qué está mal en 'ácido 2-hidroxibutanoico' que tiene también un grupo aldehído en C3?",
+                options: [
+                    "El aldehído debería ser el grupo principal, no el ácido",
+                    "El ácido carboxílico tiene máxima prioridad, está bien como principal",
+                    "Deberían nombrarse ambos grupos como principales",
+                    "El hidroxi debería ir después del aldehído",
+                    "Falta nombrar el grupo aldehído como 'formil'"
+                ],
+                correct: 4,
+                explanation: "El ácido carboxílico es correctamente el grupo principal por tener máxima prioridad. Sin embargo, el aldehído presente debe nombrarse como sustituyente usando el prefijo 'formil'. El nombre completo debería incluir '3-formil' además de '2-hidroxi'."
+            },
+            {
+                question: "En '3-oxobutanol', ¿cuál es el error?",
+                options: [
+                    "Debería ser '3-cetobutanol'",
+                    "Falta indicar la posición del alcohol: '3-oxobutan-1-ol'",
+                    "El grupo cetona (oxo) debería ser el principal",
+                    "No puede haber un grupo oxo y un alcohol juntos",
+                    "Está perfectamente nombrado"
+                ],
+                correct: 1,
+                explanation: "Cuando el grupo funcional principal es el alcohol (-ol), SIEMPRE debe indicarse su posición en la cadena. El nombre correcto sería '3-oxobutan-1-ol' o '3-oxobutan-2-ol' según dónde esté el -OH."
+            },
+            {
+                question: "¿Qué está mal en el nombre 'pentan-3-ol-2-ona'?",
+                options: [
+                    "No se pueden nombrar dos grupos funcionales principales",
+                    "Debería ser '2-oxopentan-3-ol' con la cetona como sustituyente",
+                    "Debería ser 'pentan-3-ol-2-oxo'",
+                    "El orden debería ser 'pentan-2-ona-3-ol'",
+                    "Está correctamente nombrado"
+                ],
+                correct: 1,
+                explanation: "Solo puede haber UN grupo funcional principal. El alcohol tiene mayor prioridad que la cetona, por lo que el alcohol es el grupo principal (-ol) y la cetona se nombra como sustituyente 'oxo'. Correcto: '2-oxopentan-3-ol'."
+            },
+            {
+                question: "Identifica el error: '2-hidroxibutanal'",
+                options: [
+                    "El aldehído tiene mayor prioridad que el alcohol, está bien",
+                    "Debería ser 'butan-2-ol-1-al'",
+                    "Debería ser '2-hidroxibutan-1-al'",
+                    "No puede haber hidroxi y aldehído juntos",
+                    "Falta el prefijo 'mono-' antes de hidroxi"
+                ],
+                correct: 0,
+                explanation: "El nombre '2-hidroxibutanal' es correcto. El aldehído tiene mayor prioridad que el alcohol, por lo que es el grupo principal (sufijo -al) y el alcohol actúa como sustituyente (prefijo hidroxi-). Los aldehídos siempre están en posición 1."
+            },
+            {
+                question: "¿Qué error contiene '3-metilpentano-2-ol'?",
+                options: [
+                    "El guion después de 'pentano' está mal colocado",
+                    "Debería ser '3-metilpentan-2-ol' (sin la 'o' antes del guion)",
+                    "Debería ser 'pentano-2-ol-3-metil'",
+                    "Falta el prefijo 'mono-metil'",
+                    "No tiene ningún error"
+                ],
+                correct: 1,
+                explanation: "Cuando hay un grupo funcional principal, se elimina la vocal final del hidrocarburo antes del guion. Correcto: '3-metilpentan-2-ol' (pentan, no pentano)."
+            },
+            {
+                question: "En '2,2-dimetilpropan-3-ol', ¿qué está mal?",
+                options: [
+                    "El propano solo tiene 3 carbonos, no existe posición 3 para el OH como sustituyente",
+                    "Debería ser '2,2-dimetilpropan-1-ol'",
+                    "Los dos metilos en posición 2 convierten la cadena en pentano",
+                    "Está correctamente nombrado",
+                    "Falta indicar 'tri-' por tener tres grupos metilo totales"
+                ],
+                correct: 0,
+                explanation: "El propano tiene 3 carbonos (C-C-C). La posición 3 sería el último carbono. Si el -OH está ahí, se numera desde ese extremo y sería posición 1. El nombre correcto sería '2,2-dimetilpropan-1-ol'."
+            },
+            {
+                question: "¿Cuál de estos nombres está MAL escrito?",
+                options: [
+                    "3-metilpentan-2-ona",
+                    "2-metilbutan-3-ona",
+                    "4-metilhexan-2-ona",
+                    "2,3-dimetilpentan-4-ona",
+                    "3,3-dimetilbutan-2-ona"
+                ],
+                correct: 3,
+                explanation: "'2,3-dimetilpentan-4-ona' está mal. En una cadena de 5 carbonos (pentano), si la cetona está en posición 4, numerando desde el otro extremo estaría en posición 2. Siempre se da a la cetona el número más bajo. Debería ser '3,4-dimetilpentan-2-ona'."
+            },
+            {
+                question: "Cuando un alcohol actúa como sustituyente (radical), ¿cómo se nombra?",
+                options: [
+                    "Alcohol-il",
+                    "Hidroxil",
+                    "Hidroxi",
+                    "Ol-ilo",
+                    "Oxihidro"
+                ],
+                correct: 2,
+                explanation: "Cuando el alcohol no es el grupo principal sino un sustituyente, se nombra como 'hidroxi' seguido de la posición en la cadena principal (por ejemplo: 3-hidroxi)."
+            },
+            {
+                question: "¿Qué nombre está CORRECTO?",
+                options: [
+                    "ácido 3-oxobutanoico",
+                    "ácido 2-olbutanoico",
+                    "ácido 2-cetobutanoico",
+                    "ácido butanoico-3-oxo",
+                    "3-oxo-ácido-butanoico"
+                ],
+                correct: 0,
+                explanation: "El correcto es 'ácido 3-oxobutanoico'. Las cetonas como sustituyentes se nombran 'oxo' (no 'ceto'), los alcoholes como 'hidroxi' (no 'ol'), y el formato es: ácido + sustituyentes + nombre de cadena + oico."
+            },
+            {
+                question: "Identifica el error en '5-metilhexano':",
+                options: [
+                    "Debería numerarse desde el otro extremo: '2-metilhexano'",
+                    "El hexano solo tiene 6 carbonos, no existe posición 7",
+                    "Debería ser 'hexano-5-metil'",
+                    "Está correctamente nombrado",
+                    "Falta el prefijo 'mono-'"
+                ],
+                correct: 0,
+                explanation: "Se numera para dar al sustituyente el número más bajo posible. Si el metil está en posición 5 de un hexano, numerando desde el otro extremo estaría en posición 2. Correcto: '2-metilhexano'."
+            },
+            {
+                question: "¿Qué está mal en 'propan-1,2,3-triol'?",
+                options: [
+                    "No puede haber tres grupos OH en solo tres carbonos",
+                    "Es el nombre correcto para la glicerina",
+                    "Debería ser '1,2,3-trihidroxipropano'",
+                    "Falta indicar las posiciones con guiones",
+                    "Debería ser 'propanotriol'"
+                ],
+                correct: 1,
+                explanation: "El nombre 'propan-1,2,3-triol' es perfectamente correcto. Es el nombre sistemático de la glicerina (glicerol), que tiene tres grupos -OH en cada uno de los tres carbonos del propano."
+            },
+            {
+                question: "En caso de empate en la numeración de una cadena, ¿qué criterio se aplica primero?",
+                options: [
+                    "Se elige la numeración que da números más bajos a los radicales en conjunto",
+                    "Se elige la numeración que favorece al radical con mayor masa molecular",
+                    "Se elige la numeración que da el número más bajo al primer punto de diferencia",
+                    "Se elige la numeración que favorece a los radicales en orden alfabético",
+                    "Se elige la numeración que da números pares a los sustituyentes"
+                ],
+                correct: 2,
+                explanation: "El criterio de desempate es comparar ambas numeraciones posibles y elegir aquella que da el número más bajo en el primer punto de diferencia. Por ejemplo, entre (2,3,5) y (2,4,5), se elige (2,3,5) porque 3 < 4."
+            },
+            {
+                question: "¿Cuál es el error en 'butan-2,3-diol'?",
+                options: [
+                    "No tiene error, es correcto",
+                    "Debería ser 'butan-1,4-diol'",
+                    "No pueden estar dos OH en carbonos adyacentes",
+                    "Debería ser '2,3-dihidroxibutano'",
+                    "Falta el prefijo 'di-' antes de 'ol'"
+                ],
+                correct: 0,
+                explanation: "El nombre 'butan-2,3-diol' es completamente correcto. Indica un butano (4 carbonos) con dos grupos -OH en las posiciones 2 y 3. El sufijo '-diol' ya indica 'dos alcoholes'."
+            },
+            {
+                question: "Para elegir la cadena principal en hidrocarburos ramificados, ¿cuál es el primer criterio?",
+                options: [
+                    "La cadena con más átomos de carbono",
+                    "La cadena con más ramificaciones",
+                    "La cadena con mayor masa molecular",
+                    "La cadena más saturada (más enlaces simples)",
+                    "La cadena que contiene el carbono terminal"
+                ],
+                correct: 0,
+                explanation: "El primer criterio para elegir la cadena principal es que contenga el mayor número de átomos de carbono. Si hay empate, entonces se aplican criterios secundarios como el número de insaturaciones o ramificaciones."
+            },
+            {
+                question: "Identifica el nombre INCORRECTO:",
+                options: [
+                    "hex-3-ino",
+                    "pent-2-ino",
+                    "hept-4-ino",
+                    "but-2-ino",
+                    "oct-3-ino"
+                ],
+                correct: 2,
+                explanation: "'Hept-4-ino' debería ser 'hept-3-ino'. En 7 carbonos, si el triple enlace está en posición 4, al numerar desde el otro extremo estaría en posición 3. Siempre se elige el número más bajo para las insaturaciones."
+            },
+            {
+                question: "Cuando una cetona actúa como sustituyente, ¿cómo se denomina?",
+                options: [
+                    "Cetil",
+                    "Oxo",
+                    "Ceto",
+                    "Ona-ilo",
+                    "Carbonilo"
+                ],
+                correct: 1,
+                explanation: "Cuando el grupo cetona (C=O) no es el grupo principal sino un sustituyente, se nombra como 'oxo' indicando la posición del carbono carbonílico (por ejemplo: 3-oxo)."
+            },
+            {
+                question: "¿Qué error tiene '3-etil-2-metilpentano'?",
+                options: [
+                    "Ninguno, está correctamente nombrado",
+                    "Debería ser '2-metil-3-etilpentano' en orden de posiciones",
+                    "Los sustituyentes están en orden alfabético inverso",
+                    "Debería ser '2-etil-3-metilpentano'",
+                    "Falta el prefijo 'di-' para dos sustituyentes"
+                ],
+                correct: 0,
+                explanation: "El nombre '3-etil-2-metilpentano' es correcto. Los sustituyentes se ordenan alfabéticamente: 'etil' (e) va antes que 'metil' (m), independientemente de sus posiciones numéricas."
+            },
+            {
+                question: "En '2-metilpropanal', ¿qué está mal?",
+                options: [
+                    "Los aldehídos no pueden tener sustituyentes",
+                    "Debería ser '2-metilpropan-1-al'",
+                    "Nada, está correctamente nombrado",
+                    "Debería ser 'butanal'",
+                    "Falta indicar la posición del aldehído"
+                ],
+                correct: 2,
+                explanation: "'2-metilpropanal' es correcto. Es un aldehído de 3 carbonos (propanal) con un metil en posición 2. Los aldehídos no necesitan indicar posición porque siempre están en el carbono 1."
+            },
+            {
+                question: "Entre un alqueno y un alquino en la misma molécula, ¿cuál tiene prioridad para la numeración?",
+                options: [
+                    "El alqueno siempre tiene prioridad",
+                    "El alquino siempre tiene prioridad",
+                    "Tienen la misma prioridad, se numeran juntos buscando los números más bajos",
+                    "El que aparezca primero alfabéticamente",
+                    "El que tenga más átomos de carbono adyacentes"
+                ],
+                correct: 2,
+                explanation: "Los enlaces múltiples (tanto dobles como triples) tienen la misma prioridad. Se numeran de forma que el conjunto de posiciones de todos los enlaces múltiples tenga los números más bajos posibles."
+            },
+            {
+                question: "¿Qué nombre está MAL?",
+                options: [
+                    "pentan-2-ona",
+                    "hexan-4-ona",
+                    "heptan-3-ona",
+                    "butan-2-ona",
+                    "octan-4-ona"
+                ],
+                correct: 1,
+                explanation: "'Hexan-4-ona' está mal. Si numeramos desde el otro extremo, la cetona estaría en posición 3 (más bajo que 4). El nombre correcto sería 'hexan-3-ona'."
+            },
+            {
+                question: "¿Cómo se nombra un aldehído cuando actúa como sustituyente?",
+                options: [
+                    "Aldehído-il",
+                    "Formil",
+                    "Carboxi",
+                    "Metanoil",
+                    "Aldoxi"
+                ],
+                correct: 1,
+                explanation: "Cuando un aldehído (-CHO) actúa como sustituyente se nombra 'formil'. Por ejemplo: '3-formilhexanal' sería un hexanal con un grupo aldehído adicional en posición 3."
+            },
+            {
+                question: "Identifica el error: '4-metilpentano'",
+                options: [
+                    "Debería ser '2-metilpentano'",
+                    "El pentano solo tiene 5 carbonos",
+                    "Está correctamente nombrado",
+                    "Debería ser 'hexano'",
+                    "Falta el prefijo 'mono-'"
+                ],
+                correct: 0,
+                explanation: "Numerando desde el otro extremo, el metil estaría en posición 2 (más bajo que 4). Siempre se elige la numeración que da números más bajos a los sustituyentes. Correcto: '2-metilpentano'."
+            },
+            {
+                question: "Si una molécula tiene un ácido carboxílico y un alcohol, ¿cuál es el grupo principal?",
+                options: [
+                    "El alcohol, porque el oxígeno está más electronegativo",
+                    "El ácido carboxílico, tiene máxima prioridad funcional",
+                    "Depende de cuál esté en el carbono 1",
+                    "Ambos pueden ser principales, se nombran juntos",
+                    "El que tenga mayor número de átomos de oxígeno"
+                ],
+                correct: 1,
+                explanation: "El ácido carboxílico (-COOH) tiene la máxima prioridad entre los grupos funcionales orgánicos. Siempre será el grupo principal y los demás grupos (alcoholes, cetonas, etc.) actuarán como sustituyentes."
+            },
+            {
+                question: "¿Qué está mal en '2-oxopropano'?",
+                options: [
+                    "El grupo cetona no puede estar en posición 2 de un propano",
+                    "Debería ser 'propan-2-ona' (la cetona es el grupo principal)",
+                    "Debería ser '2-cetopropano'",
+                    "Está correctamente nombrado",
+                    "Falta indicar 'mono-oxo'"
+                ],
+                correct: 1,
+                explanation: "Si solo hay un grupo carbonilo cetónico, debe ser el grupo principal, no un sustituyente. El nombre correcto es 'propan-2-ona' (acetona). Solo se usa 'oxo' cuando la cetona es sustituyente de otro grupo funcional de mayor prioridad."
+            },
+            {
+                question: "En '3-aminobutan-2-ol', ¿está bien nombrado?",
+                options: [
+                    "Sí, el alcohol tiene mayor prioridad que la amina",
+                    "No, debería ser 'butan-2-ol-3-amino'",
+                    "No, debería ser '2-hidroxi-3-aminobutano'",
+                    "No, la amina debería ser el grupo principal",
+                    "No, falta el orden alfabético"
+                ],
+                correct: 0,
+                explanation: "El nombre es correcto. El alcohol (-OH) tiene mayor prioridad que la amina (-NH₂) según IUPAC. El alcohol es el grupo principal (-ol) y la amina actúa como sustituyente 'amino', en orden alfabético correcto."
+            },
+            {
+                question: "En caso de empate al elegir la cadena principal, ¿qué criterio se aplica después del número de carbonos?",
+                options: [
+                    "La cadena con mayor número de ramificaciones",
+                    "La cadena con mayor número de insaturaciones (dobles o triples enlaces)",
+                    "La cadena con mayor masa molecular total",
+                    "La cadena que contiene el grupo funcional prioritario",
+                    "La cadena con nomenclatura alfabéticamente anterior"
+                ],
+                correct: 1,
+                explanation: "Si dos cadenas tienen el mismo número de carbonos, se elige la que tenga mayor número de insaturaciones (enlaces dobles o triples). En compuestos con grupos funcionales, estos definen la cadena principal."
+            },
+            {
+                question: "¿Cuál está MAL escrito?",
+                options: [
+                    "3-bromohexano",
+                    "2-cloro-3-metilpentano",
+                    "4-yodo-2-metilhexano",
+                    "3-fluoro-4-etilheptano",
+                    "2-cloro-4-fluorohexano"
+                ],
+                correct: 2,
+                explanation: "'4-yodo-2-metilhexano' está mal ordenado alfabéticamente. 'Metil' (m) va antes que 'yodo' (y). Debería ser '2-metil-4-yodohexano'."
+            },
+            {
+                question: "¿Qué indica el nombre '2,2-dimetilbutano'?",
+                options: [
+                    "Dos grupos metilo en diferentes carbonos",
+                    "Dos grupos metilo ambos en el carbono 2",
+                    "Un grupo dimetil en posición 2",
+                    "Dos carbonos con un metilo cada uno",
+                    "Un butano con masa molecular doble"
+                ],
+                correct: 1,
+                explanation: "'2,2-dimetilbutano' indica que hay DOS grupos metilo (-CH₃) AMBOS unidos al carbono número 2 de la cadena principal de butano. Esto forma un carbono cuaternario en posición 2."
+            },
+            {
+                question: "¿Cómo se nombra el grupo -NH₂ cuando actúa como sustituyente?",
+                options: [
+                    "Amino",
+                    "Amina",
+                    "Amonio",
+                    "Nitrilo",
+                    "Amin-il"
+                ],
+                correct: 0,
+                explanation: "El grupo amino (-NH₂) cuando actúa como sustituyente se nombra 'amino' seguido de su posición (por ejemplo: 2-amino). Cuando es el grupo principal, la molécula se nombra como amina."
+            },
+            {
+                question: "Identifica el error en 'pentan-5-ol':",
+                options: [
+                    "Debería ser 'pentan-1-ol' numerando desde el otro extremo",
+                    "El pentano no tiene posición 5",
+                    "Debería ser 'pentanol-5'",
+                    "Está correctamente nombrado",
+                    "Falta el prefijo 'mono-'"
+                ],
+                correct: 0,
+                explanation: "Se numera para dar al grupo funcional principal el número más bajo. Si el -OH está en posición 5, numerando desde el otro extremo estaría en posición 1. Correcto: 'pentan-1-ol'."
+            },
+            {
+                question: "Al numerar una cadena con dos posibles direcciones, si los sustituyentes quedan en las mismas posiciones, ¿qué se hace?",
+                options: [
+                    "Se elige al azar",
+                    "Se prioriza la numeración que da números bajos al sustituyente de orden alfabético anterior",
+                    "Se busca que el grupo funcional principal tenga el número más bajo",
+                    "Se elige la dirección de izquierda a derecha",
+                    "Se numeran ambas formas y se escriben las dos nomenclaturas"
+                ],
+                correct: 1,
+                explanation: "Cuando hay empate total en las posiciones, se aplica el orden alfabético de los sustituyentes. Se elige la numeración que asigna el número más bajo al sustituyente que aparece primero alfabéticamente."
+            },
+            {
+                question: "¿Qué error tiene 'hexan-1,6-diol'?",
+                options: [
+                    "Ninguno, es el nombre correcto",
+                    "Debería ser 'hexan-1,2-diol'",
+                    "No pueden estar los OH en los extremos",
+                    "Debería ser '1,6-dihidroxihexano'",
+                    "Falta indicar 'bis-diol'"
+                ],
+                correct: 0,
+                explanation: "'Hexan-1,6-diol' es perfectamente correcto. Indica un hexano con grupos -OH en los carbonos 1 y 6 (ambos extremos). Es la forma más oxidada de un diol lineal de 6 carbonos."
+            },
+            {
+                question: "Entre un alcohol y una amina, ¿cuál tiene mayor prioridad como grupo principal?",
+                options: [
+                    "La amina, porque el nitrógeno es menos electronegativo",
+                    "El alcohol, porque el oxígeno es más electronegativo",
+                    "Ambos tienen la misma prioridad",
+                    "Depende de si son primarios, secundarios o terciarios",
+                    "El que esté en el carbono con menor numeración"
+                ],
+                correct: 1,
+                explanation: "En el orden de prioridad de grupos funcionales IUPAC, los alcoholes (-OH) tienen mayor prioridad que las aminas (-NH₂). Cuando ambos están presentes, el alcohol es el grupo principal y la amina actúa como sustituyente 'amino'."
+            },
+            {
+                question: "¿Qué nombre está INCORRECTO?",
+                options: [
+                    "2-metilbutan-1-ol",
+                    "3-etilhexan-2-ol",
+                    "2-metilpentan-4-ol",
+                    "3,3-dimetilpentan-1-ol",
+                    "2,4-dimetilhexan-3-ol"
+                ],
+                correct: 2,
+                explanation: "'2-metilpentan-4-ol' debería ser '4-metilpentan-2-ol'. Numerando desde el otro extremo, el -OH estaría en posición 2 (más bajo que 4). El grupo funcional principal siempre debe tener el número más bajo posible."
+            },
+            {
+                question: "¿Qué significa que una cadena es 'saturada' en el contexto de elegir la cadena principal?",
+                options: [
+                    "Que tiene el máximo número de hidrógenos posible (solo enlaces simples)",
+                    "Que tiene el máximo número de carbonos",
+                    "Que tiene todos los grupos funcionales posibles",
+                    "Que tiene ramificaciones en todos los carbonos",
+                    "Que contiene todos los halógenos del compuesto"
+                ],
+                correct: 0,
+                explanation: "Una cadena saturada es aquella que contiene solo enlaces simples C-C, es decir, tiene el máximo número de hidrógenos posible. En caso de empate, se prefiere la cadena más saturada (menos dobles o triples enlaces)."
+            },
+            {
+                question: "Identifica el error: '3,3,3-trimetilbutano'",
+                options: [
+                    "No pueden haber tres metilos en el mismo carbono",
+                    "Debería contarse como heptano (4+3=7 carbonos)",
+                    "Está correctamente nombrado",
+                    "Debería ser '3-trimetilbutano' sin repetir el 3",
+                    "Falta el prefijo 'tri-' delante de 'butano'"
+                ],
+                correct: 1,
+                explanation: "Si tienes 3 grupos metilo en la posición 3 de un butano, realmente tienes 7 carbonos en total. Debes reconsiderar cuál es la cadena principal más larga. Probablemente sea mejor nombrado como '2,2-dimetilpentano' u otra configuración."
+            },
+            {
+                question: "Cuando hay varios sustituyentes iguales, ¿cómo se indica su cantidad?",
+                options: [
+                    "Se repite el nombre del sustituyente tantas veces como aparezca",
+                    "Se usan prefijos multiplicadores: di-, tri-, tetra-, etc.",
+                    "Se escribe un número entre paréntesis después del nombre",
+                    "Se usa un superíndice numérico",
+                    "No se indica, se sobreentiende por las posiciones"
+                ],
+                correct: 1,
+                explanation: "Se utilizan prefijos multiplicadores: di- (2), tri- (3), tetra- (4), penta- (5), hexa- (6), etc. Por ejemplo: 2,3-dimetilpentano indica dos grupos metilo en las posiciones 2 y 3."
+            },
+            {
+                question: "¿Qué está mal en el nombre 'ácido 2-aminobutanoico' con un grupo cetona en C3?",
+                options: [
+                    "La cetona no se ha nombrado, debería incluir '3-oxo'",
+                    "El amino debería ir después de oxo alfabéticamente",
+                    "El ácido debería ir al final del nombre",
+                    "Debería ser 'ácido 2-amino-3-cetobutanoico'",
+                    "Está perfectamente nombrado"
+                ],
+                correct: 0,
+                explanation: "Falta nombrar la cetona. El nombre completo debería ser 'ácido 2-amino-3-oxobutanoico'. Todos los sustituyentes deben indicarse, en orden alfabético: amino, luego oxo."
+            },
+            {
+                question: "Si hay un triple enlace y un grupo alcohol en una molécula, ¿cuál determina la cadena principal?",
+                options: [
+                    "El triple enlace, siempre tiene prioridad",
+                    "El grupo alcohol, los grupos funcionales tienen prioridad sobre insaturaciones",
+                    "El que esté más cerca del extremo de la molécula",
+                    "Se crea una cadena que incluya ambos obligatoriamente",
+                    "Tienen igual prioridad, se decide por longitud de cadena"
+                ],
+                correct: 1,
+                explanation: "Los grupos funcionales (como alcoholes, aldehídos, cetonas, etc.) tienen prioridad sobre las insaturaciones (dobles o triples enlaces) para definir la cadena principal. El alcohol define la cadena principal y el triple enlace se indica con el sufijo correspondiente."
+            },
+            {
+                question: "¿Cómo se nombra el radical -CH₃ cuando es un sustituyente?",
+                options: [
+                    "Metil",
+                    "Metano",
+                    "Metilo",
+                    "Mono-carbono",
+                    "Carbil"
+                ],
+                correct: 0,
+                explanation: "El radical -CH₃ se nombra como 'metil'. Los radicales alquílicos se forman quitando la terminación '-ano' del alcano correspondiente y añadiendo '-il': metano → metil, etano → etil, propano → propil, etc."
+            },
+            {
+                question: "Identifica el nombre CORRECTO:",
+                options: [
+                    "3-metilhexan-5-ona",
+                    "4-metilhexan-2-ona",
+                    "2-metilhexan-4-ona",
+                    "5-metilhexan-3-ona",
+                    "hexan-3-ona-4-metil"
+                ],
+                correct: 1,
+                explanation: "'4-metilhexan-2-ona' es correcto. La cetona tiene prioridad en numeración y debe tener el número más bajo posible. Las demás opciones tienen la cetona mal numerada o los sustituyentes en el orden incorrecto."
+            },
+            {
+                question: "En un compuesto con un doble enlace y varios sustituyentes, ¿qué tiene prioridad para obtener números bajos?",
+                options: [
+                    "Los sustituyentes siempre tienen prioridad",
+                    "El doble enlace siempre tiene prioridad",
+                    "Depende del tipo de sustituyentes",
+                    "Se busca el conjunto de números más bajos considerando primero el doble enlace",
+                    "Se numeran independientemente"
+                ],
+                correct: 3,
+                explanation: "Las insaturaciones (dobles y triples enlaces) tienen prioridad en la numeración sobre los sustituyentes simples. Se numera para que el doble enlace tenga el número más bajo posible, y luego se consideran los sustituyentes."
+            },
+            {
+                question: "¿Qué error contiene 'butan-1,3-diona'?",
+                options: [
+                    "Las cetonas no pueden estar en posición 1",
+                    "Debería ser 'butan-2,4-diona'",
+                    "No puede haber dos grupos cetona en un butano",
+                    "Está correctamente nombrado",
+                    "Falta el prefijo 'di-' antes de 'butano'"
+                ],
+                correct: 0,
+                explanation: "Una cetona no puede estar en posición 1 porque eso sería un aldehído. Las cetonas están siempre en carbonos internos. Si hay un carbonilo en posición 1 y otro en posición 3, tendríamos un aldehído en C1 y una cetona en C3, no dos cetonas."
+            },
+            {
+                question: "¿Cuál es el orden correcto de prioridad de estos grupos funcionales (de mayor a menor)?",
+                options: [
+                    "Ácido > Aldehído > Cetona > Alcohol",
+                    "Ácido > Cetona > Aldehído > Alcohol",
+                    "Aldehído > Ácido > Cetona > Alcohol",
+                    "Alcohol > Cetona > Aldehído > Ácido",
+                    "Cetona > Aldehído > Ácido > Alcohol"
+                ],
+                correct: 0,
+                explanation: "El orden de prioridad IUPAC es: Ácido carboxílico > Éster > Amida > Nitrilo > Aldehído > Cetona > Alcohol > Amina > Éter. Los ácidos siempre tienen máxima prioridad entre los grupos funcionales comunes."
+            },
+            {
+                question: "¿Qué nombre está MAL?",
+                options: [
+                    "2,3-dimetilhexano",
+                    "3,4-dietilheptano",
+                    "2,2,4-trimetilpentano",
+                    "3-etil-2-metilhexano",
+                    "2-metil-4-etilheptano"
+                ],
+                correct: 4,
+                explanation: "'2-metil-4-etilheptano' está mal ordenado alfabéticamente. 'Etil' debe ir antes que 'metil'. El nombre correcto es '4-etil-2-metilheptano'."
+            },
+            {
+                question: "Cuando un éter actúa en una molécula que tiene otro grupo funcional principal, ¿cómo se nombra?",
+                options: [
+                    "Etoxi- o metoxi- según el radical",
+                    "Éter-il",
+                    "Oxo-",
+                    "Ox-il",
+                    "No se puede nombrar, el éter siempre es principal"
+                ],
+                correct: 0,
+                explanation: "Los éteres como sustituyentes se nombran como alcoxi-: metoxi- (-O-CH₃), etoxi- (-O-CH₂CH₃), propoxi-, etc., indicando la posición en la cadena principal."
+            },
+            {
+                question: "¿Qué error tiene 'propan-1-al-3-ol'?",
+                options: [
+                    "El aldehído tiene mayor prioridad, debería ser 'propanal-3-hidroxi'",
+                    "Debería ser '3-hidroxipropanal'",
+                    "No pueden coexistir aldehído y alcohol",
+                    "Está correctamente nombrado",
+                    "Debería ser 'propan-3-ol-1-al'"
+                ],
+                correct: 1,
+                explanation: "El aldehído tiene mayor prioridad que el alcohol, por lo que es el grupo principal. El alcohol actúa como sustituyente 'hidroxi'. Correcto: '3-hidroxipropanal' (el aldehído siempre en C1, no se indica posición)."
+            },
+            {
+                question: "En una molécula con dos grupos funcionales diferentes de la misma prioridad, ¿cómo se decide cuál es el principal?",
+                options: [
+                    "El que tenga mayor masa molecular",
+                    "No puede haber dos grupos funcionales de igual prioridad en IUPAC",
+                    "El que esté en la posición más baja tras numerar",
+                    "Se nombran ambos como principales",
+                    "El que contenga más átomos de oxígeno"
+                ],
+                correct: 1,
+                explanation: "Según las reglas IUPAC, cada grupo funcional tiene una prioridad única y definida. No existen dos grupos funcionales diferentes con exactamente la misma prioridad. Siempre hay un orden establecido."
+            },
+            {
+                question: "Al nombrar un compuesto con múltiples sustituyentes, ¿en qué orden se escriben?",
+                options: [
+                    "En orden de complejidad molecular creciente",
+                    "En orden alfabético, ignorando los prefijos multiplicadores",
+                    "En orden numérico según su posición en la cadena",
+                    "Primero los halógenos, luego los radicales alquílicos",
+                    "En orden de masa atómica del primer átomo del sustituyente"
+                ],
+                correct: 1,
+                explanation: "Los sustituyentes se escriben en orden alfabético, ignorando los prefijos multiplicadores (di-, tri-, tetra-) pero considerando los prefijos como iso-, sec-, terc-. Por ejemplo: 'etil' va antes que 'metil' aunque haya dimetil."
+            },
+            {
+                question: "¿Qué determina la posición del grupo funcional principal en la numeración?",
+                options: [
+                    "Siempre debe estar en el carbono 1",
+                    "Debe tener el número más bajo posible en la cadena",
+                    "Debe estar en el centro de la molécula",
+                    "Depende de los sustituyentes presentes",
+                    "Debe estar en un carbono terminal"
+                ],
+                correct: 1,
+                explanation: "El grupo funcional principal debe recibir el número más bajo posible al numerar la cadena. Esto puede significar que esté en posición 1, 2, o cualquier otra, dependiendo de la estructura de la molécula."
+            },
+            {
+                question: "Identifica el error: 'hex-2,4-dieno'",
+                options: [
+                    "Debería ser 'hexa-2,4-dieno'",
+                    "No puede haber dos dobles enlaces",
+                    "Está correctamente nombrado",
+                    "Debería ser 'hex-2,4-bieno'",
+                    "Falta indicar si son cis o trans"
+                ],
+                correct: 2,
+                explanation: "'Hex-2,4-dieno' es correcto. Indica una cadena de 6 carbonos con dobles enlaces en las posiciones 2 y 4. El prefijo 'di-' en '-dieno' indica dos dobles enlaces."
+            },
+            {
+                question: "Cuando hay un ciclo y una cadena lateral, ¿cuál se considera la estructura principal?",
+                options: [
+                    "Siempre el ciclo, porque es más complejo",
+                    "Siempre la cadena lateral, porque es más fácil de numerar",
+                    "La estructura con mayor número de carbonos",
+                    "La que contenga más grupos funcionales",
+                    "Siempre se nombra como compuesto bicíclico"
+                ],
+                correct: 2,
+                explanation: "Se elige como estructura principal (base del nombre) aquella que contenga el mayor número de carbonos. Si el ciclo tiene más carbonos que la cadena lateral, se nombra como cicloalcano sustituido, y viceversa."
+            },
+            {
+                question: "¿Cómo se nombra un halógeno cuando actúa como sustituyente?",
+                options: [
+                    "Se usa el nombre del elemento: cloro, bromo, flúor, yodo",
+                    "Se usa el sufijo -uro: cloruro, bromuro",
+                    "Se usa el prefijo halo-",
+                    "Se usa el sufijo -ilo: clorilo, bromilo",
+                    "No se pueden nombrar halógenos como sustituyentes"
+                ],
+                correct: 0,
+                explanation: "Los halógenos como sustituyentes se nombran con su nombre completo: fluoro-, cloro-, bromo-, yodo-, seguido de su posición numérica en la cadena (por ejemplo: 2-cloro-3-bromohexano)."
+            },
+            {
+                question: "¿Qué nombre es INCORRECTO?",
+                options: [
+                    "3-cloropropan-1-ol",
+                    "2-bromobutan-1-ol",
+                    "4-yodohexan-2-ol",
+                    "2-fluoropentan-3-ol",
+                    "3-cloropentan-5-ol"
+                ],
+                correct: 4,
+                explanation: "'3-cloropentan-5-ol' está mal. En un pentano (5 carbonos), si el -OH está en posición 5, numerando desde el otro extremo estaría en posición 1. Debe ser '3-cloropentan-1-ol'."
+            },
+            {
+                question: "En una cadena con un doble y un triple enlace, si están equidistantes de ambos extremos, ¿cuál recibe el número más bajo?",
+                options: [
+                    "El triple enlace siempre",
+                    "El doble enlace siempre",
+                    "El que esté más cerca del grupo funcional",
+                    "El que aparezca primero en la fórmula desarrollada",
+                    "Ambos reciben el mismo número"
+                ],
+                correct: 1,
+                explanation: "Cuando hay empate en la posición de un doble y un triple enlace, el doble enlace tiene prioridad para recibir el número más bajo. Se numera dando preferencia al doble enlace (-en-) sobre el triple enlace (-ino-)."
+            },
+            {
+                question: "Si tenemos dos cadenas candidatas a principal con igual número de carbonos e insaturaciones, ¿qué criterio sigue?",
+                options: [
+                    "La que tenga mayor número de ramificaciones",
+                    "La que tenga menor número de ramificaciones",
+                    "La que contenga más heteroátomos (N, O, S)",
+                    "La que tenga sustituyentes de orden alfabético anterior",
+                    "Se elige arbitrariamente"
+                ],
+                correct: 0,
+                explanation: "Tras empatar en número de carbonos e insaturaciones, se elige la cadena con mayor número de ramificaciones (más sustituyentes). Esto hace que la cadena principal sea la más 'ramificada' posible."
+            },
+            {
+                question: "¿Cómo se nombra el grupo -COOH cuando NO es el grupo principal?",
+                options: [
+                    "Carboxi",
+                    "Ácido-",
+                    "Carboxil",
+                    "Carboxilo",
+                    "No puede ser sustituyente, siempre es principal"
+                ],
+                correct: 0,
+                explanation: "Cuando el grupo carboxilo (-COOH) no puede ser el grupo principal (por haber otro de mayor prioridad, lo cual es muy raro), se nombra como 'carboxi'. Sin embargo, en la práctica, el ácido carboxílico casi siempre es el grupo de máxima prioridad."
+            },
+            {
+                question: "¿Qué error tiene '2-metilbutan-3-al'?",
+                options: [
+                    "Los aldehídos siempre están en posición 1, debería ser '2-metilbutanal'",
+                    "Debería ser '3-metilbutanal'",
+                    "No puede haber un metil y un aldehído juntos",
+                    "Está correctamente nombrado",
+                    "Falta el prefijo 'mono-'"
+                ],
+                correct: 0,
+                explanation: "Los aldehídos (-CHO) siempre están en el carbono 1 (terminal), nunca en posición 3. El nombre correcto sería '2-metilbutanal' o '3-metilbutanal' dependiendo de dónde esté el metil."
+            },
+            {
+                question: "¿Qué significa el prefijo 'iso-' en un radical?",
+                options: [
+                    "Que el radical tiene un isótopo diferente",
+                    "Que el radical tiene una ramificación metil en el penúltimo carbono",
+                    "Que el radical es isómero de otro",
+                    "Que el radical está en posición central",
+                    "Que el radical tiene igual número de carbonos que la cadena principal"
+                ],
+                correct: 1,
+                explanation: "El prefijo 'iso-' indica que hay un grupo metil (-CH₃) ramificado en el penúltimo carbono de la cadena del radical. Por ejemplo, isopropil es (CH₃)₂CH-, e isobutil es (CH₃)₂CH-CH₂-."
+            },
+            {
+                question: "Al elegir entre dos numeraciones posibles, ¿qué criterio NO es válido según IUPAC?",
+                options: [
+                    "Menor número para el grupo funcional principal",
+                    "Menor conjunto de números para insaturaciones",
+                    "Menor conjunto de números para sustituyentes",
+                    "Orden alfabético de sustituyentes en caso de empate",
+                    "Preferencia por números pares en lugar de impares"
+                ],
+                correct: 4,
+                explanation: "No existe ninguna regla IUPAC que prefiera números pares o impares. Los criterios válidos son: prioridad al grupo funcional, luego a insaturaciones, luego al primer punto de diferencia, y finalmente orden alfabético."
+            },
+            {
+                question: "¿Cuál es la función del prefijo 'sec-' en nomenclatura?",
+                options: [
+                    "Indica un carbono secundario (unido a 2 carbonos)",
+                    "Indica el segundo sustituyente en orden alfabético",
+                    "Indica una cadena secundaria en la molécula",
+                    "Indica que el sustituyente está unido a un carbono secundario",
+                    "Indica sección o segmento de la molécula"
+                ],
+                correct: 3,
+                explanation: "El prefijo 'sec-' (secundario) indica que el radical está unido a la cadena principal a través de un carbono secundario del radical (carbono unido a otros 2 carbonos). Por ejemplo: sec-butil indica CH₃-CH₂-CH(CH₃)-."
+            },
+            {
+                question: "Si dos grupos funcionales pueden ser principales, ¿cómo se determina cuál nombrar?",
+                options: [
+                    "Se elige el de menor masa molecular",
+                    "Se sigue estrictamente la tabla de prioridades IUPAC",
+                    "Se elige el que esté en posición más baja después de numerar",
+                    "Se pueden nombrar ambos como principales usando 'bis'",
+                    "Se consulta el contexto químico del compuesto"
+                ],
+                correct: 1,
+                explanation: "Siempre se sigue la tabla de prioridades IUPAC de forma estricta. No existe ambigüedad: hay un orden bien definido y único de prioridad para todos los grupos funcionales."
+            },
+            {
+                question: "En el nombre '3-etil-2,5-dimetilhexano', ¿por qué 'etil' se escribe antes que 'dimetil'?",
+                options: [
+                    "Porque el etil tiene mayor masa molecular",
+                    "Porque 'e' va antes que 'd' alfabéticamente",
+                    "Porque 'etil' va antes que 'metil' alfabéticamente (ignorando 'di-')",
+                    "Porque el etil está en posición 3 que es menor que 5",
+                    "Es un error, debería ser '2,5-dimetil-3-etilhexano'"
+                ],
+                correct: 2,
+                explanation: "Los sustituyentes se ordenan alfabéticamente ignorando los prefijos multiplicadores (di-, tri-, etc.). 'Etil' va antes que 'metil' en orden alfabético, por eso se escribe primero aunque aparezca 'dimetil'."
+            },
+            {
+                question: "¿Qué indica el prefijo 'terc-' o 'tert-' en un radical?",
+                options: [
+                    "Que es el tercer sustituyente de la cadena",
+                    "Que el radical está unido a un carbono terciario",
+                    "Que el carbono del radical por donde se une está unido a otros 3 carbonos",
+                    "Que el radical tiene tres ramificaciones",
+                    "Que es un isómero terciario"
+                ],
+                correct: 2,
+                explanation: "El prefijo 'terc-' o 't-' (terciario) indica que el carbono del radical por el cual se une a la cadena principal está unido a otros tres carbonos. Por ejemplo: terc-butil o t-butil es (CH₃)₃C-."
+            },
+            {
+                question: "Cuando hay múltiples dobles enlaces en una molécula, ¿cómo se nombran?",
+                options: [
+                    "Se usa el sufijo -eno para cada uno",
+                    "Se usan los prefijos multiplicadores: dieno, trieno, tetraeno, etc.",
+                    "Se numeran independientemente cada uno",
+                    "Solo se indica el primer doble enlace",
+                    "Se usa el prefijo poli-eno"
+                ],
+                correct: 1,
+                explanation: "Se utilizan prefijos multiplicadores antes del sufijo -eno: dieno (2), trieno (3), tetraeno (4), pentaeno (5), etc., indicando las posiciones de todos los dobles enlaces (por ejemplo: hexa-2,4-dieno)."
+            },
+            {
+                question: "En un compuesto como 'butan-2-ol', ¿qué indica el número '2'?",
+                options: [
+                    "Que hay 2 grupos alcohol",
+                    "Que el alcohol está en el segundo carbono desde el extremo",
+                    "Que es un alcohol secundario",
+                    "Que la molécula tiene 2 carbonos",
+                    "Que el alcohol está en posición beta"
+                ],
+                correct: 1,
+                explanation: "El número '2' indica la posición del grupo funcional alcohol (-OH) en la cadena carbonada. Está en el carbono número 2 contando desde el extremo que da al grupo funcional el número más bajo."
+            },
+            {
+                question: "¿Cuál es la diferencia entre 'metil' y 'metano' en nomenclatura?",
+                options: [
+                    "Son sinónimos, se pueden usar indistintamente",
+                    "Metano es la molécula CH₄; metil es el radical -CH₃",
+                    "Metil es la molécula; metano es el radical",
+                    "Metano se usa en cadenas lineales; metil en ramificadas",
+                    "No hay diferencia, solo preferencias regionales"
+                ],
+                correct: 1,
+                explanation: "Metano (CH₄) es el hidrocarburo completo. Metil (-CH₃) es el radical o grupo sustituyente que se forma al quitar un hidrógeno del metano. Los radicales usan la terminación '-il'."
+            },
+            {
+                question: "Si un compuesto tiene un grupo -NH₂ y un grupo -OH, y ambos están en posiciones equivalentes, ¿cuál es el grupo principal?",
+                options: [
+                    "El grupo amino (-NH₂)",
+                    "El grupo hidroxilo (-OH)",
+                    "Se consideran ambos principales",
+                    "Depende de cuál esté más ramificado",
+                    "El que tenga menor masa atómica"
+                ],
+                correct: 1,
+                explanation: "El alcohol (-OH) tiene mayor prioridad que la amina (-NH₂) según IUPAC. El compuesto se nombraría como alcohol y el grupo amino actuaría como sustituyente 'amino'."
+            },
+            {
+                question: "¿Por qué es importante la numeración en compuestos orgánicos?",
+                options: [
+                    "Para hacer los nombres más largos y complejos",
+                    "Para indicar de forma única la posición de grupos funcionales y sustituyentes",
+                    "Para ordenar los compuestos alfabéticamente",
+                    "Para calcular la masa molecular",
+                    "Solo tiene importancia estética"
+                ],
+                correct: 1,
+                explanation: "La numeración es esencial para especificar sin ambigüedad la estructura exacta del compuesto, indicando dónde está cada grupo funcional y sustituyente. Compuestos con la misma fórmula pero diferente numeración son isómeros diferentes."
+            },
+            {
+                question: "En 'pent-2-eno', ¿qué representa el '2'?",
+                options: [
+                    "Que hay 2 dobles enlaces",
+                    "Que el doble enlace comienza en el carbono 2",
+                    "Que hay 2 carbonos en la molécula",
+                    "Que es un isómero cis",
+                    "Que hay 2 hidrógenos en el doble enlace"
+                ],
+                correct: 1,
+                explanation: "El número '2' indica que el doble enlace comienza en el carbono número 2 de la cadena principal. Se numera desde el extremo que da al doble enlace el número más bajo posible."
+            },
+            {
+                question: "¿Qué caracteriza a un carbono 'primario'?",
+                options: [
+                    "Es el primer carbono de la cadena",
+                    "Está unido a un solo átomo de carbono",
+                    "Tiene un solo hidrógeno",
+                    "Está en la posición 1 de la numeración",
+                    "Es el carbono más importante de la molécula"
+                ],
+                correct: 1,
+                explanation: "Un carbono primario es aquel que está unido a un solo átomo de carbono (y por tanto a 3 hidrógenos o sustituyentes). Los carbonos de los grupos -CH₃ son primarios."
+            },
+            {
+                question: "¿Qué error tiene '2-metilpropanal-3-ol'?",
+                options: [
+                    "El aldehído debe ser el grupo principal: '3-hidroxi-2-metilpropanal'",
+                    "Debería ser 'propanal-2-metil-3-ol'",
+                    "No pueden coexistir aldehído y alcohol",
+                    "Está correctamente nombrado",
+                    "El alcohol debería ser el principal"
+                ],
+                correct: 0,
+                explanation: "El aldehído tiene mayor prioridad que el alcohol, por lo que es el grupo principal (-al). El alcohol actúa como sustituyente 'hidroxi'. Correcto: '3-hidroxi-2-metilpropanal'."
+            },
+            {
+                question: "¿Qué indica que un compuesto se nombre como 'propano' en lugar de 'propil'?",
+                options: [
+                    "Que tiene 3 carbonos en una cadena abierta completa",
+                    "Que actúa como sustituyente",
+                    "Que tiene un triple enlace",
+                    "Que está en estado gaseoso",
+                    "Que tiene ramificaciones"
+                ],
+                correct: 0,
+                explanation: "'Propano' indica el hidrocarburo completo CH₃-CH₂-CH₃ (3 carbonos, saturado). 'Propil' sería el radical -CH₂-CH₂-CH₃ que actúa como sustituyente. La terminación '-ano' indica hidrocarburo completo; '-il' indica radical."
+            },
+            {
+                question: "En caso de empate total en todos los criterios de numeración, ¿qué se hace?",
+                options: [
+                    "Se elige arbitrariamente",
+                    "Se consulta una tabla de excepciones IUPAC",
+                    "Esto no puede ocurrir si se aplican correctamente todos los criterios",
+                    "Se escribe el nombre de ambas formas separadas por '/'",
+                    "Se elige la que da el nombre más corto"
+                ],
+                correct: 2,
+                explanation: "Si se aplican correctamente todos los criterios IUPAC en orden (grupo funcional, insaturaciones, primer punto de diferencia, orden alfabético), siempre se llega a una única numeración correcta. Un empate total indicaría una molécula simétrica donde ambas direcciones son idénticas."
+            },
+            {
+                question: "¿Por qué los grupos funcionales tienen un orden de prioridad establecido?",
+                options: [
+                    "Para facilitar la comunicación química internacional sin ambigüedades",
+                    "Para ordenar los compuestos por reactividad",
+                    "Para clasificarlos por masa molecular",
+                    "Es una convención arbitraria sin propósito específico",
+                    "Para ordenarlos cronológicamente por descubrimiento"
+                ],
+                correct: 0,
+                explanation: "El orden de prioridad IUPAC existe para garantizar que cada compuesto tenga un único nombre sistemático correcto, eliminando ambigüedades y facilitando la comunicación científica internacional precisa."
+            },
+            {
+                question: "Si tenemos dos cadenas de igual longitud, una con un triple enlace y otra con un doble enlace, ¿cuál se elige como principal?",
+                options: [
+                    "La que tiene el triple enlace, porque es más insaturada",
+                    "La que tiene el doble enlace, por tener más hidrógenos",
+                    "Ambas tienen la misma prioridad por longitud",
+                    "Se elige según qué insaturación esté en posición más baja",
+                    "Se crea un nombre compuesto usando ambas"
+                ],
+                correct: 0,
+                explanation: "En caso de empate en longitud de cadena, se prefiere la cadena con mayor grado de insaturación. Una cadena con un triple enlace (alquino) tiene prioridad sobre una con solo un doble enlace (alqueno)."
+            },
+            {
+                question: "¿Cuál es el error más común al nombrar compuestos orgánicos complejos?",
+                options: [
+                    "No considerar todos los grupos funcionales presentes",
+                    "No seguir el orden de prioridad correcto de grupos funcionales",
+                    "No numerar desde el extremo correcto de la cadena",
+                    "No ordenar alfabéticamente los sustituyentes",
+                    "Todas las anteriores son errores comunes"
+                ],
+                correct: 4,
+                explanation: "Todos estos son errores frecuentes: olvidar grupos funcionales, no respetar prioridades IUPAC, numerar incorrectamente, o no ordenar alfabéticamente. Un nombre correcto requiere aplicar sistemáticamente todas las reglas en orden."
+            },
+            {
+                question: "¿Qué representa el término 'cadena principal' en un compuesto orgánico?",
+                options: [
+                    "La cadena más larga de la molécula",
+                    "La cadena que contiene el grupo funcional de mayor prioridad",
+                    "La cadena que se numera y da el nombre base al compuesto",
+                    "Depende de si tiene ciclos o no",
+                    "Todas las anteriores pueden ser correctas según el caso"
+                ],
+                correct: 4,
+                explanation: "La 'cadena principal' es la que se numera y da el nombre base. Se elige por: 1) contener el grupo funcional principal, 2) ser la más larga, 3) tener más insaturaciones, 4) tener más ramificaciones. Todos estos criterios se aplican según el caso específico."
+            },
+            {
+                question: "¿Qué error tiene '2-etil-1-metilbutano'?",
+                options: [
+                    "No hay posición 1 para sustituyentes en nomenclatura IUPAC estándar",
+                    "Debería ser '1-metil-2-etilbutano' en orden alfabético",
+                    "Si hay sustituyentes en posiciones 1 y 2, probablemente la cadena principal esté mal elegida",
+                    "Está correctamente nombrado",
+                    "Falta el prefijo 'di-' para indicar dos sustituyentes"
+                ],
+                correct: 2,
+                explanation: "Si hay un 'metil' en posición 1 de un butano, eso significa que realmente tienes 5 carbonos en línea. Deberías reconsiderar la cadena principal: probablemente sea un pentano con un etil en posición 3, no un butano."
+            }
+        ];
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let correctAnswers = 0;
+        let totalAnswered = 0;
+        let selectedQuestionCount = 0;
+
+        function selectQuestionCount(count) {
+            selectedQuestionCount = count;
+            document.getElementById('start-btn').style.display = 'block';
+            
+            // Quitar selección de todos los botones
+            document.getElementById('btn-10').classList.remove('selected');
+            document.getElementById('btn-20').classList.remove('selected');
+            document.getElementById('btn-30').classList.remove('selected');
+            
+            // Marcar el botón seleccionado
+            document.getElementById('btn-' + count).classList.add('selected');
+        }
+
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        function startTest() {
+            if (selectedQuestionCount === 0) {
+                alert('Por favor, selecciona cuántas preguntas quieres responder');
+                return;
+            }
+            
+            const shuffledAll = shuffleArray(questions);
+            currentQuestions = shuffledAll.slice(0, selectedQuestionCount);
+            currentQuestionIndex = 0;
+            correctAnswers = 0;
+            totalAnswered = 0;
+
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('stats').style.display = 'flex';
+            document.getElementById('progress-bar').style.display = 'block';
+            
+            updateStats();
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const question = currentQuestions[currentQuestionIndex];
+            const questionCard = document.getElementById('question-card');
+            
+            const shuffledOptions = shuffleArray(question.options.map((opt, idx) => ({text: opt, originalIndex: idx})));
+            
+            questionCard.innerHTML = `
+                <div class="question-number">Pregunta ${currentQuestionIndex + 1} de ${currentQuestions.length}</div>
+                <div class="question-text">${question.question}</div>
+                <div class="options" id="options">
+                    ${shuffledOptions.map((opt, idx) => `
+                        <div class="option" data-original-index="${opt.originalIndex}" onclick="selectOption(${opt.originalIndex})">
+                            ${opt.text}
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="explanation" id="explanation">
+                    <div class="explanation-title">💡 Explicación:</div>
+                    <div>${question.explanation}</div>
+                </div>
+                <div class="buttons">
+                    <button class="btn btn-primary" id="check-btn" onclick="checkAnswer()" disabled>Comprobar</button>
+                    <button class="btn btn-secondary" id="next-btn" onclick="nextQuestion()" style="display: none;">Siguiente</button>
+                </div>
+            `;
+            
+            questionCard.classList.add('active');
+            updateProgress();
+        }
+
+        function selectOption(originalIndex) {
+            const options = document.querySelectorAll('.option');
+            const checkBtn = document.getElementById('check-btn');
+            
+            if (checkBtn.style.display === 'none') return;
+            
+            options.forEach(opt => opt.classList.remove('selected'));
+            
+            const selectedOption = Array.from(options).find(opt => 
+                parseInt(opt.getAttribute('data-original-index')) === originalIndex
+            );
+            
+            if (selectedOption) {
+                selectedOption.classList.add('selected');
+                checkBtn.disabled = false;
+                selectedOption.setAttribute('data-selected', 'true');
+            }
+        }
+
+        function checkAnswer() {
+            const question = currentQuestions[currentQuestionIndex];
+            const options = document.querySelectorAll('.option');
+            const selectedOption = document.querySelector('.option.selected');
+            
+            if (!selectedOption) return;
+            
+            const selectedIndex = parseInt(selectedOption.getAttribute('data-original-index'));
+            
+            options.forEach(opt => {
+                opt.classList.add('disabled');
+                const optIndex = parseInt(opt.getAttribute('data-original-index'));
+                if (optIndex === question.correct) {
+                    opt.classList.add('correct');
+                }
+            });
+            
+            if (selectedIndex === question.correct) {
+                correctAnswers++;
+            } else {
+                selectedOption.classList.add('incorrect');
+            }
+            
+            totalAnswered++;
+            
+            document.getElementById('explanation').classList.add('show');
+            document.getElementById('check-btn').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'block';
+            
+            updateStats();
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < currentQuestions.length) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('current-q').textContent = currentQuestionIndex + 1;
+            document.getElementById('total-q').textContent = currentQuestions.length;
+            document.getElementById('correct-count').textContent = correctAnswers;
+            
+            const accuracy = totalAnswered > 0 ? Math.round((correctAnswers / totalAnswered) * 100) : 0;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestionIndex + 1) / currentQuestions.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+        }
+
+        function showResults() {
+            const percentage = Math.round((correctAnswers / currentQuestions.length) * 100);
+            const nota = (percentage / 10).toFixed(1);
+            let color, message, detailedComment, emoji;
+            
+            if (percentage >= 90) {
+                color = '#28a745';
+                message = '¡SOBRESALIENTE!';
+                emoji = '🏆';
+                detailedComment = 'Dominas perfectamente la nomenclatura orgánica avanzada. Conoces en profundidad las prioridades de grupos funcionales, los criterios de numeración y sabes detectar errores sutiles en nomenclatura IUPAC. ¡Excelente trabajo!';
+            } else if (percentage >= 80) {
+                color = '#17a2b8';
+                message = '¡NOTABLE ALTO!';
+                emoji = '🌟';
+                detailedComment = 'Tienes un conocimiento muy sólido de las reglas IUPAC. Manejas bien las prioridades y la numeración, aunque aún podrías perfeccionar algunos detalles en casos especiales. ¡Muy buen nivel!';
+            } else if (percentage >= 70) {
+                color = '#ffc107';
+                message = 'NOTABLE';
+                emoji = '⭐';
+                detailedComment = 'Buen conocimiento de nomenclatura orgánica. Comprendes los conceptos fundamentales, pero debes repasar algunos criterios de prioridad y desempate. Con un poco más de práctica alcanzarás la excelencia.';
+            } else if (percentage >= 60) {
+                color = '#fd7e14';
+                message = 'BIEN';
+                emoji = '👍';
+                detailedComment = 'Conoces los fundamentos básicos, pero necesitas estudiar más a fondo las reglas de prioridad IUPAC, los criterios de numeración y la detección de errores en nombres. Repasa los grupos funcionales y su orden de prioridad.';
+            } else if (percentage >= 50) {
+                color = '#dc3545';
+                message = 'SUFICIENTE';
+                emoji = '📚';
+                detailedComment = 'Nivel justo. Tienes nociones básicas pero te faltan conceptos clave sobre prioridades, numeración y nomenclatura de radicales. Dedica tiempo a estudiar sistemáticamente las reglas IUPAC.';
+            } else {
+                color = '#c82333';
+                message = 'INSUFICIENTE';
+                emoji = '📖';
+                detailedComment = 'Necesitas repasar a fondo toda la nomenclatura orgánica. Estudia el orden de prioridad de grupos funcionales, los criterios para elegir y numerar la cadena principal, y cómo nombrar radicales vs grupos principales. ¡Ánimo, con estudio lo conseguirás!';
+            }
+            
+            document.getElementById('question-card').style.display = 'none';
+            document.getElementById('progress-bar').style.display = 'none';
+            document.getElementById('stats').style.display = 'none';
+            
+            const resultsScreen = document.getElementById('results-screen');
+            resultsScreen.innerHTML = `
+                <div style="font-size: 4em; margin-bottom: 15px; animation: bounce 1s ease infinite;">${emoji}</div>
+                <h2 style="color: #667eea; margin-bottom: 10px;">Test Completado</h2>
+                <div style="font-size: 1.4em; font-weight: bold; color: ${color}; margin-bottom: 20px; text-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    ${message}
+                </div>
+                <div class="score-circle" style="background: linear-gradient(135deg, ${color} 0%, ${color}dd 100%); animation: scaleIn 0.5s ease-out;">
+                    ${nota}
+                </div>
+                <p style="font-size: 0.9em; color: #888; margin-top: -10px; margin-bottom: 20px;">
+                    Nota sobre 10
+                </p>
+                <div style="max-width: 550px; margin: 0 auto 30px; padding: 25px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); border-radius: 15px; text-align: left; line-height: 1.7; border: 2px solid rgba(102, 126, 234, 0.1);">
+                    <p style="color: #333; font-size: 1em;">
+                        ${detailedComment}
+                    </p>
+                </div>
+                <div class="details">
+                    <div class="detail-row">
+                        <span>📝 Preguntas respondidas:</span>
+                        <strong>${currentQuestions.length}</strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>✅ Respuestas correctas:</span>
+                        <strong style="color: #28a745;">${correctAnswers}</strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>❌ Respuestas incorrectas:</span>
+                        <strong style="color: #dc3545;">${currentQuestions.length - correctAnswers}</strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>📊 Porcentaje de acierto:</span>
+                        <strong style="color: ${color};">${percentage}%</strong>
+                    </div>
+                    <div class="detail-row" style="border-top: 2px solid #667eea; padding-top: 15px; margin-top: 10px;">
+                        <span>🎯 Nota final:</span>
+                        <strong style="color: ${color}; font-size: 1.5em;">${nota}/10</strong>
+                    </div>
+                </div>
+                <button class="btn-start" onclick="location.reload()" style="margin-top: 30px; display: inline-block;">
+                    🔄 Hacer Otro Test
+                </button>
+                <style>
+                    @keyframes bounce {
+                        0%, 100% { transform: translateY(0); }
+                        50% { transform: translateY(-10px); }
+                    }
+                    @keyframes scaleIn {
+                        from { transform: scale(0); opacity: 0; }
+                        to { transform: scale(1); opacity: 1; }
+                    }
+                </style>
+            `;
+            
+            resultsScreen.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
