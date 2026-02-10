@@ -3,704 +3,1897 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master en Formulación - 4º ESO</title>
+    <title>Test Avanzado de Formulación Inorgánica</title>
     <style>
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #ec4899;
-            --success: #22c55e;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text: #1e293b;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
 
         body {
-            background-color: var(--bg);
-            background-image: radial-gradient(circle at 2px 2px, #e2e8f0 1px, transparent 0);
-            background-size: 40px 40px;
-            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            padding: 15px;
         }
 
-        .app-container {
-            background: var(--card-bg);
-            width: 100%;
-            max-width: 950px;
-            border-radius: 24px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            overflow: hidden;
-            border: 1px solid #e2e8f0;
-            position: relative;
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         .header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            padding: 30px;
-            color: white;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
 
-        .header h1 { font-size: 1.8rem; margin-bottom: 5px; }
-        .header p { opacity: 0.9; font-size: 0.9rem; }
+        h1 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
 
-        .view { padding: 30px; display: none; }
-        .view.active { display: block; animation: fadeIn 0.4s ease; }
+        .subtitle {
+            color: #666;
+            font-size: 0.9em;
+        }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .author {
+            font-size: 0.75em;
+            color: #888;
+            margin-top: 10px;
+            font-style: italic;
+        }
 
-        .group-title {
-            font-size: 0.85rem;
-            font-weight: 800;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin: 20px 0 10px 5px;
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #eee;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .btn-selection {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 20px 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-selection::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-selection:hover::before {
+            left: 100%;
+        }
+
+        .btn-selection:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-selection.selected {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.5);
+            transform: scale(1.05);
+        }
+
+        .btn-selection .question-count {
+            display: block;
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .btn-selection .question-label {
+            font-size: 0.8em;
+            opacity: 0.9;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 18px 50px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);
+            margin: 0 auto;
+            display: block;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 30px rgba(245, 87, 108, 0.6);
+        }
+
+        .molecule-decoration {
+            font-size: 3em;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .chemistry-icon {
+            display: inline-block;
+            margin: 0 10px;
+            font-size: 2.5em;
+            opacity: 0.3;
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .selection-container {
+            margin: 40px 0;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-radius: 20px;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .question-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            display: none;
+            border-top: 4px solid #667eea;
+        }
+
+        .question-card.active {
+            display: block;
+            animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .question-number {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .question-number::before {
+            content: '📋';
+            font-size: 1.2em;
+        }
+
+        .question-text {
+            font-size: 1.15em;
+            line-height: 1.7;
+            color: #333;
+            margin-bottom: 25px;
+            font-weight: 500;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border: 2px solid #e9ecef;
+            padding: 18px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            font-size: 1em;
+            line-height: 1.6;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: #667eea;
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .option:hover::before {
+            transform: scaleY(1);
+        }
+
+        .option:hover {
+            background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+            border-color: #667eea;
+            transform: translateX(8px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .option.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            transform: translateX(5px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .option.selected::before {
+            background: white;
+            transform: scaleY(1);
+        }
+
+        .option.correct {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-color: #28a745;
+            animation: correctPulse 0.5s ease;
+        }
+
+        .option.correct::before {
+            background: white;
+            transform: scaleY(1);
+        }
+
+        @keyframes correctPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.03);
+            }
+        }
+
+        .option.incorrect {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border-color: #dc3545;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-10px);
+            }
+            75% {
+                transform: translateX(10px);
+            }
+        }
+
+        .option.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .explanation {
+            background: linear-gradient(135deg, #fff3cd 0%, #fffaeb 100%);
+            border-left: 5px solid #ffc107;
+            padding: 20px;
+            margin-top: 25px;
+            border-radius: 12px;
+            display: none;
+            font-size: 0.95em;
+            line-height: 1.7;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+        }
+
+        .explanation.show {
+            display: block;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .explanation-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 1.1em;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .group-title::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background: #e2e8f0;
+        .explanation-title::before {
+            content: '💡';
+            font-size: 1.3em;
         }
 
-        .grid-menu {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .card-btn {
-            background: white;
-            border: 2px solid #e2e8f0;
-            padding: 18px;
-            border-radius: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
+        .buttons {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            text-align: center;
-        }
-
-        .card-btn:hover {
-            border-color: var(--primary);
-            background: #f5f3ff;
-            transform: translateY(-2px);
-        }
-
-        .card-btn span { font-weight: 700; color: var(--text); font-size: 1rem; }
-        .card-btn small { color: #64748b; font-weight: 600; font-size: 0.75rem; }
-
-        .config-section {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f1f5f9;
-            border-radius: 16px;
-            text-align: center;
-            border: 2px dashed #cbd5e1;
-        }
-
-        .input-number {
-            padding: 12px;
-            width: 100px;
-            border-radius: 8px;
-            border: 2px solid #cbd5e1;
-            text-align: center;
-            font-weight: 800;
-            font-size: 1.1rem;
-            color: var(--primary);
-        }
-
-        .stats-bar {
-            display: flex;
-            justify-content: space-between;
-            background: #f1f5f9;
-            padding: 15px 25px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-        }
-
-        .stat-item { text-align: center; }
-        .stat-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; }
-        .stat-value { font-size: 1.2rem; font-weight: 800; color: var(--primary); }
-
-        .formula-box {
-            background: #ffffff;
-            border: 2px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 40px 20px;
-            margin-bottom: 5px;
-            min-height: 260px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.3rem;
-            overflow-x: auto;
-        }
-
-        .mobile-hint {
-            font-size: 0.7rem;
-            color: #94a3b8;
-            margin-bottom: 20px;
-            font-style: italic;
-            display: block;
-            text-align: center;
-        }
-
-        .input-group input[type="text"] {
-            width: 100%;
-            padding: 18px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            text-align: center;
-            transition: border-color 0.2s;
-        }
-
-        .input-group input[type="text"]:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
             gap: 10px;
             margin-top: 20px;
         }
 
-        button {
-            padding: 15px;
-            border-radius: 12px;
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
             border: none;
-            font-weight: 700;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); }
-        .btn-outline { background: #f1f5f9; color: var(--text); }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 25px;
+            font-size: 1.05em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
 
-        .feedback {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 12px;
-            font-weight: 600;
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #5568d3 0%, #6a3d8f 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 25px;
+            font-size: 1.05em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #5a6268 0%, #4e555b 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .start-screen, .results-screen {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .results-screen {
             display: none;
-            text-align: center;
         }
 
-        .feedback.correct { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .feedback.wrong { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            margin: 20px auto;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
 
-        .footer {
+        .details {
+            text-align: left;
+            margin-top: 20px;
             padding: 20px;
-            text-align: center;
-            font-size: 0.8rem;
-            color: #94a3b8;
-            border-top: 1px solid #f1f5f9;
-            font-weight: 500;
+            background: #f8f9fa;
+            border-radius: 10px;
         }
 
-        .progress-container {
-            height: 6px;
-            background: #e2e8f0;
-            width: 100%;
-            position: absolute;
-            bottom: 0;
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
         }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
         .progress-bar {
-            height: 100%;
-            background: var(--success);
-            width: 0%;
-            transition: width 0.3s;
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
         }
 
-        .formula-display table { border-collapse: collapse; line-height: 1.1; margin: 0 auto; }
-        .formula-display td { padding: 0 5px; text-align: center; font-family: 'Courier New', monospace; font-weight: bold; }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease-out;
+        }
 
         @media (max-width: 600px) {
-            .actions { grid-template-columns: 1fr; }
-            .grid-menu { grid-template-columns: 1fr; }
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .question-text {
+                font-size: 1em;
+            }
+
+            .option {
+                padding: 12px;
+                font-size: 0.9em;
+            }
         }
     </style>
 </head>
 <body>
-
-    <div class="app-container">
-        <div class="header" style="position: relative;">
-            <h1 id="titleText">Formulación Orgánica</h1>
-            <p id="subtitleText">Base de datos optimizada para 4º ESO</p>
-            <div class="progress-container">
-                <div class="progress-bar" id="progressBar"></div>
+    <div class="container">
+        <div class="header">
+            <h1>⚗️ Test Avanzado de Formulación Inorgánica</h1>
+            <p class="subtitle">Nomenclaturas Stock • Tradicional • Sistemática • Números de oxidación</p>
+            <div style="font-size: 1.5em; opacity: 0.2; margin-top: 10px; letter-spacing: 10px;">
+                ⚛─◉─⚛─◉─⚛
+            </div>
+            <p class="author">Programa realizado por Javier Gijón<br>Profesor del IES María Moliner (Segovia)</p>
+            <div class="stats" id="stats" style="display: none;">
+                <div class="stat">
+                    <div class="stat-label">Pregunta</div>
+                    <div class="stat-value"><span id="current-q">0</span>/<span id="total-q">0</span></div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Correctas</div>
+                    <div class="stat-value" id="correct-count">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Acierto</div>
+                    <div class="stat-value" id="accuracy">0%</div>
+                </div>
             </div>
         </div>
 
-        <div id="view-menu" class="view active">
+        <div class="start-screen" id="start-screen">
+            <div class="molecule-decoration">⚛ ◉ ⚛</div>
+            <h2 style="color: #667eea; margin-bottom: 20px;">Bienvenido al Test de Máximo Nivel</h2>
+            <p style="margin-bottom: 15px; line-height: 1.6;">Este test evalúa tu conocimiento profundo sobre:</p>
+            <ul style="text-align: left; margin: 20px auto; max-width: 400px; line-height: 2;">
+                <li>⚗️ Números de oxidación imposibles</li>
+                <li>🔬 Confusiones entre nomenclaturas</li>
+                <li>📊 Errores típicos (sulfúrico/sulfhídrico)</li>
+                <li>🧪 Dicromatos vs cromatos, fosfórico vs ortofosfórico</li>
+                <li>✏️ Halogenuros de oxígeno y compuestos inexistentes</li>
+            </ul>
+            <p style="margin: 20px 0; font-weight: bold; color: #667eea; font-size: 1.1em;">
+                <span class="chemistry-icon">⚛</span>
+                87 preguntas teóricas desafiantes
+                <span class="chemistry-icon">⚗️</span>
+            </p>
             
-            <div class="group-title">Hidrocarburos y Alcoholes</div>
-            <div class="grid-menu">
-                <button class="card-btn" onclick="initPractice('hidrocarburos')">
-                    <span>⚡ Hidrocarburos</span>
-                    <small id="cnt-hid">Cargando...</small>
-                </button>
-                <button class="card-btn" onclick="initPractice('alcoholes')">
-                    <span>🍷 Alcoholes</span>
-                    <small id="cnt-alc">Cargando...</small>
-                </button>
-            </div>
-
-            <div class="group-title">Familias de Compuestos Oxigenados</div>
-            <div class="grid-menu">
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <button class="card-btn" style="width: 100%;" onclick="initPractice('aldehidos')">
-                        <span>🔬 Aldehídos</span>
-                        <small id="cnt-ald">Cargando...</small>
+            <div class="selection-container">
+                <p style="font-weight: bold; margin-bottom: 25px; color: #333; font-size: 1.2em;">¿Cuántas preguntas quieres responder?</p>
+                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; max-width: 600px; margin: 0 auto;">
+                    <button class="btn-selection" onclick="selectQuestionCount(10)" id="btn-10">
+                        <span class="question-count">10</span>
+                        <span class="question-label">Test Rápido</span>
                     </button>
-                    <button class="card-btn" style="width: 100%;" onclick="initPractice('cetonas')">
-                        <span>🧬 Cetonas</span>
-                        <small id="cnt-cet">Cargando...</small>
+                    <button class="btn-selection" onclick="selectQuestionCount(20)" id="btn-20">
+                        <span class="question-count">20</span>
+                        <span class="question-label">Test Medio</span>
                     </button>
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <button class="card-btn" style="width: 100%;" onclick="initPractice('acidos')">
-                        <span>🧪 Ácidos Carboxílicos</span>
-                        <small id="cnt-aci">Cargando...</small>
-                    </button>
-                    <button class="card-btn" style="width: 100%;" onclick="initPractice('esteres')">
-                        <span>🧪 Ésteres</span>
-                        <small id="cnt-est">Cargando...</small>
+                    <button class="btn-selection" onclick="selectQuestionCount(30)" id="btn-30">
+                        <span class="question-count">30</span>
+                        <span class="question-label">Test Completo</span>
                     </button>
                 </div>
             </div>
-
-            <div class="group-title">Repaso General</div>
-            <button class="card-btn" style="width: 100%; background: #f8fafc;" onclick="initPractice('todos')">
-                <span>🔀 Mezclado Proporcional</span>
-                <small id="cnt-all">Calculando...</small>
+            
+            <button class="btn-start" id="start-btn" onclick="startTest()" style="display: none;">
+                🚀 Comenzar Test
             </button>
-
-            <div class="config-section">
-                <label class="config-label" style="display:block; margin-bottom:10px; font-weight:700;">¿Cuántos compuestos quieres practicar?</label>
-                <input type="number" id="practice-limit" class="input-number" min="1" placeholder="Todos">
-                <p style="font-size: 0.75rem; color: #64748b; margin-top: 10px;">(El sistema recordará tus aciertos para no repetirlos)</p>
-            </div>
         </div>
 
-        <div id="view-practice" class="view">
-            <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
-                <button class="btn-outline" style="padding: 8px 15px; font-size: 0.8rem;" onclick="showMenu()">← Menú</button>
-                <span id="label-group" style="font-weight: 800; color: var(--primary); font-size: 0.9rem;"></span>
-            </div>
-
-            <div class="stats-bar">
-                <div class="stat-item"><div class="stat-label">Pregunta</div><div class="stat-value" id="stat-pos">1/0</div></div>
-                <div class="stat-item"><div class="stat-label">Puntos</div><div class="stat-value" id="stat-score" style="color: var(--success);">0</div></div>
-                <div class="stat-item"><div class="stat-label">Acierto</div><div class="stat-value" id="stat-acc">0%</div></div>
-            </div>
-
-            <div class="question-container">
-                <h4 id="question-prompt" style="margin-bottom: 15px; color: #64748b;">Nombra este compuesto:</h4>
-                <div class="formula-box" id="formula-display"></div>
-                <span class="mobile-hint">(Si no se ve bien la fórmula, gira el móvil horizontalmente)</span>
-
-                <div class="input-group">
-                    <input type="text" id="answer-input" placeholder="Nombre IUPAC..." autocomplete="off">
-                    <div id="feedback-box" class="feedback"></div>
-                </div>
-
-                <div class="actions">
-                    <button id="btn-check" class="btn-primary" onclick="checkAnswer()">Comprobar</button>
-                    <button id="btn-next" class="btn-primary" style="display: none; background: var(--success);" onclick="nextQuestion()">Siguiente ➜</button>
-                    <button id="btn-hint" class="btn-outline" onclick="getHint()">Pedir Pista</button>
-                </div>
-            </div>
+        <div class="progress-bar" id="progress-bar" style="display: none;">
+            <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
         </div>
 
-        <div id="view-results" class="view">
-            <div style="text-align: center; padding: 20px;">
-                <h2 style="font-size: 4rem; margin-bottom: 15px;">🏆</h2>
-                <h2 style="margin-bottom: 10px;">¡Sesión Finalizada!</h2>
-                <div class="stats-bar" style="max-width: 400px; margin: 20px auto;">
-                    <div class="stat-item"><div class="stat-label">Aciertos</div><div class="stat-value" id="final-score">0</div></div>
-                    <div class="stat-item"><div class="stat-label">Eficacia</div><div class="stat-value" id="final-acc">0%</div></div>
-                </div>
-                <button class="btn-primary" onclick="showMenu()" style="padding: 15px 50px;">Volver al Menú</button>
-            </div>
-        </div>
+        <div class="question-card" id="question-card"></div>
 
-        <div class="footer">
-            Javier Gijón. Prof del IES María Moliner (Segovia)
-        </div>
+        <div class="results-screen" id="results-screen"></div>
     </div>
 
     <script>
-        const DB = {
-            hidrocarburos: [
-                { formula: "CH₄", nombre: "metano" },
-                { formula: "CH₃—CH₃", nombre: "etano" },
-                { formula: "CH₃—CH₂—CH₃", nombre: "propano" },
-                { formula: "CH₃—CH₂—CH₂—CH₃", nombre: "butano" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—CH₃</td></tr><tr><td></td><td>|</td><td></td></tr><tr><td></td><td>CH₃</td><td></td></tr></table>`, nombre: "2,2-dimetilpropano" },
-                { formula: "CH₂=CH₂", nombre: "eteno" },
-                { formula: "CH₂=CH—CH₃", nombre: "propeno" },
-                { formula: "CH₂=CH—CH₂—CH₃", nombre: "but-1-eno" },
-                { formula: "CH₃—CH=CH—CH₃", nombre: "but-2-eno" },
-                { formula: "CH₂=CH—CH₂—CH₂—CH₃", nombre: "pent-1-eno" },
-                { formula: "CH₃—CH=CH—CH₂—CH₃", nombre: "pent-2-eno" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₂=</td><td>C</td><td>—CH₃</td></tr></table>`, nombre: "2-metilpropeno" },
-                { formula: "CH₂=CH—CH=CH₂", nombre: "buta-1,3-dieno" },
-                { formula: "CH₂=CH—CH₂—CH=CH₂", nombre: "penta-1,4-dieno" },
-                { formula: "CH₃—CH=CH—CH=CH₂", nombre: "penta-1,3-dieno" },
-                { formula: "CH≡CH", nombre: "etino" },
-                { formula: "CH≡C—CH₃", nombre: "propino" },
-                { formula: "CH≡C—CH₂—CH₃", nombre: "but-1-ino" },
-                { formula: "CH₃—C≡C—CH₃", nombre: "but-2-ino" },
-                { formula: "CH≡C—CH₂—CH₂—CH₃", nombre: "pent-1-ino" },
-                { formula: "CH₃—C≡C—CH₂—CH₃", nombre: "pent-2-ino" },
-                { formula: "CH≡C—CH₂—CH₂—CH₂—CH₃", nombre: "hex-1-ino" },
-                { formula: "CH₃—C≡C—C≡CH", nombre: "penta-1,3-diino" },
-                { formula: "CH≡C—C≡CH", nombre: "butadiino" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH≡C—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "3-metilbut-1-ino" },
-                { formula: "CH₂=CH—C≡CH", nombre: "but-1-en-3-ino" },
-                { formula: "CH₂=CH—CH₂—C≡CH", nombre: "pent-1-en-4-ino" },
-                { formula: "CH≡C—CH=CH—CH₃", nombre: "pent-3-en-1-ino" },
-                { formula: "CH₂=CH—C≡C—CH₃", nombre: "pent-1-en-3-ino" },
-                { formula: "CH≡C—CH₂—CH=CH₂", nombre: "pent-1-en-4-ino" },
-                { formula: "CH₂=CH—CH=CH—C≡CH", nombre: "hexa-1,3-dien-5-ino" },
-                { formula: "CH≡C—CH=CH—C≡CH", nombre: "hexa-3-en-1,5-diino" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₂=</td><td>C</td><td>—C≡</td><td>CH</td></tr></table>`, nombre: "2-metilbut-1-en-3-ino" },
-                { formula: "CH≡C—CH₂—CH=CH—CH₃", nombre: "hex-4-en-1-ino" },
-                { formula: "CH₂=CH—CH₂—C≡C—CH₃", nombre: "hex-1-en-4-ino" }
-            ],
-            alcoholes: [
-                { formula: "CH₃—OH", nombre: "metanol" },
-                { formula: "CH₃—CH₂—OH", nombre: "etanol" },
-                { formula: "CH₃—CH₂—CH₂—OH", nombre: "propan-1-ol" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—OH", nombre: "butan-1-ol" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—CH₂—OH", nombre: "pentan-1-ol" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—CH₂—CH₂—OH", nombre: "hexan-1-ol" },
-                { formula: `<table><tr><td></td><td>OH</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "propan-2-ol" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "butan-2-ol" },
-                { formula: `<table><tr><td></td><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "pentan-2-ol" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td></td><td></td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH₂—</td><td>CH₃</td></tr></table>`, nombre: "pentan-3-ol" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>OH</td></tr></table>`, nombre: "2-metilpropan-1-ol" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—CH₃</td></tr><tr><td></td><td>|</td><td></td></tr><tr><td></td><td>OH</td><td></td></tr></table>`, nombre: "2-metilpropan-2-ol" },
-                { formula: `<table><tr><td></td><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH₂—</td><td>OH</td></tr></table>`, nombre: "3-metilbutan-1-ol" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>CH₂—</td><td>OH</td></tr></table>`, nombre: "2-metilbutan-1-ol" },
-                { formula: `<table><tr><td>OH</td><td>OH</td></tr><tr><td>|</td><td>|</td></tr><tr><td>CH₂</td><td>—CH₂</td></tr></table>`, nombre: "etano-1,2-diol" },
-                { formula: `<table><tr><td>OH</td><td></td><td>OH</td></tr><tr><td>|</td><td></td><td>|</td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH₂</td></tr></table>`, nombre: "propano-1,3-diol" },
-                { formula: `<table><tr><td>OH</td><td>OH</td><td></td></tr><tr><td>|</td><td>|</td><td></td></tr><tr><td>CH₂</td><td>—CH</td><td>—CH₃</td></tr></table>`, nombre: "propano-1,2-diol" },
-                { formula: `<table><tr><td>OH</td><td></td><td></td><td>OH</td></tr><tr><td>|</td><td></td><td></td><td>|</td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH₂—</td><td>CH₂</td></tr></table>`, nombre: "butano-1,4-diol" },
-                { formula: `<table><tr><td></td><td>OH</td><td>OH</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr></table>`, nombre: "butano-2,3-diol" },
-                { formula: `<table><tr><td></td><td></td><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH₂—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "hexan-2-ol" },
-                { formula: `<table><tr><td></td><td></td><td></td><td>OH</td><td></td><td></td></tr><tr><td></td><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH₂—</td><td>CH</td><td>—CH₂—</td><td>CH₃</td></tr></table>`, nombre: "hexan-3-ol" },
-                { formula: `<table><tr><td></td><td>OH</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr></table>`, nombre: "3-metilbutan-2-ol" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—CH₂—</td><td>CH₃</td><tr><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td>OH</td><td></td><td></td></tr></table>`, nombre: "2-metilbutan-2-ol" },
-                { formula: `<table><tr><td></td><td>OH</td><td></td><td>OH</td></tr><tr><td></td><td>|</td><td></td><td>|</td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>CH₂</td></tr></table>`, nombre: "butano-1,3-diol" },
-                { formula: `<table><tr><td>OH</td><td></td><td></td><td>OH</td><td></td></tr><tr><td>|</td><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "pentano-1,4-diol" },
-                { formula: `<table><tr><td></td><td>OH</td><td></td><td>OH</td><td></td></tr><tr><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "pentano-2,4-diol" },
-                { formula: `<table><tr><td>OH</td><td>OH</td><td>OH</td></tr><tr><td>|</td><td>|</td><td>|</td></tr><tr><td>CH₂</td><td>—CH</td><td>—CH₂</td></tr></table>`, nombre: "propano-1,2,3-triol" },
-                { formula: `<table><tr><td>OH</td><td></td><td>OH</td><td></td><td>OH</td></tr><tr><td>|</td><td></td><td>|</td><td></td><td>|</td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH</td><td>—CH₂—</td><td>CH₂</td></tr></table>`, nombre: "pentano-1,3,5-triol" },
-                { formula: `<table><tr><td>OH</td><td></td><td></td><td></td><td>OH</td></tr><tr><td>|</td><td></td><td></td><td></td><td>|</td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH₂—</td><td>CH₂—</td><td>CH₂</td></tr></table>`, nombre: "pentano-1,5-diol" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr></table>`, nombre: "pentano-2,3-diol" },
-                { formula: `<table><tr><td>OH</td><td></td><td>OH</td><td></td><td>OH</td><td></td></tr><tr><td>|</td><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "hexano-1,3,5-triol" },
-                { formula: `<table><tr><td>OH</td><td></td><td></td><td></td><td></td><td>OH</td></tr><tr><td>|</td><td></td><td></td><td></td><td></td><td>|</td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH₂—</td><td>CH₂—</td><td>CH₂—</td><td>CH₂</td></tr></table>`, nombre: "hexano-1,6-diol" },
-                { formula: `<table><tr><td>OH</td><td>CH₃</td><td>CH₃</td><td></td></tr><tr><td>|</td><td>|</td><td>|</td><td></td></tr><tr><td>CH₂</td><td>—CH</td><td>—CH</td><td>—CH₃</td></tr></table>`, nombre: "2,3-dimetilbutan-1-ol" },
-                { formula: `<table><tr><td>OH</td><td>CH₃</td><td></td><td>CH₃</td><td></td></tr><tr><td>|</td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₂</td><td>—CH</td><td>—CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "2,4-dimetilpentan-1-ol" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—CH₂—</td><td>OH</td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td>CH₃</td><td></td><td></td></tr></table>`, nombre: "2,2-dimetilpropan-1-ol" },
-                { formula: `<table><tr><td>OH</td><td>CH₃</td><td></td><td></td></tr><tr><td>|</td><td>|</td><td></td><td></td></tr><tr><td>CH₂</td><td>—C</td><td>—CH₂—</td><td>CH₃</td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td>CH₃</td><td></td><td></td></tr></table>`, nombre: "2,2-dimetilbutan-1-ol" },
-                { formula: `<table><tr><td>OH</td><td>CH₃</td><td>CH₃</td><td></td></tr><tr><td>|</td><td>|</td><td>|</td><td></td></tr><tr><td>CH₂</td><td>—CH</td><td>—C</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>CH₃</td><td></td></tr></table>`, nombre: "2,3,3-trimetilbutan-1-ol" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—CH₂—CH₂—CH₂—OH", nombre: "heptan-1-ol" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—CH₂—CH₂—CH₂—CH₂—OH", nombre: "octan-1-ol" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—CH₂—CH₂—CH₂—CH₂—CH₂—OH", nombre: "nonan-1-ol" },
-                { formula: "CH₃—(CH₂)₉—OH", nombre: "decan-1-ol" }
-            ],
-            aldehidos: [
-                { formula: "CH₃—CHO", nombre: "etanal" },
-                { formula: "CH₃—CH₂—CHO", nombre: "propanal" },
-                { formula: "CH₃—CH₂—CH₂—CHO", nombre: "butanal" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—CHO", nombre: "pentanal" },
-                { formula: "CH₃—(CH₂)₄—CHO", nombre: "hexanal" },
-                { formula: "CH₃—(CH₂)₅—CHO", nombre: "heptanal" },
-                { formula: "CHO—CHO", nombre: "etanodial" },
-                { formula: "CHO—CH₂—CHO", nombre: "propanodial" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "2-metilpropanal" },
-                { formula: `<table><tr><td></td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "2-metilbutanal" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>CHO</td></tr></table>`, nombre: "3-metilbutanal" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—CHO</td></tr></table>`, nombre: "2,3-dimetilbutanal" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—CHO</td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td>CH₃</td><td></td><td></td></tr></table>`, nombre: "2,2-dimetilpropanal" },
-                { formula: `<table><tr><td></td><td>OH</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "2-hidroxipropanal" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "2-hidroxibutanal" },
-                { formula: `<table><tr><td></td><td>OH</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>CHO</td></tr></table>`, nombre: "3-hidroxibutanal" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "2-hidroxi-4-oxopentanal" },
-                { formula: "CHO—(CH₂)₂—CHO", nombre: "butanodial" },
-                { formula: "CHO—(CH₂)₃—CHO", nombre: "pentanodial" },
-                { formula: "CHO—(CH₂)₄—CHO", nombre: "hexanodial" },
-                { formula: "CH₃—(CH₂)₉—CHO", nombre: "undecanal" },
-                { formula: `<table><tr><td></td><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH₂—</td><td>CHO</td></tr></table>`, nombre: "3-metilpentanal" },
-                { formula: `<table><tr><td></td><td></td><td>CH₃</td><td>CH₃</td><td></td></tr><tr><td></td><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH</td><td>—CHO</td></tr></table>`, nombre: "3,4-dimetilpentanal" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "2,4-dimetilpentanal" },
-                { formula: `<table><tr><td></td><td>C₂H₅</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "2-etilpropanal" },
-                { formula: `<table><tr><td></td><td></td><td>C₂H₅</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "2-etilbutanal" },
-                { formula: `<table><tr><td></td><td>C₂H₅</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—CHO</td></tr></table>`, nombre: "2-etil-3-metilbutanal" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td>CH₃</td><td></td></tr><tr><td></td><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH</td><td>—CHO</td></tr></table>`, nombre: "3-hidroxi-4-metilpentanal" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "3-hidroxi-4-oxopentanal" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "2-metil-4-oxopentanal" },
-                { formula: `<table><tr><td></td><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CHO</td></tr><tr><td></td><td></td><td>|</td><td>|</td><td></td></tr><tr><td></td><td></td><td>CH₃</td><td>OH</td><td></td></tr></table>`, nombre: "2-hidroxi-3-metil-4-oxopentanal" },
-                { formula: `<table><tr><td></td><td>CH₃—CH₂—CO—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr><tr><td></td><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td></td><td>CH₃</td><td></td></tr></table>`, nombre: "2-metil-4-oxohexanal" },
-                { formula: `<table><tr><td></td><td>CH₃—CO—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CHO</td></tr><tr><td></td><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>OH</td><td></td><td>CH₃</td><td></td></tr></table>`, nombre: "4-hidroxi-2-metil-5-oxohexanal" }
-            ],
-            cetonas: [
-                { formula: "CH₃—CO—CH₃", nombre: "propanona" },
-                { formula: "CH₃—CO—CH₂—CH₃", nombre: "butanona" },
-                { formula: "CH₃—CO—CH₂—CH₂—CH₃", nombre: "pentan-2-ona" },
-                { formula: "CH₃—CH₂—CO—CH₂—CH₃", nombre: "pentan-3-ona" },
-                { formula: "CH₃—CO—CH₂—CH₂—CH₂—CH₃", nombre: "hexan-2-ona" },
-                { formula: "CH₃—CH₂—CO—CH₂—CH₂—CH₃", nombre: "hexan-3-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "3-metilbutan-2-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₂—</td><td>CH₃</td></tr></table>`, nombre: "4-metilpentan-2-ona" },
-                { formula: `<table><tr><td></td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CH₂—CO—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "2-metilpentan-3-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>CH₃</td><td></td></tr></table>`, nombre: "3,4-dimetilpentan-2-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td><td>CH₃</td></tr><tr><td></td><td>|</td><td></td><td></td><td>|</td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "3,5-dimetilhexan-2-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—CO—</td><td>CH₃</td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td>CH₃</td><td></td><td></td></tr></table>`, nombre: "3,3-dimetilbutan-2-ona" },
-                { formula: `<table><tr><td></td><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>C</td><td>—CO—</td><td>CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td></td><td>CH₃</td><td></td><td></td></tr></table>`, nombre: "4,4-dimetilpentan-2-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CO—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "2,4-dimetilpentan-3-ona" },
-                { formula: `<table><tr><td></td><td>C₂H₅</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "3-etilbutan-2-ona" },
-                { formula: `<table><tr><td></td><td>C₂H₅</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₂—</td><td>CH₃</td></tr></table>`, nombre: "3-etilpentan-2-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td></td><td>CH₃</td><td></td><td></td></tr></table>`, nombre: "3,4,5-trimetilhexan-2-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td></td><td></td><td>CH₃</td><td></td></tr></table>`, nombre: "3,5,6-trimetilheptan-2-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>C₂H₅</td><td></td></tr></table>`, nombre: "4-etil-3-metilpentan-2-ona" },
-                { formula: `<table><tr><td></td><td>C₂H₅</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>CH₃</td><td></td></tr></table>`, nombre: "3-etil-4-metilpentan-2-ona" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "4-hidroxipentan-2-ona" },
-                { formula: `<table><tr><td></td><td>OH</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr></table>`, nombre: "3-hidroxi-4-metilpentan-2-ona" },
-                { formula: `<table><tr><td>OH—CH₂—</td><td>CH₂—</td><td>CO—</td><td>CH₂—CH₃</td></tr></table>`, nombre: "5-hidroxipentan-3-ona" },
-                { formula: `<table><tr><td></td><td>OH</td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "3-hidroxi-5-metilhexan-2-ona" },
-                { formula: "CH₃—CO—CH₂—CH₂—CH₂—CH₂—CH₃", nombre: "heptan-2-ona" },
-                { formula: "CH₃—CH₂—CO—CH₂—CH₂—CH₂—CH₃", nombre: "hept-3-ona" },
-                { formula: "CH₃—CH₂—CH₂—CO—CH₂—CH₂—CH₃", nombre: "hept-4-ona" },
-                { formula: "CH₃—CO—(CH₂)₅—CH₃", nombre: "octan-2-ona" },
-                { formula: `<table><tr><td>OH—CH₂—</td><td>CO—</td><td>CH₃</td></tr></table>`, nombre: "hidroxipropanona" },
-                { formula: `<table><tr><td>OH—CH₂—</td><td>CO—</td><td>CH₂—CH₃</td></tr></table>`, nombre: "hidroxibutanona" },
-                { formula: `<table><tr><td></td><td>OH</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "3-hidroxibutan-2-ona" },
-                { formula: `<table><tr><td>OH—CH₂—</td><td>CO—CH₃</td></tr></table>`, nombre: "4-hidroxibutan-2-ona" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "3-hidroxipentan-2-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>OH</td><td></td></tr></table>`, nombre: "4-hidroxi-3-metilpentan-2-ona" },
-                { formula: `<table><tr><td></td><td>C₂H₅</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>OH</td><td></td></tr></table>`, nombre: "3-etil-4-hidroxipentan-2-ona" }
-            ],
-            acidos: [
-                { formula: "CH₃—COOH", nombre: "ácido etanoico" },
-                { formula: "CH₃—CH₂—COOH", nombre: "ácido propanoico" },
-                { formula: "CH₃—CH₂—CH₂—COOH", nombre: "ácido butanoico" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—COOH", nombre: "ácido pentanoico" },
-                { formula: "CH₃—(CH₂)₄—COOH", nombre: "ácido hexanoico" },
-                { formula: "HOOC—COOH", nombre: "ácido etanodioico" },
-                { formula: "HOOC—CH₂—COOH", nombre: "ácido propanodioico" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 2-metilpropanoico" },
-                { formula: `<table><tr><td></td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 3-metilbutanoico" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—COOH</td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td>CH₃</td><td></td><td></td></tr></table>`, nombre: "ácido 2,2-dimetilpropanoico" },
-                { formula: `<table><tr><td></td><td>C₂H₅</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 2-etilpropanoico" },
-                { formula: `<table><tr><td></td><td>OH</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 2-hidroxipropanoico" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 3-hidroxibutanoico" },
-                { formula: `<table><tr><td>CH₃—CO—</td><td>CH₂—</td><td>COOH</td></tr></table>`, nombre: "ácido 3-oxobutanoico" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td></td><td></td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH₂—</td><td>CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 3-hidroxi-4-oxopentanoico" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—CH₂—CH₂—COOH", nombre: "ácido heptanoico" },
-                { formula: "CH₃—(CH₂)₆—COOH", nombre: "ácido octanoico" },
-                { formula: "CH₃—(CH₂)₇—COOH", nombre: "ácido nonanoico" },
-                { formula: "CH₃—(CH₂)₈—COOH", nombre: "ácido decanoico" },
-                { formula: "HOOC—CH₂—CH₂—COOH", nombre: "ácido butanodioico" },
-                { formula: "HOOC—(CH₂)₃—COOH", nombre: "ácido pentanodioico" },
-                { formula: "HOOC—(CH₂)₄—COOH", nombre: "ácido hexanodioico" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 2,3-dimetilbutanoico" },
-                { formula: `<table><tr><td></td><td></td><td>C₂H₅</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 2-etilbutanoico" },
-                { formula: `<table><tr><td></td><td>C₂H₅</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 2-etil-3-metilbutanoico" },
-                { formula: `<table><tr><td></td><td>OH</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 2-hidroxi-3-metilbutanoico" },
-                { formula: "CH₃—CO—CH₂—CH₂—COOH", nombre: "ácido 4-oxopentanoico" }
-            ],
-            esteres: [
-                { formula: "H—COO—Na", nombre: "metanoato de sodio" },
-                { formula: "H—COO—CH₃", nombre: "metanoato de metilo" },
-                { formula: "CH₃—COO—Na", nombre: "etanoato de sodio" },
-                { formula: "CH₃—COO—K", nombre: "etanoato de potasio" },
-                { formula: "CH₃—COO—CH₃", nombre: "etanoato de metilo" },
-                { formula: "CH₃—COO—CH₂—CH₃", nombre: "etanoato de etilo" },
-                { formula: "CH₃—CH₂—COO—Na", nombre: "propanoato de sodio" },
-                { formula: "CH₃—CH₂—COO—CH₃", nombre: "propanoato de metilo" },
-                { formula: "CH₃—CH₂—COO—CH₂—CH₃", nombre: "propanoato de etilo" },
-                { formula: "CH₃—CH₂—CH₂—COO—Na", nombre: "butanoato de sodio" },
-                { formula: "CH₃—CH₂—CH₂—COO—CH₃", nombre: "butanoato de metilo" },
-                { formula: "H—COO—CH₂—CH₂—CH₂—CH₃", nombre: "metanoato de butilo" },
-                { formula: "CH₃—COO—CH₂—CH₂—CH₂—CH₃", nombre: "etanoato de butilo" },
-                { formula: "CH₃—CH₂—COO—K", nombre: "propanoato de potasio" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—COO—Na", nombre: "pentanoato de sodio" },
-                { formula: "CH₃—CH₂—COO—CH₂—CH₂—CH₂—CH₃", nombre: "propanoato de butilo" },
-                { formula: "CH₃—CH₂—CH₂—COO—K", nombre: "butanoato de potasio" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—COO—CH₃", nombre: "pentanoato de metilo" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—COO—CH₂—CH₃", nombre: "pentanoato de etilo" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—CH₂—COO—Na", nombre: "hexanoato de sodio" }
-            ]
-        };
-
-        let completedPool = { hidrocarburos: [], alcoholes: [], aldehidos: [], cetonas: [], acidos: [], esteres: [] };
-        let sessionData = [];
-        let currentIndex = 0;
-        let score = 0;
+        const questions = [
+            {
+                question: "¿Qué está mal en el compuesto FeCl₄?",
+                options: [
+                    "El hierro no puede tener valencia +4 con el cloro",
+                    "Debería ser FeCl₂ o FeCl₃",
+                    "El cloro solo puede unirse de dos en dos",
+                    "Está correctamente formulado",
+                    "Falta indicar que es hierro (IV)"
+                ],
+                correct: 1,
+                explanation: "El hierro solo presenta estados de oxidación +2 y +3 de forma estable. El FeCl₄ no existe porque el hierro no puede alcanzar el estado de oxidación +4 en condiciones normales. Los compuestos válidos son FeCl₂ (cloruro de hierro(II)) y FeCl₃ (cloruro de hierro(III))."
+            },
+            {
+                question: "¿Cuál es la diferencia entre ácido sulfúrico y ácido sulfhídrico?",
+                options: [
+                    "Son el mismo compuesto con diferente nombre",
+                    "Sulfúrico es H₂SO₄ (con oxígeno) y sulfhídrico es H₂S (sin oxígeno)",
+                    "Sulfúrico tiene más hidrógenos que sulfhídrico",
+                    "Sulfhídrico es más concentrado que sulfúrico",
+                    "Solo difieren en el estado de agregación"
+                ],
+                correct: 1,
+                explanation: "El ácido sulfúrico (H₂SO₄) es un oxoácido que contiene azufre con estado de oxidación +6, mientras que el ácido sulfhídrico (H₂S) es un hidrácido sin oxígeno donde el azufre tiene estado de oxidación -2. Son compuestos completamente diferentes."
+            },
+            {
+                question: "¿Cuál de estos compuestos NO existe?",
+                options: [
+                    "NaCl₃",
+                    "NaCl",
+                    "Na₂O",
+                    "NaOH",
+                    "Na₂SO₄"
+                ],
+                correct: 0,
+                explanation: "El NaCl₃ no existe porque el sodio solo tiene valencia +1 y el cloro -1. No es posible que tres átomos de cloro se unan a un solo sodio. El compuesto correcto del sodio con el cloro es NaCl."
+            },
+            {
+                question: "¿Cómo se llama correctamente el compuesto K₂Cr₂O₇?",
+                options: [
+                    "Cromato de potasio",
+                    "Dicromato de potasio",
+                    "Óxido de cromo y potasio",
+                    "Percromato de potasio",
+                    "Bicromato de potasio"
+                ],
+                correct: 1,
+                explanation: "El K₂Cr₂O₇ es el dicromato de potasio. El cromato sería K₂CrO₄ (un solo átomo de cromo). El prefijo 'di-' indica que hay dos átomos de cromo en el anión Cr₂O₇²⁻."
+            },
+            {
+                question: "El compuesto H₃PO₄, ¿cómo se nombra correctamente?",
+                options: [
+                    "Ácido fosfórico",
+                    "Ácido ortofosfórico",
+                    "Ambos nombres son correctos",
+                    "Ácido fosforoso",
+                    "Ácido metafosfórico"
+                ],
+                correct: 2,
+                explanation: "Ambos nombres son correctos. H₃PO₄ se puede llamar ácido fosfórico (nombre simplificado) o ácido ortofosfórico (nombre completo). El término 'orto-' se puede omitir cuando no hay ambigüedad. El metafosfórico sería HPO₃."
+            },
+            {
+                question: "¿Qué error tiene el nombre 'sulfato de hierro'?",
+                options: [
+                    "El hierro no forma sulfatos",
+                    "Falta indicar el estado de oxidación del hierro: (II) o (III)",
+                    "Debería ser 'sulfito de hierro'",
+                    "No tiene ningún error",
+                    "Debería escribirse 'hierro sulfato'"
+                ],
+                correct: 1,
+                explanation: "El hierro tiene dos estados de oxidación comunes (+2 y +3), por lo que debemos especificar cuál es: sulfato de hierro(II) para FeSO₄ o sulfato de hierro(III) para Fe₂(SO₄)₃. En nomenclatura Stock es obligatorio indicar el estado de oxidación cuando el elemento tiene más de uno."
+            },
+            {
+                question: "El compuesto ClO₂ se llama:",
+                options: [
+                    "Óxido de cloro",
+                    "Dióxido de cloro",
+                    "Clorato",
+                    "Perclorato",
+                    "Hipoclorito"
+                ],
+                correct: 1,
+                explanation: "ClO₂ es el dióxido de cloro (nomenclatura sistemática). Es un compuesto binario de oxígeno con cloro. No es un ion, por lo que no se nombra como clorato (que sería ClO₃⁻)."
+            },
+            {
+                question: "¿Cuál de estos compuestos tiene un número de oxidación imposible?",
+                options: [
+                    "SO₃ (azufre +6)",
+                    "SO₄ (azufre +8)",
+                    "H₂SO₄ (azufre +6)",
+                    "H₂S (azufre -2)",
+                    "S₈ (azufre 0)"
+                ],
+                correct: 1,
+                explanation: "SO₄ tendría el azufre con estado de oxidación +8, lo cual es imposible ya que el azufre solo puede alcanzar como máximo +6 (tiene 6 electrones de valencia). El compuesto correcto es SO₃ o con hidrógeno H₂SO₄."
+            },
+            {
+                question: "El nombre 'ácido nítrico' corresponde a:",
+                options: [
+                    "HNO₂",
+                    "HNO₃",
+                    "HNO₄",
+                    "N₂O₅",
+                    "NH₃"
+                ],
+                correct: 1,
+                explanation: "El ácido nítrico es HNO₃ (nitrógeno con estado de oxidación +5). El HNO₂ sería ácido nitroso, el HNO₄ no existe (el nitrógeno no puede tener +7), N₂O₅ es anhídrido nítrico, y NH₃ es amoniaco."
+            },
+            {
+                question: "¿Qué compuesto NO es correcto?",
+                options: [
+                    "CaCO₃ - carbonato de calcio",
+                    "Ca(NO₃)₂ - nitrato de calcio",
+                    "Ca(ClO₄)₃ - perclorato de calcio",
+                    "CaSO₄ - sulfato de calcio",
+                    "Ca₃(PO₄)₂ - fosfato de calcio"
+                ],
+                correct: 2,
+                explanation: "Ca(ClO₄)₃ es incorrecto porque el calcio tiene valencia +2 fija y el perclorato ClO₄⁻ tiene carga -1, por lo que el compuesto correcto es Ca(ClO₄)₂. El subíndice 3 no tiene sentido con las cargas de estos iones."
+            },
+            {
+                question: "El compuesto Mg₃N₂ se nombra:",
+                options: [
+                    "Nitruro de magnesio",
+                    "Nitruro de magnesio (II)",
+                    "Trinitruro de dimagnesio",
+                    "Nitrógeno de magnesio",
+                    "Nitrato de magnesio"
+                ],
+                correct: 0,
+                explanation: "Es nitruro de magnesio. El magnesio siempre tiene valencia +2, por lo que no es necesario indicarla en Stock. En sistemática sería 'trinitruro de dimagnesio', pero la forma más común es 'nitruro de magnesio'."
+            },
+            {
+                question: "¿Qué diferencia hay entre cromato y dicromato?",
+                options: [
+                    "El cromato tiene un Cr y el dicromato tiene dos Cr",
+                    "El cromato es amarillo y el dicromato naranja",
+                    "Cromato es CrO₄²⁻ y dicromato es Cr₂O₇²⁻",
+                    "Todas las anteriores son correctas",
+                    "Solo la A y C son correctas"
+                ],
+                correct: 3,
+                explanation: "Todas son correctas. El ion cromato (CrO₄²⁻) tiene un átomo de cromo y es amarillo, mientras que el dicromato (Cr₂O₇²⁻) tiene dos átomos de cromo y es anaranjado. Están en equilibrio en disolución dependiendo del pH."
+            },
+            {
+                question: "El compuesto H₂SO₃ se llama:",
+                options: [
+                    "Ácido sulfúrico",
+                    "Ácido sulfhídrico",
+                    "Ácido sulfuroso",
+                    "Ácido sulfito",
+                    "Sulfato de hidrógeno"
+                ],
+                correct: 2,
+                explanation: "H₂SO₃ es ácido sulfuroso (azufre con estado de oxidación +4). El sulfúrico sería H₂SO₄ (+6), el sulfhídrico es H₂S (-2), y 'sulfito' es el nombre del anión SO₃²⁻, no del ácido."
+            },
+            {
+                question: "¿Cuál de estos nombres es INCORRECTO?",
+                options: [
+                    "HCl - ácido clorhídrico",
+                    "HBr - ácido bromhídrico",
+                    "HI - ácido yodhídrico",
+                    "HF - ácido fluorhídrico",
+                    "H₂O - ácido oxhídrico"
+                ],
+                correct: 4,
+                explanation: "H₂O no se llama 'ácido oxhídrico', sino simplemente agua (u óxido de hidrógeno/monóxido de dihidrógeno en sistemática). Los hidrácidos son compuestos de hidrógeno con no metales del grupo 16 y 17, pero el agua no se considera un hidrácido."
+            },
+            {
+                question: "El ion NH₄⁺ se llama:",
+                options: [
+                    "Amonio",
+                    "Amoniaco",
+                    "Nitrato",
+                    "Amoníaco",
+                    "Nitronio"
+                ],
+                correct: 0,
+                explanation: "El ion NH₄⁺ se llama amonio. El amoniaco (NH₃) es la molécula neutra. El nitrato es NO₃⁻ y el nitronio es NO₂⁺."
+            },
+            {
+                question: "¿Qué compuesto NO existe por números de oxidación imposibles?",
+                options: [
+                    "Al₂O₃",
+                    "AlCl₅",
+                    "AlF₃",
+                    "Al(OH)₃",
+                    "Al₂(SO₄)₃"
+                ],
+                correct: 1,
+                explanation: "AlCl₅ no existe porque el aluminio solo tiene valencia +3. Para tener 5 cloros necesitaría valencia +5, que no posee. Los compuestos correctos del aluminio son con valencia +3."
+            },
+            {
+                question: "El compuesto Ca(HCO₃)₂ se nombra:",
+                options: [
+                    "Carbonato de calcio",
+                    "Bicarbonato de calcio",
+                    "Hidrogenocarbonato de calcio",
+                    "Carbonato ácido de calcio",
+                    "B, C y D son correctas"
+                ],
+                correct: 4,
+                explanation: "Los tres nombres (bicarbonato, hidrogenocarbonato y carbonato ácido) son correctos para Ca(HCO₃)₂. El término 'bicarbonato' es el más común, 'hidrogenocarbonato' es el nombre sistemático, y 'carbonato ácido' también es aceptado."
+            },
+            {
+                question: "¿Cuál es la fórmula del dihidrogenofosfato de sodio?",
+                options: [
+                    "NaH₂PO₄",
+                    "Na₂HPO₄",
+                    "Na₃PO₄",
+                    "NaHPO₃",
+                    "NaPO₃"
+                ],
+                correct: 0,
+                explanation: "El dihidrogenofosfato de sodio es NaH₂PO₄. El ion es H₂PO₄⁻ (dos hidrógenos, de ahí 'di-hidrógeno'). Na₂HPO₄ sería hidrogenofosfato de sodio, y Na₃PO₄ sería fosfato de sodio."
+            },
+            {
+                question: "En nomenclatura Stock, ¿cómo se llama FeCl₂?",
+                options: [
+                    "Cloruro de hierro (II)",
+                    "Cloruro ferroso",
+                    "Cloruro de hierro",
+                    "Dicloruro de hierro",
+                    "Cloruro férrico"
+                ],
+                correct: 0,
+                explanation: "En nomenclatura Stock, FeCl₂ es cloruro de hierro(II). El hierro tiene estado de oxidación +2 en este compuesto. 'Ferroso' es nomenclatura tradicional que no usamos. El FeCl₃ sería cloruro de hierro(III)."
+            },
+            {
+                question: "¿Qué ion NO existe?",
+                options: [
+                    "SO₄²⁻ (sulfato)",
+                    "SO₅²⁻ (supersulfato)",
+                    "SO₃²⁻ (sulfito)",
+                    "S²⁻ (sulfuro)",
+                    "S₂O₃²⁻ (tiosulfato)"
+                ],
+                correct: 1,
+                explanation: "El ion SO₅²⁻ no existe porque requeriría que el azufre tuviera estado de oxidación +8, lo cual es imposible. El azufre solo puede llegar a +6 como máximo en el ion sulfato SO₄²⁻."
+            },
+            {
+                question: "El compuesto KMnO₄ se llama:",
+                options: [
+                    "Manganato de potasio",
+                    "Permanganato de potasio",
+                    "Óxido de manganeso y potasio",
+                    "Manganeso de potasio (VII)",
+                    "Tetraóxido de manganeso y potasio"
+                ],
+                correct: 1,
+                explanation: "KMnO₄ es permanganato de potasio. El manganeso tiene estado de oxidación +7 en este compuesto. El manganato sería K₂MnO₄ (Mn con +6). El prefijo 'per-' indica el mayor grado de oxidación."
+            },
+            {
+                question: "¿Cuál de estos ácidos NO existe?",
+                options: [
+                    "H₂SO₄ (sulfúrico)",
+                    "H₂SO₃ (sulfuroso)",
+                    "H₂SO₂ (hiposulfuroso)",
+                    "H₂S (sulfhídrico)",
+                    "H₂S₂O₃ (tiosulfúrico)"
+                ],
+                correct: 2,
+                explanation: "H₂SO₂ no existe como ácido estable. Los oxoácidos del azufre son H₂SO₃ (sulfuroso, S+4) y H₂SO₄ (sulfúrico, S+6). No existe un oxoácido estable con S+2."
+            },
+            {
+                question: "El compuesto N₂O₅ se nombra:",
+                options: [
+                    "Óxido nítrico",
+                    "Óxido nitroso",
+                    "Anhídrido nítrico",
+                    "Pentóxido de dinitrógeno",
+                    "C y D son correctas"
+                ],
+                correct: 4,
+                explanation: "N₂O₅ se puede nombrar como anhídrido nítrico (tradicional) o pentóxido de dinitrógeno (sistemática). El óxido nítrico es NO y el óxido nitroso es N₂O."
+            },
+            {
+                question: "¿Qué error tiene el nombre 'clorato de sodio (I)'?",
+                options: [
+                    "El sodio siempre es +1, no hace falta indicarlo",
+                    "Debería ser 'clorato de sodio (VII)' por el cloro",
+                    "El sodio no forma cloratos",
+                    "Debería ser 'clorato sódico'",
+                    "No tiene ningún error"
+                ],
+                correct: 0,
+                explanation: "El error es indicar (I) para el sodio. El sodio siempre tiene valencia +1, por lo que no es necesario ni correcto indicarla en nomenclatura Stock. El nombre correcto es simplemente 'clorato de sodio' o 'clorato sódico'."
+            },
+            {
+                question: "El compuesto Fe(OH)₃ se llama:",
+                options: [
+                    "Hidróxido de hierro",
+                    "Hidróxido ferroso",
+                    "Hidróxido de hierro (III)",
+                    "Hidróxido de hierro (II)",
+                    "Trihidróxido de hierro"
+                ],
+                correct: 2,
+                explanation: "Fe(OH)₃ es hidróxido de hierro(III) en nomenclatura Stock. El hierro tiene estado de oxidación +3. No usamos la nomenclatura tradicional (férrico/ferroso). El hidróxido de hierro(II) sería Fe(OH)₂."
+            },
+            {
+                question: "¿Cuál es la diferencia entre fosfato y fosforito?",
+                options: [
+                    "Fosfato es PO₄³⁻ y fosforito es PO₃³⁻",
+                    "Fosforito no existe, el nombre correcto es fosfito",
+                    "Son el mismo ion con diferente nombre",
+                    "Fosfato tiene más oxígenos que fosforito",
+                    "A, B y D son correctas"
+                ],
+                correct: 4,
+                explanation: "El ion 'fosforito' no existe. El correcto es fosfito (PO₃³⁻, P+3), mientras que el fosfato es PO₄³⁻ (P+5). El fosfato tiene más oxígenos (4 vs 3) y el fósforo tiene mayor estado de oxidación."
+            },
+            {
+                question: "El compuesto P₂O₅ se puede llamar:",
+                options: [
+                    "Pentóxido de difósforo",
+                    "Anhídrido fosfórico",
+                    "Óxido de fósforo (V)",
+                    "Todas son correctas",
+                    "Solo A y B son correctas"
+                ],
+                correct: 3,
+                explanation: "P₂O₅ se puede nombrar de tres formas: pentóxido de difósforo (sistemática), anhídrido fosfórico (tradicional) u óxido de fósforo(V) (Stock). Las tres nomenclaturas son correctas."
+            },
+            {
+                question: "¿Qué compuesto tiene la fórmula incorrecta?",
+                options: [
+                    "Nitrato de plata: AgNO₃",
+                    "Sulfato de cobre(II): CuSO₄",
+                    "Cloruro de calcio: CaCl",
+                    "Carbonato de sodio: Na₂CO₃",
+                    "Hidróxido de aluminio: Al(OH)₃"
+                ],
+                correct: 2,
+                explanation: "El cloruro de calcio es CaCl₂, no CaCl. El calcio tiene valencia +2 y el cloro -1, por lo que se necesitan dos átomos de cloro para balancear las cargas."
+            },
+            {
+                question: "En el ion Cr₂O₇²⁻, ¿qué estado de oxidación tiene el cromo?",
+                options: [
+                    "+3",
+                    "+4",
+                    "+5",
+                    "+6",
+                    "+7"
+                ],
+                correct: 3,
+                explanation: "En el ion dicromato Cr₂O₇²⁻, cada cromo tiene estado de oxidación +6. Calculado: 2x + 7(-2) = -2, donde x es el estado de oxidación del Cr. Resolviendo: 2x - 14 = -2, entonces 2x = 12, x = +6."
+            },
+            {
+                question: "¿Cuál NO es un nombre válido para H₂O₂?",
+                options: [
+                    "Peróxido de hidrógeno",
+                    "Agua oxigenada",
+                    "Dióxido de dihidrógeno",
+                    "Peróxido de dihidrógeno",
+                    "Óxido de hidrógeno (I)"
+                ],
+                correct: 4,
+                explanation: "H₂O₂ no es 'óxido de hidrógeno(I)'. Es peróxido de hidrógeno (el oxígeno tiene -1, no -2), agua oxigenada (nombre común) o dióxido de dihidrógeno (sistemática). En los peróxidos el oxígeno tiene estado de oxidación -1."
+            },
+            {
+                question: "El compuesto BaSO₃ se nombra:",
+                options: [
+                    "Sulfato de bario",
+                    "Sulfito de bario",
+                    "Sulfuro de bario",
+                    "Tiosulfato de bario",
+                    "Sulfato de bario (III)"
+                ],
+                correct: 1,
+                explanation: "BaSO₃ es sulfito de bario (ion SO₃²⁻). El sulfato sería BaSO₄ (SO₄²⁻), el sulfuro sería BaS (S²⁻), y el tiosulfato sería BaS₂O₃ (S₂O₃²⁻)."
+            },
+            {
+                question: "¿Qué nombre es INCORRECTO para HClO₄?",
+                options: [
+                    "Ácido perclórico",
+                    "Tetraoxoclorato (VII) de hidrógeno",
+                    "Ácido clórico",
+                    "Las opciones A y B son correctas",
+                    "Las tres opciones son incorrectas"
+                ],
+                correct: 2,
+                explanation: "HClO₄ es ácido perclórico (tradicional) o tetraoxoclorato(VII) de hidrógeno (sistemática). NO es ácido clórico, que sería HClO₃. El prefijo 'per-' indica el máximo estado de oxidación (+7)."
+            },
+            {
+                question: "El compuesto NaClO se llama:",
+                options: [
+                    "Clorato de sodio",
+                    "Perclorato de sodio",
+                    "Hipoclorito de sodio",
+                    "Clorito de sodio",
+                    "Cloruro de sodio"
+                ],
+                correct: 2,
+                explanation: "NaClO es hipoclorito de sodio (lejía). La serie de oxoaniones del cloro es: ClO⁻ (hipoclorito), ClO₂⁻ (clorito), ClO₃⁻ (clorato), ClO₄⁻ (perclorato)."
+            },
+            {
+                question: "¿Cuál de estos números de oxidación es IMPOSIBLE para el cloro?",
+                options: [
+                    "-1",
+                    "+1",
+                    "+5",
+                    "+7",
+                    "+9"
+                ],
+                correct: 4,
+                explanation: "El cloro no puede tener estado de oxidación +9 (solo tiene 7 electrones de valencia). Los estados de oxidación posibles del cloro son: -1, +1, +3, +5 y +7."
+            },
+            {
+                question: "El compuesto Cu₂O se nombra:",
+                options: [
+                    "Óxido de cobre",
+                    "Óxido cúprico",
+                    "Óxido de cobre (I)",
+                    "Óxido de cobre (II)",
+                    "Monóxido de dicobre"
+                ],
+                correct: 2,
+                explanation: "Cu₂O es óxido de cobre(I) en nomenclatura Stock. El cobre tiene estado de oxidación +1 en este compuesto. No usamos 'cuproso/cúprico' (nomenclatura tradicional). El óxido de cobre(II) sería CuO."
+            },
+            {
+                question: "¿Qué sal NO puede existir?",
+                options: [
+                    "Nitrato de plata (I)",
+                    "Sulfato de hierro (IV)",
+                    "Cloruro de sodio",
+                    "Carbonato de calcio",
+                    "Fosfato de aluminio"
+                ],
+                correct: 1,
+                explanation: "El sulfato de hierro(IV) no existe porque el hierro no tiene un estado de oxidación +4 estable. Los estados de oxidación comunes del hierro son +2 y +3. Fe(SO₄)₂ sería sulfato de hierro(IV) pero no existe."
+            },
+            {
+                question: "El ácido HNO₂ se llama:",
+                options: [
+                    "Ácido nítrico",
+                    "Ácido nitroso",
+                    "Ácido nítrico (III)",
+                    "Ácido hiponitroso",
+                    "Ácido pernitroso"
+                ],
+                correct: 1,
+                explanation: "HNO₂ es ácido nitroso (nitrógeno con estado de oxidación +3). El ácido nítrico sería HNO₃ (N+5). Los prefijos hipo- y per- no se usan con el nitrógeno en nomenclatura tradicional."
+            },
+            {
+                question: "¿Cuál es la fórmula del sulfato de aluminio?",
+                options: [
+                    "AlSO₄",
+                    "Al₂SO₄",
+                    "Al₂(SO₄)₃",
+                    "Al(SO₄)₂",
+                    "Al₃(SO₄)₂"
+                ],
+                correct: 2,
+                explanation: "El sulfato de aluminio es Al₂(SO₄)₃. El aluminio tiene valencia +3 y el ion sulfato es SO₄²⁻, por lo que se necesitan 2 aluminios y 3 sulfatos para balancear: 2(+3) + 3(-2) = 0."
+            },
+            {
+                question: "El compuesto HClO₃ se nombra:",
+                options: [
+                    "Ácido hipocloroso",
+                    "Ácido cloroso",
+                    "Ácido clórico",
+                    "Ácido perclórico",
+                    "Ácido clorhídrico"
+                ],
+                correct: 2,
+                explanation: "HClO₃ es ácido clórico (Cl con +5). La serie de oxoácidos del cloro es: HClO (hipocloroso, +1), HClO₂ (cloroso, +3), HClO₃ (clórico, +5), HClO₄ (perclórico, +7)."
+            },
+            {
+                question: "¿Qué error tiene el compuesto Na₂SO₅?",
+                options: [
+                    "El sodio no puede tener valencia +2",
+                    "El azufre no puede tener estado de oxidación +8",
+                    "El oxígeno no puede tener 5 átomos",
+                    "Está correctamente formulado",
+                    "Debería ser NaSO₅"
+                ],
+                correct: 1,
+                explanation: "En Na₂SO₅, el azufre tendría estado de oxidación +8 (2(+1) + x + 5(-2) = 0, x = +8), lo cual es imposible. El azufre solo puede alcanzar +6 como máximo. El compuesto no existe."
+            },
+            {
+                question: "El ion HPO₄²⁻ se llama:",
+                options: [
+                    "Fosfato",
+                    "Fosfito",
+                    "Hidrogenofosfato",
+                    "Dihidrogenofosfato",
+                    "Fosfonato"
+                ],
+                correct: 2,
+                explanation: "HPO₄²⁻ es el ion hidrogenofosfato (un solo hidrógeno). El fosfato es PO₄³⁻, el dihidrogenofosfato es H₂PO₄⁻, y el fosfito es HPO₃²⁻ (o PO₃³⁻ sin hidrógeno)."
+            },
+            {
+                question: "¿Cómo se llama el compuesto Pb(NO₃)₂?",
+                options: [
+                    "Nitrato de plomo",
+                    "Nitrato de plomo (II)",
+                    "Nitrato de plomo (IV)",
+                    "Dinitrato de plomo",
+                    "Nitrito de plomo"
+                ],
+                correct: 1,
+                explanation: "Pb(NO₃)₂ es nitrato de plomo(II) en nomenclatura Stock. El plomo tiene estado de oxidación +2 en este compuesto. No usamos 'plumboso/plúmbico' (nomenclatura tradicional). Es importante indicar el número de oxidación."
+            },
+            {
+                question: "El compuesto CaCrO₄ se nombra:",
+                options: [
+                    "Cromato de calcio",
+                    "Dicromato de calcio",
+                    "Cromito de calcio",
+                    "Percromato de calcio",
+                    "Óxido de calcio y cromo"
+                ],
+                correct: 0,
+                explanation: "CaCrO₄ es cromato de calcio (ion CrO₄²⁻, con un solo Cr). El dicromato sería Ca(Cr₂O₇) con el ion Cr₂O₇²⁻ (dos cromo). El cromito tendría el cromo con menor estado de oxidación."
+            },
+            {
+                question: "¿Qué diferencia hay entre nitrato y nitrito?",
+                options: [
+                    "El nitrato es NO₃⁻ (N+5) y el nitrito es NO₂⁻ (N+3)",
+                    "El nitrato tiene más oxígenos que el nitrito",
+                    "El nitrógeno tiene mayor estado de oxidación en el nitrato",
+                    "Todas las anteriores son correctas",
+                    "Solo A y B son correctas"
+                ],
+                correct: 3,
+                explanation: "Todas son correctas. El nitrato (NO₃⁻) tiene un oxígeno más que el nitrito (NO₂⁻), y el nitrógeno tiene estado de oxidación +5 en el nitrato y +3 en el nitrito."
+            },
+            {
+                question: "El compuesto SnCl₂ se llama:",
+                options: [
+                    "Cloruro de estaño",
+                    "Cloruro de estaño (II)",
+                    "Cloruro de estaño (IV)",
+                    "Dicloruro de estaño",
+                    "Cloruro estánnico"
+                ],
+                correct: 1,
+                explanation: "SnCl₂ es cloruro de estaño(II) en nomenclatura Stock. El estaño tiene valencia +2 en este compuesto. No usamos 'estannoso/estánnico' (tradicional). El cloruro de estaño(IV) sería SnCl₄."
+            },
+            {
+                question: "¿Cuál de estos compuestos NO existe?",
+                options: [
+                    "CuCl (cloruro de cobre(I))",
+                    "CuCl₂ (cloruro de cobre(II))",
+                    "CuCl₃ (cloruro de cobre(III))",
+                    "Cu₂O (óxido de cobre(I))",
+                    "CuO (óxido de cobre(II))"
+                ],
+                correct: 2,
+                explanation: "CuCl₃ no existe porque el cobre solo tiene estados de oxidación estables +1 y +2. Un cobre con valencia +3 no es estable en condiciones normales, especialmente con el cloro."
+            },
+            {
+                question: "El ácido H₃PO₃ se llama:",
+                options: [
+                    "Ácido fosfórico",
+                    "Ácido fosforoso",
+                    "Ácido ortofosfórico",
+                    "Ácido metafosfórico",
+                    "Ácido hipofosforoso"
+                ],
+                correct: 1,
+                explanation: "H₃PO₃ es ácido fosforoso (P con +3). El ácido fosfórico u ortofosfórico es H₃PO₄ (P+5), el metafosfórico es HPO₃, y el hipofosforoso es H₃PO₂ (P+1)."
+            },
+            {
+                question: "¿Qué nombre es INCORRECTO para MgO?",
+                options: [
+                    "Óxido de magnesio",
+                    "Monóxido de magnesio",
+                    "Óxido magnésico",
+                    "Óxido de magnesio (II)",
+                    "C y D son incorrectas"
+                ],
+                correct: 4,
+                explanation: "MgO no es 'óxido magnésico' ni 'óxido de magnesio(II)'. El magnesio siempre tiene valencia +2, por lo que no hace falta indicarla. Los nombres correctos son: óxido de magnesio o monóxido de magnesio."
+            },
+            {
+                question: "El compuesto NH₄NO₃ se nombra:",
+                options: [
+                    "Nitrato de amonio",
+                    "Nitrato de amoniaco",
+                    "Nitrógeno de amonio",
+                    "Nitrito de amonio",
+                    "Nitrato amónico"
+                ],
+                correct: 0,
+                explanation: "NH₄NO₃ es nitrato de amonio. El catión es NH₄⁺ (amonio, no amoniaco que es NH₃). También se puede llamar nitrato amónico. El nitrito sería NH₄NO₂."
+            },
+            {
+                question: "¿Cuál es la valencia del manganeso en el permanganato (MnO₄⁻)?",
+                options: [
+                    "+4",
+                    "+5",
+                    "+6",
+                    "+7",
+                    "+8"
+                ],
+                correct: 3,
+                explanation: "En el ion permanganato MnO₄⁻, el manganeso tiene estado de oxidación +7. Calculado: x + 4(-2) = -1, donde x es la valencia del Mn. Resolviendo: x - 8 = -1, x = +7."
+            },
+            {
+                question: "El compuesto LiOH se nombra:",
+                options: [
+                    "Hidróxido de litio",
+                    "Hidróxido lítico",
+                    "Óxido de litio e hidrógeno",
+                    "Hidróxido de litio (I)",
+                    "A y B son correctas"
+                ],
+                correct: 4,
+                explanation: "LiOH es hidróxido de litio o hidróxido lítico (ambos correctos). No es necesario indicar (I) porque el litio siempre tiene valencia +1. Tampoco es un óxido, sino un hidróxido."
+            },
+            {
+                question: "¿Qué error tiene el nombre 'ácido carbónico'?",
+                options: [
+                    "No existe el ácido carbónico",
+                    "Debería ser 'ácido carbonoso'",
+                    "Es correcto, corresponde a H₂CO₃",
+                    "Debería ser 'ácido carbídrico'",
+                    "El carbono no forma ácidos"
+                ],
+                correct: 2,
+                explanation: "No hay error. El ácido carbónico (H₂CO₃) es correcto. Es un ácido débil que se forma cuando el CO₂ se disuelve en agua. Es inestable pero existe."
+            },
+            {
+                question: "El compuesto ZnSO₄ se llama:",
+                options: [
+                    "Sulfato de zinc",
+                    "Sulfato de zinc (II)",
+                    "Sulfito de zinc",
+                    "A y B son correctas",
+                    "Sulfato cincoso"
+                ],
+                correct: 3,
+                explanation: "ZnSO₄ es sulfato de zinc. Aunque el zinc solo tiene valencia +2, en Stock se puede indicar como sulfato de zinc(II). Ambas formas son correctas, aunque es redundante indicar (II)."
+            },
+            {
+                question: "¿Cuál de estos NO es un halogenuro de oxígeno?",
+                options: [
+                    "Cl₂O",
+                    "ClO₂",
+                    "Br₂O",
+                    "HCl",
+                    "I₂O₅"
+                ],
+                correct: 3,
+                explanation: "HCl no es un halogenuro de oxígeno, sino un hidrácido (cloruro de hidrógeno). Los halogenuros de oxígeno son compuestos binarios de halógenos con oxígeno, como Cl₂O, ClO₂, Br₂O, I₂O₅, etc."
+            },
+            {
+                question: "El compuesto Ca(ClO)₂ se nombra:",
+                options: [
+                    "Hipoclorito de calcio",
+                    "Clorito de calcio",
+                    "Clorato de calcio",
+                    "Perclorato de calcio",
+                    "Cloruro de calcio"
+                ],
+                correct: 0,
+                explanation: "Ca(ClO)₂ es hipoclorito de calcio. El ion hipoclorito es ClO⁻ (cloro con +1). Es el componente activo de muchos productos de limpieza y piscinas."
+            },
+            {
+                question: "¿Qué compuesto tiene un número de oxidación correcto?",
+                options: [
+                    "SO₃ (S con +6)",
+                    "SO₂ (S con +4)",
+                    "H₂SO₄ (S con +6)",
+                    "Todas son correctas",
+                    "Solo A y C son correctas"
+                ],
+                correct: 3,
+                explanation: "Todas son correctas. En SO₃ el azufre tiene +6, en SO₂ tiene +4, y en H₂SO₄ tiene +6. Todos estos estados de oxidación son posibles para el azufre."
+            },
+            {
+                question: "El ácido HClO se llama:",
+                options: [
+                    "Ácido clorhídrico",
+                    "Ácido hipocloroso",
+                    "Ácido cloroso",
+                    "Ácido clórico",
+                    "Ácido perclórico"
+                ],
+                correct: 1,
+                explanation: "HClO es ácido hipocloroso (Cl con +1). Es el oxoácido del cloro con menor estado de oxidación. El ácido clorhídrico es HCl (sin oxígeno)."
+            },
+            {
+                question: "¿Cuál es la fórmula del carbonato de hierro(III)?",
+                options: [
+                    "FeCO₃",
+                    "Fe₂CO₃",
+                    "Fe₂(CO₃)₃",
+                    "Fe₃(CO₃)₂",
+                    "Fe(CO₃)₃"
+                ],
+                correct: 2,
+                explanation: "El carbonato de hierro(III) es Fe₂(CO₃)₃. El hierro tiene valencia +3 y el carbonato CO₃²⁻ tiene carga -2, por lo que se necesitan 2 hierros y 3 carbonatos: 2(+3) + 3(-2) = 0."
+            },
+            {
+                question: "El compuesto HBr se nombra:",
+                options: [
+                    "Ácido brómico",
+                    "Ácido bromoso",
+                    "Ácido bromhídrico",
+                    "Bromuro de hidrógeno",
+                    "C y D son correctas"
+                ],
+                correct: 4,
+                explanation: "HBr se puede nombrar como ácido bromhídrico (en disolución acuosa) o bromuro de hidrógeno (nombre sistemático del compuesto puro). Los ácidos brómico y bromoso serían oxoácidos del bromo."
+            },
+            {
+                question: "¿Qué ion NO existe?",
+                options: [
+                    "ClO⁻ (hipoclorito)",
+                    "ClO₂⁻ (clorito)",
+                    "ClO₃⁻ (clorato)",
+                    "ClO₄⁻ (perclorato)",
+                    "ClO₅⁻ (superclorato)"
+                ],
+                correct: 4,
+                explanation: "El ion ClO₅⁻ no existe porque el cloro tendría estado de oxidación +9, lo cual es imposible (el cloro solo tiene 7 electrones de valencia). El máximo estado de oxidación del cloro es +7 en el perclorato ClO₄⁻."
+            },
+            {
+                question: "El compuesto Na₂O₂ se nombra:",
+                options: [
+                    "Óxido de sodio",
+                    "Dióxido de disodio",
+                    "Peróxido de sodio",
+                    "Superóxido de sodio",
+                    "B y C son correctas"
+                ],
+                correct: 4,
+                explanation: "Na₂O₂ es peróxido de sodio (nombre más común) o dióxido de disodio (sistemática). En los peróxidos, el oxígeno tiene estado de oxidación -1 (ion O₂²⁻), no -2 como en los óxidos normales."
+            },
+            {
+                question: "¿Cuál es el estado de oxidación del nitrógeno en el ion nitrato NO₃⁻?",
+                options: [
+                    "+3",
+                    "+4",
+                    "+5",
+                    "+6",
+                    "+7"
+                ],
+                correct: 2,
+                explanation: "En el ion nitrato NO₃⁻, el nitrógeno tiene estado de oxidación +5. Calculado: x + 3(-2) = -1, donde x es el estado de oxidación del N. Resolviendo: x - 6 = -1, x = +5."
+            },
+            {
+                question: "El compuesto CuSO₃ se nombra:",
+                options: [
+                    "Sulfato de cobre (II)",
+                    "Sulfito de cobre (II)",
+                    "Sulfito de cobre (I)",
+                    "Sulfato de cobre",
+                    "Trióxido de azufre y cobre"
+                ],
+                correct: 1,
+                explanation: "CuSO₃ es sulfito de cobre(II) en nomenclatura Stock. El cobre tiene estado de oxidación +2 y el ion es sulfito SO₃²⁻. No usamos 'cúprico/cuproso' (tradicional). El sulfato sería CuSO₄ (SO₄²⁻)."
+            },
+            {
+                question: "¿Qué compuesto NO puede existir?",
+                options: [
+                    "AgCl (cloruro de plata)",
+                    "AgCl₂ (dicloruro de plata)",
+                    "Ag₂O (óxido de plata)",
+                    "AgNO₃ (nitrato de plata)",
+                    "Ag₂SO₄ (sulfato de plata)"
+                ],
+                correct: 1,
+                explanation: "AgCl₂ no existe porque la plata solo tiene valencia +1. No puede formar un compuesto con dos cloros. El compuesto correcto del cloro con la plata es AgCl."
+            },
+            {
+                question: "El ácido H₂S se llama:",
+                options: [
+                    "Ácido sulfúrico",
+                    "Ácido sulfuroso",
+                    "Ácido sulfhídrico",
+                    "Sulfuro de hidrógeno",
+                    "C y D son correctas"
+                ],
+                correct: 4,
+                explanation: "H₂S se puede nombrar como ácido sulfhídrico (en disolución acuosa) o sulfuro de hidrógeno (nombre del gas). No es un oxoácido, sino un hidrácido."
+            },
+            {
+                question: "¿Cuál es la diferencia entre metafosfórico y ortofosfórico?",
+                options: [
+                    "El metafosfórico es HPO₃ y el ortofosfórico es H₃PO₄",
+                    "El ortofosfórico tiene más hidrógenos y oxígenos",
+                    "El ortofosfórico es equivalente a H₂O + P₂O₅",
+                    "Todas las anteriores son correctas",
+                    "Solo A y B son correctas"
+                ],
+                correct: 3,
+                explanation: "Todas son correctas. El ácido metafosfórico (HPO₃) tiene menos hidrógenos y oxígenos que el ortofosfórico (H₃PO₄). El ortofosfórico se forma por la hidratación completa del P₂O₅, mientras que el meta- es una hidratación parcial."
+            },
+            {
+                question: "El compuesto Hg₂Cl₂ se nombra:",
+                options: [
+                    "Cloruro de mercurio (I)",
+                    "Cloruro de mercurio (II)",
+                    "Dicloruro de dimercurio",
+                    "Cloruro de dimercurio (I)",
+                    "Cloruro de mercurio"
+                ],
+                correct: 0,
+                explanation: "Hg₂Cl₂ es cloruro de mercurio(I) en nomenclatura Stock. No usamos 'mercurioso/mercúrico' (tradicional). El mercurio(I) forma el ion Hg₂²⁺ (dímero). El cloruro de mercurio(II) sería HgCl₂."
+            },
+            {
+                question: "¿Qué sal es imposible por números de oxidación?",
+                options: [
+                    "K₂SO₄",
+                    "K₃SO₄",
+                    "KNO₃",
+                    "K₂CO₃",
+                    "KCl"
+                ],
+                correct: 1,
+                explanation: "K₃SO₄ es imposible. El potasio tiene valencia +1 y el sulfato SO₄²⁻ tiene carga -2, por lo que solo pueden unirse 2 potasios con 1 sulfato (K₂SO₄). Tres potasios (+3 total) no pueden balancear un sulfato (-2)."
+            },
+            {
+                question: "El compuesto Al₂S₃ se nombra:",
+                options: [
+                    "Sulfato de aluminio",
+                    "Sulfito de aluminio",
+                    "Sulfuro de aluminio",
+                    "Trisulfuro de dialuminio",
+                    "C y D son correctas"
+                ],
+                correct: 4,
+                explanation: "Al₂S₃ es sulfuro de aluminio (tradicional y Stock) o trisulfuro de dialuminio (sistemática). Es un compuesto binario de aluminio y azufre, donde el azufre tiene estado de oxidación -2."
+            },
+            {
+                question: "¿Cuál NO es un nombre válido para CO?",
+                options: [
+                    "Monóxido de carbono",
+                    "Óxido de carbono (II)",
+                    "Anhídrido carbonoso",
+                    "Óxido carbonoso",
+                    "B y D son incorrectas"
+                ],
+                correct: 4,
+                explanation: "CO no es 'óxido de carbono(II)' (el carbono tiene +2, no +4) ni 'óxido carbonoso'. Los nombres correctos son: monóxido de carbono (sistemática) o anhídrido carbonoso (poco usado, tradicional)."
+            },
+            {
+                question: "El ion S₂O₃²⁻ se llama:",
+                options: [
+                    "Sulfato",
+                    "Sulfito",
+                    "Tiosulfato",
+                    "Disulfato",
+                    "Persulfato"
+                ],
+                correct: 2,
+                explanation: "S₂O₃²⁻ es el ion tiosulfato. El prefijo 'tio-' indica que un oxígeno ha sido sustituido por un azufre. Si fuera todo oxígeno sería sulfito (SO₃²⁻)."
+            },
+            {
+                question: "El compuesto Be(OH)₂ se nombra:",
+                options: [
+                    "Hidróxido de berilio",
+                    "Dihidróxido de berilio",
+                    "Hidróxido de berilio (II)",
+                    "A y B son correctas",
+                    "Hidróxido berílico"
+                ],
+                correct: 3,
+                explanation: "Be(OH)₂ es hidróxido de berilio (simple) o dihidróxido de berilio (sistemática). No es necesario indicar (II) porque el berilio siempre tiene valencia +2. Ambos nombres A y B son correctos."
+            },
+            {
+                question: "En el ácido sulfúrico (H₂SO₄), ¿qué estado de oxidación tiene el azufre?",
+                options: [
+                    "+2",
+                    "+4",
+                    "+6",
+                    "+8",
+                    "-2"
+                ],
+                correct: 2,
+                explanation: "En el ácido sulfúrico H₂SO₄, el azufre tiene estado de oxidación +6. Calculado: 2(+1) + x + 4(-2) = 0, donde x es el estado del S. Resolviendo: 2 + x - 8 = 0, x = +6. Es el máximo estado de oxidación del azufre."
+            },
+            {
+                question: "En el ácido nitroso (HNO₂), ¿qué estado de oxidación tiene el nitrógeno?",
+                options: [
+                    "+1",
+                    "+2",
+                    "+3",
+                    "+4",
+                    "+5"
+                ],
+                correct: 2,
+                explanation: "En el ácido nitroso HNO₂, el nitrógeno tiene estado de oxidación +3. Calculado: (+1) + x + 2(-2) = 0, donde x es el estado del N. Resolviendo: 1 + x - 4 = 0, x = +3. El ácido nítrico tendría N con +5."
+            },
+            {
+                question: "En el sulfato de hierro(III) - Fe₂(SO₄)₃, ¿qué estado de oxidación tiene el azufre?",
+                options: [
+                    "+2",
+                    "+4",
+                    "+6",
+                    "+3",
+                    "-2"
+                ],
+                correct: 2,
+                explanation: "En el ion sulfato SO₄²⁻, el azufre SIEMPRE tiene estado de oxidación +6, independientemente del metal que lo acompañe. El hierro es +3, pero el azufre del sulfato siempre es +6."
+            },
+            {
+                question: "En el nitrato de calcio Ca(NO₃)₂, ¿qué estado de oxidación tiene el nitrógeno?",
+                options: [
+                    "+3",
+                    "+4",
+                    "+5",
+                    "+6",
+                    "+2"
+                ],
+                correct: 2,
+                explanation: "En el ion nitrato NO₃⁻, el nitrógeno tiene estado de oxidación +5. Calculado: x + 3(-2) = -1, x - 6 = -1, x = +5. El nitrato siempre tiene N con +5, independientemente del catión."
+            },
+            {
+                question: "En el ácido sulfuroso (H₂SO₃), ¿qué estado de oxidación tiene el azufre?",
+                options: [
+                    "+2",
+                    "+3",
+                    "+4",
+                    "+6",
+                    "+8"
+                ],
+                correct: 2,
+                explanation: "En el ácido sulfuroso H₂SO₃, el azufre tiene estado de oxidación +4. Calculado: 2(+1) + x + 3(-2) = 0, 2 + x - 6 = 0, x = +4. Es menor que en el sulfúrico (+6), de ahí el sufijo '-oso'."
+            },
+            {
+                question: "En el permanganato de potasio (KMnO₄), ¿qué estado de oxidación tiene el manganeso?",
+                options: [
+                    "+4",
+                    "+5",
+                    "+6",
+                    "+7",
+                    "+8"
+                ],
+                correct: 3,
+                explanation: "En el permanganato KMnO₄, el manganeso tiene estado de oxidación +7. Calculado: (+1) + x + 4(-2) = 0, 1 + x - 8 = 0, x = +7. Es el máximo estado de oxidación del manganeso."
+            },
+            {
+                question: "En el cromato de sodio (Na₂CrO₄), ¿qué estado de oxidación tiene el cromo?",
+                options: [
+                    "+2",
+                    "+3",
+                    "+4",
+                    "+5",
+                    "+6"
+                ],
+                correct: 4,
+                explanation: "En el cromato Na₂CrO₄, el cromo tiene estado de oxidación +6. Calculado: 2(+1) + x + 4(-2) = 0, 2 + x - 8 = 0, x = +6. En el dicromato Cr₂O₇²⁻ también tiene +6."
+            },
+            {
+                question: "En el ácido clórico (HClO₃), ¿qué estado de oxidación tiene el cloro?",
+                options: [
+                    "+1",
+                    "+3",
+                    "+5",
+                    "+7",
+                    "+4"
+                ],
+                correct: 2,
+                explanation: "En el ácido clórico HClO₃, el cloro tiene estado de oxidación +5. Calculado: (+1) + x + 3(-2) = 0, 1 + x - 6 = 0, x = +5. El perclórico (HClO₄) tendría Cl con +7."
+            },
+            {
+                question: "En el carbonato de cobre(II) - CuCO₃, ¿qué estado de oxidación tiene el carbono?",
+                options: [
+                    "+2",
+                    "+3",
+                    "+4",
+                    "+6",
+                    "-4"
+                ],
+                correct: 2,
+                explanation: "En el ion carbonato CO₃²⁻, el carbono tiene estado de oxidación +4. Calculado: x + 3(-2) = -2, x - 6 = -2, x = +4. Es el estado de oxidación típico del carbono en carbonatos y en CO₂."
+            },
+            {
+                question: "En el fosfato de aluminio AlPO₄, ¿qué estado de oxidación tiene el fósforo?",
+                options: [
+                    "+3",
+                    "+4",
+                    "+5",
+                    "+6",
+                    "+2"
+                ],
+                correct: 2,
+                explanation: "En el ion fosfato PO₄³⁻, el fósforo tiene estado de oxidación +5. Calculado: x + 4(-2) = -3, x - 8 = -3, x = +5. El fosfito (PO₃³⁻) tendría P con +3."
+            },
+            {
+                question: "En el ácido perclórico (HClO₄), ¿qué estado de oxidación tiene el cloro?",
+                options: [
+                    "+3",
+                    "+5",
+                    "+6",
+                    "+7",
+                    "+8"
+                ],
+                correct: 3,
+                explanation: "En el ácido perclórico HClO₄, el cloro tiene estado de oxidación +7. Calculado: (+1) + x + 4(-2) = 0, 1 + x - 8 = 0, x = +7. Es el máximo estado de oxidación del cloro (prefijo 'per-')."
+            },
+            {
+                question: "En el sulfito de sodio (Na₂SO₃), ¿qué estado de oxidación tiene el azufre?",
+                options: [
+                    "+2",
+                    "+3",
+                    "+4",
+                    "+6",
+                    "-2"
+                ],
+                correct: 2,
+                explanation: "En el ion sulfito SO₃²⁻, el azufre tiene estado de oxidación +4. Calculado: x + 3(-2) = -2, x - 6 = -2, x = +4. Es menor que en el sulfato (+6), de ahí la terminación '-ito' vs '-ato'."
+            },
+            {
+                question: "En el dicromato de potasio (K₂Cr₂O₇), ¿qué estado de oxidación tiene cada cromo?",
+                options: [
+                    "+3",
+                    "+4",
+                    "+5",
+                    "+6",
+                    "+7"
+                ],
+                correct: 3,
+                explanation: "En el dicromato K₂Cr₂O₇, cada cromo tiene estado de oxidación +6. Calculado: 2(+1) + 2x + 7(-2) = 0, 2 + 2x - 14 = 0, 2x = 12, x = +6. Igual que en el cromato, pero con dos cromos."
+            },
+            {
+                question: "En el clorato de sodio (NaClO₃), ¿qué estado de oxidación tiene el cloro?",
+                options: [
+                    "+1",
+                    "+3",
+                    "+5",
+                    "+7",
+                    "+4"
+                ],
+                correct: 2,
+                explanation: "En el ion clorato ClO₃⁻, el cloro tiene estado de oxidación +5. Calculado: x + 3(-2) = -1, x - 6 = -1, x = +5. Menor que el perclorato (+7) y mayor que el clorito (+3)."
+            },
+            {
+                question: "En el nitrito de potasio (KNO₂), ¿qué estado de oxidación tiene el nitrógeno?",
+                options: [
+                    "+1",
+                    "+2",
+                    "+3",
+                    "+5",
+                    "+4"
+                ],
+                correct: 2,
+                explanation: "En el ion nitrito NO₂⁻, el nitrógeno tiene estado de oxidación +3. Calculado: x + 2(-2) = -1, x - 4 = -1, x = +3. Es menor que en el nitrato NO₃⁻ donde el N tiene +5."
+            }
+        ];
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let correctAnswers = 0;
         let totalAnswered = 0;
-        let hintUsed = false;
+        let selectedQuestionCount = 0;
 
-        function updateMenuCounters() {
-            for(let k in DB) {
-                let available = DB[k].length - completedPool[k].length;
-                let el = document.getElementById('cnt-' + k.substring(0,3));
-                if(el) el.innerText = `${available} libres (${DB[k].length} total)`;
+        function selectQuestionCount(count) {
+            selectedQuestionCount = count;
+            document.getElementById('start-btn').style.display = 'block';
+            
+            // Quitar selección de todos los botones
+            document.getElementById('btn-10').classList.remove('selected');
+            document.getElementById('btn-20').classList.remove('selected');
+            document.getElementById('btn-30').classList.remove('selected');
+            
+            // Marcar el botón seleccionado
+            document.getElementById('btn-' + count).classList.add('selected');
+        }
+
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
             }
-            let totalLeft = 0, totalInDb = 0;
-            for(let k in DB) { totalLeft += (DB[k].length - completedPool[k].length); totalInDb += DB[k].length; }
-            document.getElementById('cnt-all').innerText = `${totalLeft} libres de ${totalInDb}`;
+            return newArray;
         }
 
-        function showMenu() {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById('view-menu').classList.add('active');
-            document.getElementById('progressBar').style.width = "0%";
-            updateMenuCounters();
-        }
-
-        function initPractice(type) {
-            let limitVal = parseInt(document.getElementById('practice-limit').value);
-            let pool = [];
-
-            if(type === 'todos') {
-                document.getElementById('label-group').innerText = "MIXTO PROPORCIONAL";
-                for(let k in DB) {
-                    let available = DB[k].filter(item => !completedPool[k].includes(item.nombre));
-                    pool = pool.concat(available);
-                }
-                if(pool.length === 0) { alert("¡Has completado todo! Reinicia."); return; }
-            } else {
-                document.getElementById('label-group').innerText = type.toUpperCase();
-                pool = DB[type].filter(item => !completedPool[type].includes(item.nombre));
-                if(pool.length === 0) { alert(`Has completado todos los ${type}. Reiniciando categoría...`); completedPool[type] = []; pool = [...DB[type]]; }
+        function startTest() {
+            if (selectedQuestionCount === 0) {
+                alert('Por favor, selecciona cuántas preguntas quieres responder');
+                return;
             }
+            
+            const shuffledAll = shuffleArray(questions);
+            currentQuestions = shuffledAll.slice(0, selectedQuestionCount);
+            currentQuestionIndex = 0;
+            correctAnswers = 0;
+            totalAnswered = 0;
 
-            pool.sort(() => Math.random() - 0.5);
-            if(isNaN(limitVal) || limitVal <= 0) limitVal = pool.length;
-            sessionData = pool.slice(0, limitVal);
-
-            currentIndex = 0; score = 0; totalAnswered = 0;
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById('view-practice').classList.add('active');
-            loadQuestion();
-        }
-
-        function loadQuestion() {
-            if(currentIndex >= sessionData.length) { showResults(); return; }
-            hintUsed = false;
-            const item = sessionData[currentIndex];
-            document.getElementById('formula-display').innerHTML = `<div class="formula-display">${item.formula}</div>`;
-            document.getElementById('answer-input').value = "";
-            document.getElementById('answer-input').disabled = false;
-            document.getElementById('feedback-box').style.display = "none";
-            document.getElementById('btn-check').style.display = "block";
-            document.getElementById('btn-next').style.display = "none";
-            document.getElementById('btn-hint').disabled = false;
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('stats').style.display = 'flex';
+            document.getElementById('progress-bar').style.display = 'block';
+            
             updateStats();
-            document.getElementById('answer-input').focus();
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const question = currentQuestions[currentQuestionIndex];
+            const questionCard = document.getElementById('question-card');
+            
+            const shuffledOptions = shuffleArray(question.options.map((opt, idx) => ({text: opt, originalIndex: idx})));
+            
+            questionCard.innerHTML = `
+                <div class="question-number">Pregunta ${currentQuestionIndex + 1} de ${currentQuestions.length}</div>
+                <div class="question-text">${question.question}</div>
+                <div class="options" id="options">
+                    ${shuffledOptions.map((opt, idx) => `
+                        <div class="option" data-original-index="${opt.originalIndex}" onclick="selectOption(${opt.originalIndex})">
+                            ${opt.text}
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="explanation" id="explanation">
+                    <div class="explanation-title">Explicación:</div>
+                    <div>${question.explanation}</div>
+                </div>
+                <div class="buttons">
+                    <button class="btn btn-primary" id="check-btn" onclick="checkAnswer()" disabled>Comprobar</button>
+                    <button class="btn btn-secondary" id="next-btn" onclick="nextQuestion()" style="display: none;">Siguiente</button>
+                </div>
+            `;
+            
+            questionCard.classList.add('active');
+            updateProgress();
+        }
+
+        function selectOption(originalIndex) {
+            const options = document.querySelectorAll('.option');
+            const checkBtn = document.getElementById('check-btn');
+            
+            if (checkBtn.style.display === 'none') return;
+            
+            options.forEach(opt => opt.classList.remove('selected'));
+            
+            const selectedOption = Array.from(options).find(opt => 
+                parseInt(opt.getAttribute('data-original-index')) === originalIndex
+            );
+            
+            if (selectedOption) {
+                selectedOption.classList.add('selected');
+                checkBtn.disabled = false;
+                selectedOption.setAttribute('data-selected', 'true');
+            }
         }
 
         function checkAnswer() {
-            const userVal = normalizeText(document.getElementById('answer-input').value);
-            const correctVal = normalizeText(sessionData[currentIndex].nombre);
-            const feedback = document.getElementById('feedback-box');
-            if(!userVal) return;
-            totalAnswered++;
-            document.getElementById('answer-input').disabled = true;
-            document.getElementById('btn-check').style.display = "none";
-            document.getElementById('btn-next').style.display = "block";
-            document.getElementById('btn-hint').disabled = true;
-
-            if(userVal === correctVal) {
-                if(!hintUsed) {
-                    score++;
-                    for(let k in DB) {
-                        if(DB[k].some(dbItem => dbItem.nombre === sessionData[currentIndex].nombre)) {
-                            if(!completedPool[k].includes(sessionData[currentIndex].nombre))
-                                completedPool[k].push(sessionData[currentIndex].nombre);
-                            break;
-                        }
-                    }
+            const question = currentQuestions[currentQuestionIndex];
+            const options = document.querySelectorAll('.option');
+            const selectedOption = document.querySelector('.option.selected');
+            
+            if (!selectedOption) return;
+            
+            const selectedIndex = parseInt(selectedOption.getAttribute('data-original-index'));
+            
+            options.forEach(opt => {
+                opt.classList.add('disabled');
+                const optIndex = parseInt(opt.getAttribute('data-original-index'));
+                if (optIndex === question.correct) {
+                    opt.classList.add('correct');
                 }
-                feedback.innerHTML = "✨ ¡Correcto!";
-                feedback.className = "feedback correct";
+            });
+            
+            if (selectedIndex === question.correct) {
+                correctAnswers++;
             } else {
-                feedback.innerHTML = `❌ Incorrecto. Es: <b>${sessionData[currentIndex].nombre}</b>`;
-                feedback.className = "feedback wrong";
+                selectedOption.classList.add('incorrect');
             }
-            feedback.style.display = "block";
+            
+            totalAnswered++;
+            
+            document.getElementById('explanation').classList.add('show');
+            document.getElementById('check-btn').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'block';
+            
             updateStats();
         }
 
-        function nextQuestion() { currentIndex++; loadQuestion(); }
-
-        function getHint() {
-            const correct = sessionData[currentIndex].nombre;
-            const input = document.getElementById('answer-input');
-            hintUsed = true;
-            let hText = correct.startsWith("ácido") ? "ácido " + correct.split(" ")[1].substring(0, 3) + "..." : correct.substring(0, 4) + "...";
-            input.value = hText;
-            input.focus();
-            const fb = document.getElementById('feedback-box');
-            fb.innerHTML = "💡 Pista activa (no puntuable).";
-            fb.className = "feedback wrong";
-            fb.style.display = "block";
-            document.getElementById('btn-hint').disabled = true;
+        function nextQuestion() {
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < currentQuestions.length) {
+                showQuestion();
+            } else {
+                showResults();
+            }
         }
 
         function updateStats() {
-            document.getElementById('stat-pos').innerText = `${currentIndex + 1}/${sessionData.length}`;
-            document.getElementById('stat-score').innerText = score;
-            const acc = totalAnswered === 0 ? 0 : Math.round((score / totalAnswered) * 100);
-            document.getElementById('stat-acc').innerText = `${acc}%`;
-            document.getElementById('progressBar').style.width = `${(currentIndex / sessionData.length) * 100}%`;
+            document.getElementById('current-q').textContent = currentQuestionIndex + 1;
+            document.getElementById('total-q').textContent = currentQuestions.length;
+            document.getElementById('correct-count').textContent = correctAnswers;
+            
+            const accuracy = totalAnswered > 0 ? Math.round((correctAnswers / totalAnswered) * 100) : 0;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestionIndex + 1) / currentQuestions.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
         }
 
         function showResults() {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById('view-results').classList.add('active');
-            const acc = totalAnswered === 0 ? 0 : Math.round((score / totalAnswered) * 100);
-            document.getElementById('final-score').innerText = `${score}/${sessionData.length}`;
-            document.getElementById('final-acc').innerText = `${acc}%`;
-            document.getElementById('progressBar').style.width = "100%";
-        }
-
-        function normalizeText(str) {
-            return str.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, ' ').replace(/-(?=[a-z])/g, '');
-        }
-
-        document.getElementById('answer-input').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') {
-                if(document.getElementById('btn-check').style.display !== 'none') checkAnswer();
-                else nextQuestion();
+            const percentage = Math.round((correctAnswers / currentQuestions.length) * 100);
+            const nota = (percentage / 10).toFixed(1);
+            let color, message, detailedComment, emoji;
+            
+            if (percentage >= 90) {
+                color = '#28a745';
+                message = '¡SOBRESALIENTE!';
+                emoji = '🏆';
+                detailedComment = 'Dominas perfectamente la nomenclatura inorgánica. Conoces los números de oxidación, las diferentes nomenclaturas y detectas errores sutiles. ¡Excelente trabajo!';
+            } else if (percentage >= 80) {
+                color = '#17a2b8';
+                message = '¡NOTABLE ALTO!';
+                emoji = '🌟';
+                detailedComment = 'Tienes un conocimiento muy sólido de formulación inorgánica. Manejas bien las nomenclaturas Stock, tradicional y sistemática. ¡Muy buen nivel!';
+            } else if (percentage >= 70) {
+                color = '#ffc107';
+                message = 'NOTABLE';
+                emoji = '⭐';
+                detailedComment = 'Buen conocimiento de nomenclatura inorgánica. Comprendes los conceptos fundamentales, pero debes repasar algunos detalles sobre números de oxidación y nomenclaturas.';
+            } else if (percentage >= 60) {
+                color = '#fd7e14';
+                message = 'BIEN';
+                emoji = '👍';
+                detailedComment = 'Conoces los fundamentos básicos, pero necesitas estudiar más a fondo los números de oxidación posibles, las diferencias entre oxoácidos y las nomenclaturas.';
+            } else if (percentage >= 50) {
+                color = '#dc3545';
+                message = 'SUFICIENTE';
+                emoji = '📚';
+                detailedComment = 'Nivel justo. Tienes nociones básicas pero te faltan conceptos clave. Repasa números de oxidación, diferencias entre ácidos (sulfúrico/sulfhídrico) y nomenclaturas.';
+            } else {
+                color = '#c82333';
+                message = 'INSUFICIENTE';
+                emoji = '📖';
+                detailedComment = 'Necesitas repasar a fondo la formulación inorgánica. Estudia números de oxidación, nomenclaturas Stock y tradicional, y las diferencias entre compuestos similares. ¡Ánimo!';
             }
-        });
-
-        window.onload = updateMenuCounters;
+            
+            document.getElementById('question-card').style.display = 'none';
+            document.getElementById('progress-bar').style.display = 'none';
+            document.getElementById('stats').style.display = 'none';
+            
+            const resultsScreen = document.getElementById('results-screen');
+            resultsScreen.innerHTML = `
+                <div style="font-size: 4em; margin-bottom: 15px; animation: bounce 1s ease infinite;">${emoji}</div>
+                <h2 style="color: #667eea; margin-bottom: 10px;">Test Completado</h2>
+                <div style="font-size: 1.4em; font-weight: bold; color: ${color}; margin-bottom: 20px; text-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    ${message}
+                </div>
+                <div class="score-circle" style="background: linear-gradient(135deg, ${color} 0%, ${color}dd 100%); animation: scaleIn 0.5s ease-out;">
+                    ${nota}
+                </div>
+                <p style="font-size: 0.9em; color: #888; margin-top: -10px; margin-bottom: 20px;">
+                    Nota sobre 10
+                </p>
+                <div style="max-width: 550px; margin: 0 auto 30px; padding: 25px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); border-radius: 15px; text-align: left; line-height: 1.7; border: 2px solid rgba(102, 126, 234, 0.1);">
+                    <p style="color: #333; font-size: 1em;">
+                        ${detailedComment}
+                    </p>
+                </div>
+                <div class="details">
+                    <div class="detail-row">
+                        <span>📝 Preguntas respondidas:</span>
+                        <strong>${currentQuestions.length}</strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>✅ Respuestas correctas:</span>
+                        <strong style="color: #28a745;">${correctAnswers}</strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>❌ Respuestas incorrectas:</span>
+                        <strong style="color: #dc3545;">${currentQuestions.length - correctAnswers}</strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>📊 Porcentaje de acierto:</span>
+                        <strong style="color: ${color};">${percentage}%</strong>
+                    </div>
+                    <div class="detail-row" style="border-top: 2px solid #667eea; padding-top: 15px; margin-top: 10px;">
+                        <span>🎯 Nota final:</span>
+                        <strong style="color: ${color}; font-size: 1.5em;">${nota}/10</strong>
+                    </div>
+                </div>
+                <button class="btn-start" onclick="location.reload()" style="margin-top: 30px; display: inline-block;">
+                    🔄 Hacer Otro Test
+                </button>
+                <style>
+                    @keyframes bounce {
+                        0%, 100% { transform: translateY(0); }
+                        50% { transform: translateY(-10px); }
+                    }
+                    @keyframes scaleIn {
+                        from { transform: scale(0); opacity: 0; }
+                        to { transform: scale(1); opacity: 1; }
+                    }
+                </style>
+            `;
+            
+            resultsScreen.style.display = 'block';
+        }
     </script>
 </body>
 </html>
