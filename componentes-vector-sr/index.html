@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Componentes de un Vector en un SR Girado</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #0f1729;
+    --bg-card: #1a2340;
+    --bg-input: #0d1225;
+    --accent-blue: #4f8fff;
+    --accent-cyan: #00e5ff;
+    --accent-orange: #ff6b3d;
+    --accent-green: #00e676;
+    --accent-yellow: #ffd740;
+    --text-primary: #e8ecf4;
+    --text-secondary: #8892a8;
+    --border: #2a365a;
+    --vector-color: #ff6b3d;
+    --comp-x-color: #4f8fff;
+    --comp-y-color: #00e676;
+    --axis-original: rgba(255,255,255,0.15);
+    --axis-rotated: rgba(79,143,255,0.5);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .app-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 16px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  header h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(1.1rem, 3.5vw, 1.6rem);
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+
+  header p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-top: 6px;
+  }
+
+  .main-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* Canvas area */
+  .canvas-wrapper {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .canvas-wrapper::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px; right: -1px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue), var(--accent-orange));
+    border-radius: 16px 16px 0 0;
+  }
+
+  canvas {
+    width: 100%;
+    display: block;
+    border-radius: 10px;
+  }
+
+  /* Controls */
+  .controls-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .control-group {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+  }
+
+  .control-group.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .control-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .control-label .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .input-row input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--bg-input);
+    outline: none;
+  }
+
+  .input-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--accent-blue);
+    cursor: pointer;
+    border: 3px solid var(--bg-dark);
+    box-shadow: 0 0 8px rgba(79,143,255,0.4);
+    transition: transform 0.15s;
+  }
+
+  .input-row input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+
+  .input-row input[type="range"].orange::-webkit-slider-thumb {
+    background: var(--accent-orange);
+    box-shadow: 0 0 8px rgba(255,107,61,0.4);
+  }
+
+  .input-row input[type="range"].cyan::-webkit-slider-thumb {
+    background: var(--accent-cyan);
+    box-shadow: 0 0 8px rgba(0,229,255,0.4);
+  }
+
+  .value-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    min-width: 60px;
+    text-align: right;
+    color: var(--text-primary);
+  }
+
+  /* Results */
+  .results-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+  }
+
+  .results-panel h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-secondary);
+    margin-bottom: 14px;
+  }
+
+  .result-items {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+  }
+
+  .result-item {
+    background: var(--bg-input);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+    border: 1px solid transparent;
+    transition: border-color 0.3s;
+  }
+
+  .result-item:hover {
+    border-color: var(--border);
+  }
+
+  .result-item .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  .result-item .value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(1rem, 3vw, 1.3rem);
+    font-weight: 700;
+  }
+
+  .result-item .value.blue { color: var(--comp-x-color); }
+  .result-item .value.green { color: var(--comp-y-color); }
+  .result-item .value.orange { color: var(--vector-color); }
+
+  .formula-box {
+    margin-top: 14px;
+    background: var(--bg-input);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(0.78rem, 2.2vw, 0.92rem);
+    text-align: center;
+    line-height: 1.8;
+    color: var(--text-primary);
+    border-left: 3px solid var(--accent-cyan);
+  }
+
+  .formula-box .vec { color: var(--accent-orange); font-weight: 700; }
+  .formula-box .comp-x { color: var(--comp-x-color); font-weight: 700; }
+  .formula-box .comp-y { color: var(--comp-y-color); font-weight: 700; }
+
+  /* Vector arrow notation */
+  .v-arrow {
+    position: relative;
+    display: inline-block;
+    font-weight: 700;
+    padding-top: 0.15em;
+  }
+  .v-arrow::after {
+    content: '→';
+    position: absolute;
+    top: -0.55em;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 0.75em;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  /* Info toggle */
+  .info-toggle {
+    grid-column: 1 / -1;
+    background: none;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    color: var(--text-secondary);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: left;
+    line-height: 1.6;
+  }
+
+  .info-toggle:hover {
+    border-color: var(--accent-blue);
+    color: var(--text-primary);
+  }
+
+  .info-toggle summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--accent-cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .info-content {
+    margin-top: 10px;
+  }
+
+  .info-content p { margin-bottom: 8px; }
+
+  .katex-like {
+    font-family: 'JetBrains Mono', monospace;
+    font-style: italic;
+  }
+
+  /* Checkbox styling */
+  .checkbox-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .checkbox-row label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .checkbox-row label:hover { color: var(--text-primary); }
+
+  .checkbox-row input[type="checkbox"] {
+    accent-color: var(--accent-blue);
+    width: 16px; height: 16px;
+    cursor: pointer;
+  }
+
+  @media (max-width: 600px) {
+    .controls-panel {
+      grid-template-columns: 1fr;
+    }
+    .result-items {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+    .app-container { padding: 12px 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="app-container">
+  <header>
+    <h1>Componentes de un Vector</h1>
+    <p>Descomposición de un vector en un sistema de referencia que puede girar</p>
+  </header>
+
+  <div class="main-layout">
+    <div class="canvas-wrapper">
+      <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="controls-panel">
+      <div class="control-group">
+        <div class="control-label">
+          <span class="dot" style="background:var(--accent-orange)"></span>
+          Módulo del vector |v⃗|
+        </div>
+        <div class="input-row">
+          <input type="range" class="orange" id="sliderMod" min="0.5" max="10" step="0.1" value="5">
+          <span class="value-display" id="valMod">5.0</span>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span class="dot" style="background:var(--accent-orange)"></span>
+          Ángulo del vector α
+        </div>
+        <div class="input-row">
+          <input type="range" class="orange" id="sliderAlpha" min="0" max="360" step="1" value="45">
+          <span class="value-display" id="valAlpha">45°</span>
+        </div>
+      </div>
+
+      <div class="control-group full-width">
+        <div class="control-label">
+          <span class="dot" style="background:var(--accent-cyan)"></span>
+          Giro del sistema de referencia θ
+        </div>
+        <div class="input-row">
+          <input type="range" class="cyan" id="sliderTheta" min="-180" max="180" step="1" value="0">
+          <span class="value-display" id="valTheta">0°</span>
+        </div>
+        <div class="checkbox-row">
+          <label><input type="checkbox" id="chkOriginal" checked> Ejes originales (x, y)</label>
+          <label><input type="checkbox" id="chkProjections" checked> Proyecciones</label>
+          <label><input type="checkbox" id="chkValues" checked> Valores en gráfico</label>
+        </div>
+      </div>
+
+      <details class="info-toggle">
+        <summary>ℹ Cómo funciona</summary>
+        <div class="info-content">
+          <p>El vector <b style="color:var(--accent-orange)"><span class="v-arrow">v</span></b> se define con su <b>módulo</b> y su <b>ángulo α</b> respecto al eje X original.</p>
+          <p>Al girar el sistema de referencia un ángulo <b style="color:var(--accent-cyan)">θ</b>, el ángulo efectivo del vector en el nuevo SR es <b>α − θ</b>.</p>
+          <p>Las componentes en el SR girado (î', ĵ') son:</p>
+          <p style="font-family:'JetBrains Mono',monospace; text-align:center;">
+            <span style="color:var(--comp-x-color)">v<sub>x'</sub></span> = |<span class="v-arrow">v</span>| · cos(α − θ)<br>
+            <span style="color:var(--comp-y-color)">v<sub>y'</sub></span> = |<span class="v-arrow">v</span>| · sin(α − θ)
+          </p>
+        </div>
+      </details>
+    </div>
+
+    <div class="results-panel">
+      <h3>📐 Componentes en el SR girado (î', ĵ')</h3>
+      <div class="result-items">
+        <div class="result-item">
+          <div class="label">v<sub>x'</sub> (comp. î')</div>
+          <div class="value blue" id="resVx">3.54</div>
+        </div>
+        <div class="result-item">
+          <div class="label">v<sub>y'</sub> (comp. ĵ')</div>
+          <div class="value green" id="resVy">3.54</div>
+        </div>
+        <div class="result-item">
+          <div class="label">Ángulo al eje</div>
+          <div class="value orange" id="resEffAngle">45°</div>
+        </div>
+      </div>
+      <div class="formula-box" id="formulaBox">
+        <span class="vec"><span class="v-arrow">v</span></span> = <span class="comp-x">3.54</span> î' + <span class="comp-y">3.54</span> ĵ'
+      </div>
+    </div>
+  </div>
+  <footer style="text-align:center; padding:18px 10px 12px; color:var(--text-secondary); font-size:0.78rem; opacity:0.7;">
+    Programa desarrollado por Javier Gijón. Profesor del IES María Moliner (Segovia)
+  </footer>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+const sliderMod = document.getElementById('sliderMod');
+const sliderAlpha = document.getElementById('sliderAlpha');
+const sliderTheta = document.getElementById('sliderTheta');
+const valMod = document.getElementById('valMod');
+const valAlpha = document.getElementById('valAlpha');
+const valTheta = document.getElementById('valTheta');
+const resVx = document.getElementById('resVx');
+const resVy = document.getElementById('resVy');
+const resEffAngle = document.getElementById('resEffAngle');
+const formulaBox = document.getElementById('formulaBox');
+const chkOriginal = document.getElementById('chkOriginal');
+const chkProjections = document.getElementById('chkProjections');
+const chkValues = document.getElementById('chkValues');
+
+let dpr = window.devicePixelRatio || 1;
+
+function resizeCanvas() {
+  const wrapper = canvas.parentElement;
+  const w = wrapper.clientWidth - 24;
+  const h = Math.min(w, 500);
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  draw();
+}
+
+function toRad(deg) { return deg * Math.PI / 180; }
+
+function drawArrow(fromX, fromY, toX, toY, color, lineWidth, headSize) {
+  const dx = toX - fromX;
+  const dy = toY - fromY;
+  const angle = Math.atan2(dy, dx);
+  const len = Math.sqrt(dx * dx + dy * dy);
+  if (len < 2) return;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  ctx.beginPath();
+  ctx.moveTo(fromX, fromY);
+  ctx.lineTo(toX, toY);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(toX, toY);
+  ctx.lineTo(toX - headSize * Math.cos(angle - 0.4), toY - headSize * Math.sin(angle - 0.4));
+  ctx.lineTo(toX - headSize * Math.cos(angle + 0.4), toY - headSize * Math.sin(angle + 0.4));
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawDashedLine(fromX, fromY, toX, toY, color, lineWidth) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  ctx.moveTo(fromX, fromY);
+  ctx.lineTo(toX, toY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+function drawArc(cx, cy, radius, startAngle, endAngle, color, lineWidth) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.beginPath();
+  if (startAngle < endAngle) {
+    ctx.arc(cx, cy, radius, -startAngle, -endAngle, true);
+  } else {
+    ctx.arc(cx, cy, radius, -startAngle, -endAngle, false);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+// Draw text with subscript on canvas. Returns total width.
+function drawSub(x, y, main, sub, color, fontSize, weight) {
+  weight = weight || '700';
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.font = `${weight} ${fontSize}px "JetBrains Mono", monospace`;
+  ctx.fillText(main, x, y);
+  const mw = ctx.measureText(main).width;
+  const subSize = Math.round(fontSize * 0.7);
+  ctx.font = `${weight} ${subSize}px "JetBrains Mono", monospace`;
+  ctx.fillText(sub, x + mw, y + fontSize * 0.28);
+  const sw = ctx.measureText(sub).width;
+  ctx.restore();
+  return mw + sw;
+}
+
+function draw() {
+  const W = canvas.width / dpr;
+  const H = canvas.height / dpr;
+  const mod = parseFloat(sliderMod.value);
+  const alphaDeg = parseFloat(sliderAlpha.value);
+  const thetaDeg = parseFloat(sliderTheta.value);
+  const alphaRad = toRad(alphaDeg);
+  const thetaRad = toRad(thetaDeg);
+  const effAngleRad = alphaRad - thetaRad;
+
+  const showOriginal = chkOriginal.checked;
+  const showProjections = chkProjections.checked;
+  const showValues = chkValues.checked;
+
+  // Coordinate transform
+  const cx = W / 2;
+  const cy = H / 2;
+  const scale = Math.min(W, H) / 2.8 / 10 * 8; // scale factor per unit
+
+  const vx = mod * Math.cos(effAngleRad);
+  const vy = mod * Math.sin(effAngleRad);
+
+  // Clear
+  ctx.clearRect(0, 0, W, H);
+
+  // Background grid (subtle)
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.lineWidth = 1;
+  const gridStep = scale;
+  for (let i = -15; i <= 15; i++) {
+    // Vertical
+    ctx.beginPath();
+    ctx.moveTo(cx + i * gridStep, 0);
+    ctx.lineTo(cx + i * gridStep, H);
+    ctx.stroke();
+    // Horizontal
+    ctx.beginPath();
+    ctx.moveTo(0, cy + i * gridStep);
+    ctx.lineTo(W, cy + i * gridStep);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  const cosT = Math.cos(thetaRad);
+  const sinT = Math.sin(thetaRad);
+  const axisArrowLen = Math.min(W, H) * 0.43;
+
+  // Fixed visual length for vector (always same size on canvas)
+  const vectorVisualLen = axisArrowLen * 0.92;
+
+  // Original axes (x, y) — with arrow tips
+  if (showOriginal) {
+    const axLen = Math.max(W, H);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+    ctx.restore();
+    // Arrow tips — bigger heads
+    drawArrow(cx + axisArrowLen - 25, cy, cx + axisArrowLen, cy, 'rgba(255,255,255,0.3)', 2, 14);
+    drawArrow(cx, cy - axisArrowLen + 25, cx, cy - axisArrowLen, 'rgba(255,255,255,0.3)', 2, 14);
+
+    ctx.save();
+    ctx.font = '600 13px "JetBrains Mono", monospace';
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fillText('X', cx + axisArrowLen + 16, cy + 5);
+    ctx.fillText('Y', cx + 8, cy - axisArrowLen - 14);
+    ctx.restore();
+  }
+
+  // Rotated axes (x', y') — full lines + bigger arrow tips
+  const axLen = Math.max(W, H);
+
+  // x' full line
+  ctx.save();
+  ctx.strokeStyle = 'rgba(79,143,255,0.25)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx - axLen * cosT, cy + axLen * sinT);
+  ctx.lineTo(cx + axLen * cosT, cy - axLen * sinT);
+  ctx.stroke();
+  ctx.restore();
+  // x' arrow tip — bigger
+  drawArrow(
+    cx + (axisArrowLen - 25) * cosT, cy - (axisArrowLen - 25) * sinT,
+    cx + axisArrowLen * cosT, cy - axisArrowLen * sinT,
+    'rgba(79,143,255,0.7)', 2.5, 16
+  );
+
+  // y' full line
+  ctx.save();
+  ctx.strokeStyle = 'rgba(0,230,118,0.25)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx + axLen * sinT, cy + axLen * cosT);
+  ctx.lineTo(cx - axLen * sinT, cy - axLen * cosT);
+  ctx.stroke();
+  ctx.restore();
+  // y' arrow tip — bigger
+  drawArrow(
+    cx - (axisArrowLen - 25) * sinT, cy - (axisArrowLen - 25) * cosT,
+    cx - axisArrowLen * sinT, cy - axisArrowLen * cosT,
+    'rgba(0,230,118,0.7)', 2.5, 16
+  );
+
+  // Axis labels for rotated (separated from arrow tips)
+  ctx.save();
+  ctx.font = '700 14px "JetBrains Mono", monospace';
+  ctx.fillStyle = 'rgba(79,143,255,0.9)';
+  ctx.fillText("X'", cx + (axisArrowLen + 20) * cosT - 5, cy - (axisArrowLen + 20) * sinT + 5);
+  ctx.fillStyle = 'rgba(0,230,118,0.9)';
+  ctx.fillText("Y'", cx - (axisArrowLen + 20) * sinT - 5, cy - (axisArrowLen + 20) * cosT + 5);
+  ctx.restore();
+
+  // Vector endpoint in screen coords — FIXED visual length
+  const vScreenX = cx + vectorVisualLen * Math.cos(-alphaRad);
+  const vScreenY = cy + vectorVisualLen * Math.sin(-alphaRad);
+
+  // Projections onto rotated axes — clamped to axis visible length
+  if (showProjections) {
+    // Compute projection lengths in "visual units"
+    // vx/mod and vy/mod give the cos/sin of the effective angle
+    const fracX = Math.cos(effAngleRad); // vx / mod
+    const fracY = Math.sin(effAngleRad); // vy / mod
+    const projVisX = vectorVisualLen * fracX; // visual projection on x'
+    const projVisY = vectorVisualLen * fracY; // visual projection on y'
+
+    const projXx = cx + projVisX * cosT;
+    const projXy = cy - projVisX * sinT;
+    const projYx = cx - projVisY * sinT;
+    const projYy = cy - projVisY * cosT;
+
+    // Dashed lines from tip to projection points
+    drawDashedLine(vScreenX, vScreenY, projXx, projXy, 'rgba(79,143,255,0.4)', 1.5);
+    drawDashedLine(vScreenX, vScreenY, projYx, projYy, 'rgba(0,230,118,0.4)', 1.5);
+
+    // Component arrows
+    drawArrow(cx, cy, projXx, projXy, 'rgba(79,143,255,0.85)', 2.5, 10);
+    drawArrow(cx, cy, projYx, projYy, 'rgba(0,230,118,0.85)', 2.5, 10);
+
+    // Value labels on components — always OUTSIDE the projection rectangle
+    if (showValues) {
+      ctx.save();
+      ctx.font = '700 12px "JetBrains Mono", monospace';
+
+      // The rectangle is formed by the vector tip, the two projections, and the origin.
+      // vx label: midpoint of x' component, offset perpendicular AWAY from the vector tip
+      // The perpendicular to x' axis is the y' direction: (-sinT, -cosT) in screen
+      // We offset in the direction OPPOSITE to where the vector tip is (away from rectangle)
+
+      const mxX = (cx + projXx) / 2;
+      const mxY = (cy + projXy) / 2;
+      // y' direction in screen coords (perpendicular to x')
+      const perpXdx = -sinT;   // points along +y' world = screen
+      const perpXdy = -cosT;
+      // Choose the side away from the vector tip
+      const tipRelX = vScreenX - mxX;
+      const tipRelY = vScreenY - mxY;
+      const dotX = tipRelX * perpXdx + tipRelY * perpXdy;
+      const sideX = dotX > 0 ? -1 : 1; // go opposite to tip
+      const offsetDist = 18;
+
+      ctx.fillStyle = 'rgba(79,143,255,0.95)';
+      ctx.font = '700 12px "JetBrains Mono", monospace';
+      const vxTxt = vx.toFixed(2);
+      const vxTw = ctx.measureText(vxTxt).width;
+      const vxLabelX = mxX + sideX * offsetDist * perpXdx - vxTw / 2;
+      const vxLabelY = mxY + sideX * offsetDist * perpXdy + 4;
+      ctx.fillText(vxTxt, vxLabelX, vxLabelY);
+
+      // vy label: midpoint of y' component, offset perpendicular AWAY from vector tip
+      const myX = (cx + projYx) / 2;
+      const myY = (cy + projYy) / 2;
+      // x' direction in screen coords (perpendicular to y')
+      const perpYdx = cosT;
+      const perpYdy = -sinT;
+      const tipRelX2 = vScreenX - myX;
+      const tipRelY2 = vScreenY - myY;
+      const dotY = tipRelX2 * perpYdx + tipRelY2 * perpYdy;
+      const sideY = dotY > 0 ? -1 : 1;
+
+      ctx.fillStyle = 'rgba(0,230,118,0.95)';
+      const vyTxt = vy.toFixed(2);
+      const vyTw = ctx.measureText(vyTxt).width;
+      ctx.fillText(vyTxt, myX + sideY * offsetDist * perpYdx - vyTw / 2, myY + sideY * offsetDist * perpYdy + 4);
+
+      ctx.restore();
+    }
+  }
+
+  // Angle to nearest axis (always ≤ 45°)
+  // effNorm is the vector angle in the rotated frame, in [0, 360)
+  const effAngleRaw = alphaDeg - thetaDeg;
+  let effNorm = ((effAngleRaw % 360) + 360) % 360;
+
+  // Find angle to the nearest of the 4 semi-axes: 0°, 90°, 180°, 270°
+  const semiAxes = [
+    { angle: 0,   label: "+x'" },
+    { angle: 90,  label: "+y'" },
+    { angle: 180, label: "−x'" },
+    { angle: 270, label: "−y'" },
+  ];
+
+  let bestDelta = 999, nearestAxisAngleDeg = 0, nearestAxisLabel = "x'";
+  for (const ax of semiAxes) {
+    let delta = effNorm - ax.angle;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+    if (Math.abs(delta) < Math.abs(bestDelta)) {
+      bestDelta = delta;
+      nearestAxisAngleDeg = ax.angle;
+      nearestAxisLabel = ax.label;
+    }
+  }
+
+  const absAngleToNearest = Math.abs(bestDelta);
+
+  // Draw the arc from nearest axis to vector (in rotated frame, then convert to screen)
+  if (absAngleToNearest > 0.5) {
+    const arcRadius = 45;
+
+    // World angle of the nearest axis = (nearestAxisAngleDeg + thetaDeg) in degrees
+    // World angle of the vector = alphaDeg
+    // But we want the SHORT arc = bestDelta degrees
+    // So we draw from nearestAxis world angle, sweeping bestDelta degrees
+
+    const axisWorldRad = toRad(nearestAxisAngleDeg + thetaDeg);
+    const vectorWorldRad = toRad(nearestAxisAngleDeg + thetaDeg + bestDelta);
+    // In canvas: angles are negated (Y is flipped)
+    const axisScreen = -axisWorldRad;
+    const vectorScreen = -vectorWorldRad;
+
+    // bestDelta > 0 means vector is CCW from axis in world = CW in screen
+    const anticlockwise = bestDelta > 0;
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,215,64,0.8)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, arcRadius, axisScreen, vectorScreen, anticlockwise);
+    ctx.stroke();
+    ctx.restore();
+
+    // Label at midpoint of arc
+    const midWorldRad = toRad(nearestAxisAngleDeg + thetaDeg + bestDelta / 2);
+    const midScreen = -midWorldRad;
+    const labelR = arcRadius + 16;
+    ctx.save();
+    ctx.font = '700 13px "JetBrains Mono", monospace';
+    ctx.fillStyle = 'rgba(255,215,64,0.95)';
+    const lx = cx + labelR * Math.cos(midScreen);
+    const ly = cy + labelR * Math.sin(midScreen);
+    const txt = `${absAngleToNearest.toFixed(0)}°`;
+    const tw = ctx.measureText(txt).width;
+    ctx.fillText(txt, lx - tw / 2, ly + 5);
+    ctx.restore();
+  }
+
+  // Main vector — prominent arrow with glow
+  ctx.save();
+  ctx.shadowColor = 'rgba(255,107,61,0.5)';
+  ctx.shadowBlur = 10;
+  drawArrow(cx, cy, vScreenX, vScreenY, '#ff6b3d', 3.5, 16);
+  ctx.restore();
+
+  // Vector label — plain text
+  if (showValues) {
+    const dirX = Math.cos(-alphaRad);
+    const dirY = Math.sin(-alphaRad);
+    const tipOffset = 14;
+    const labelX = vScreenX + dirX * tipOffset;
+    const labelY = vScreenY + dirY * tipOffset;
+    ctx.save();
+    ctx.font = '700 13px "JetBrains Mono", monospace';
+    ctx.fillStyle = '#ff6b3d';
+    const txt = `v = ${mod.toFixed(1)}`;
+    const tm = ctx.measureText(txt);
+    let ox = 0, oy = 0;
+    if (dirX >= 0) ox = 4; else ox = -tm.width - 4;
+    if (dirY >= 0) oy = 16; else oy = -6;
+    ctx.fillText(txt, labelX + ox, labelY + oy);
+    ctx.restore();
+  }
+
+  // Origin dot
+  ctx.save();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // ─── HUD: Horizontal bar at bottom of canvas ───
+  // Determine trig functions based on nearest axis
+  // β = absAngleToNearest (angle to nearest axis)
+  // If nearest is x' axis: vx' = v·cos(β), vy' = v·sin(β)  (with signs)
+  // If nearest is y' axis: vx' = v·sin(β), vy' = v·cos(β)  (with signs)
+  const isNearX = nearestAxisLabel.includes("x'");
+  const beta = absAngleToNearest;
+
+  let vxTrig, vyTrig;
+  if (isNearX) {
+    vxTrig = 'cos'; vyTrig = 'sin';
+  } else {
+    vxTrig = 'sin'; vyTrig = 'cos';
+  }
+
+  const hudH = 42;
+  const hudX = 0;
+  const hudY = H - hudH;
+  const hudW = W;
+
+  // Background bar
+  ctx.save();
+  ctx.fillStyle = 'rgba(13,18,37,0.9)';
+  ctx.fillRect(hudX, hudY, hudW, hudH);
+  ctx.strokeStyle = 'rgba(79,143,255,0.25)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(hudX, hudY);
+  ctx.lineTo(hudX + hudW, hudY);
+  ctx.stroke();
+  ctx.restore();
+
+  // Two formulas side by side — with subscripts
+  const midW = hudW / 2;
+  const textY = hudY + 16;
+  const resultY = hudY + 33;
+
+  // vx' formula line
+  let sw;
+  sw = drawSub(14, textY, 'v', "x'", 'rgba(79,143,255,0.95)', 12, '600');
+  ctx.save();
+  ctx.font = '600 12px "JetBrains Mono", monospace';
+  ctx.fillStyle = 'rgba(79,143,255,0.95)';
+  ctx.fillText(` = v·${vxTrig}(${beta.toFixed(0)}°)`, 14 + sw, textY);
+  ctx.restore();
+
+  // vx' result line
+  sw = drawSub(14, resultY, 'v', "x'", 'rgba(79,143,255,0.95)', 13, '700');
+  ctx.save();
+  ctx.font = '700 13px "JetBrains Mono", monospace';
+  ctx.fillStyle = 'rgba(79,143,255,0.95)';
+  ctx.fillText(` = ${vx.toFixed(2)}`, 14 + sw, resultY);
+  ctx.restore();
+
+  // vy' formula line
+  sw = drawSub(midW + 10, textY, 'v', "y'", 'rgba(0,230,118,0.95)', 12, '600');
+  ctx.save();
+  ctx.font = '600 12px "JetBrains Mono", monospace';
+  ctx.fillStyle = 'rgba(0,230,118,0.95)';
+  ctx.fillText(` = v·${vyTrig}(${beta.toFixed(0)}°)`, midW + 10 + sw, textY);
+  ctx.restore();
+
+  // vy' result line
+  sw = drawSub(midW + 10, resultY, 'v', "y'", 'rgba(0,230,118,0.95)', 13, '700');
+  ctx.save();
+  ctx.font = '700 13px "JetBrains Mono", monospace';
+  ctx.fillStyle = 'rgba(0,230,118,0.95)';
+  ctx.fillText(` = ${vy.toFixed(2)}`, midW + 10 + sw, resultY);
+  ctx.restore();
+
+  // Update displays
+  valMod.textContent = mod.toFixed(1);
+  valAlpha.textContent = alphaDeg + '°';
+  valTheta.textContent = thetaDeg + '°';
+
+  resVx.textContent = vx.toFixed(2);
+  resVy.textContent = vy.toFixed(2);
+
+  // Show angle to nearest axis
+  resEffAngle.textContent = absAngleToNearest.toFixed(0) + '° → ' + nearestAxisLabel;
+
+  // Formula
+  const signY = vy >= 0 ? '+' : '−';
+  const absVy = Math.abs(vy).toFixed(2);
+  formulaBox.innerHTML = `<span class="vec"><span class="v-arrow">v</span></span> = <span class="comp-x">${vx.toFixed(2)}</span> î' ${signY} <span class="comp-y">${absVy}</span> ĵ'`;
+}
+
+sliderMod.addEventListener('input', draw);
+sliderAlpha.addEventListener('input', draw);
+sliderTheta.addEventListener('input', draw);
+chkOriginal.addEventListener('change', draw);
+chkProjections.addEventListener('change', draw);
+chkValues.addEventListener('change', draw);
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+</script>
+</body>
+</html>
