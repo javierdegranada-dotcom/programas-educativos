@@ -3,704 +3,1374 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master en Formulación - 4º ESO</title>
+    <title>Calculadora de Pendientes Físicas - IES María Moliner</title>
     <style>
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #ec4899;
-            --success: #22c55e;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text: #1e293b;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
 
         body {
-            background-color: var(--bg);
-            background-image: radial-gradient(circle at 2px 2px, #e2e8f0 1px, transparent 0);
-            background-size: 40px 40px;
-            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
         }
 
-        .app-container {
-            background: var(--card-bg);
-            width: 100%;
-            max-width: 950px;
-            border-radius: 24px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            overflow: hidden;
-            border: 1px solid #e2e8f0;
-            position: relative;
-        }
-
-        .header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        .container {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
             padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h1 {
             color: white;
             text-align: center;
+            margin-bottom: 10px;
+            font-size: clamp(1.5rem, 4vw, 2rem);
         }
 
-        .header h1 { font-size: 1.8rem; margin-bottom: 5px; }
-        .header p { opacity: 0.9; font-size: 0.9rem; }
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+        }
 
-        .view { padding: 30px; display: none; }
-        .view.active { display: block; animation: fadeIn 0.4s ease; }
+        .context-panel {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin-bottom: 20px;
+            border-left: 4px solid #fbbf24;
+        }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .group-title {
-            font-size: 0.85rem;
-            font-weight: 800;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin: 20px 0 10px 5px;
+        .context-title {
+            font-size: clamp(1.1rem, 3vw, 1.3rem);
+            font-weight: 700;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
-        .group-title::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background: #e2e8f0;
+        .context-description {
+            font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+            line-height: 1.6;
         }
 
-        .grid-menu {
+        .canvas-container {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            cursor: crosshair;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            max-width: 100%;
+            height: auto;
+            touch-action: none;
+        }
+
+        .controls {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
+            gap: 15px;
             margin-bottom: 20px;
         }
 
-        .card-btn {
-            background: white;
-            border: 2px solid #e2e8f0;
-            padding: 18px;
-            border-radius: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            text-align: center;
+        .info-panel {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        .card-btn:hover {
-            border-color: var(--primary);
-            background: #f5f3ff;
-            transform: translateY(-2px);
-        }
-
-        .card-btn span { font-weight: 700; color: var(--text); font-size: 1rem; }
-        .card-btn small { color: #64748b; font-weight: 600; font-size: 0.75rem; }
-
-        .config-section {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f1f5f9;
-            border-radius: 16px;
-            text-align: center;
-            border: 2px dashed #cbd5e1;
-        }
-
-        .input-number {
-            padding: 12px;
-            width: 100px;
-            border-radius: 8px;
-            border: 2px solid #cbd5e1;
-            text-align: center;
-            font-weight: 800;
-            font-size: 1.1rem;
-            color: var(--primary);
-        }
-
-        .stats-bar {
+        .info-row {
             display: flex;
             justify-content: space-between;
-            background: #f1f5f9;
-            padding: 15px 25px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-        }
-
-        .stat-item { text-align: center; }
-        .stat-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; }
-        .stat-value { font-size: 1.2rem; font-weight: 800; color: var(--primary); }
-
-        .formula-box {
-            background: #ffffff;
-            border: 2px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 40px 20px;
-            margin-bottom: 5px;
-            min-height: 260px;
-            display: flex;
-            justify-content: center;
             align-items: center;
-            font-size: 1.3rem;
-            overflow-x: auto;
+            margin: 8px 0;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        .mobile-hint {
-            font-size: 0.7rem;
-            color: #94a3b8;
-            margin-bottom: 20px;
-            font-style: italic;
-            display: block;
-            text-align: center;
+        .info-label {
+            font-weight: 600;
+            font-size: clamp(0.9rem, 2vw, 1rem);
         }
 
-        .input-group input[type="text"] {
-            width: 100%;
-            padding: 18px;
-            border: 2px solid #e2e8f0;
+        .info-value {
+            font-family: 'Courier New', monospace;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: clamp(0.85rem, 2vw, 0.95rem);
+        }
+
+        .input-panel {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(5px);
             border-radius: 12px;
-            font-size: 1.1rem;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            color: white;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            font-size: clamp(1.1rem, 4vw, 1.3rem);
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s;
+            min-height: 55px;
             text-align: center;
-            transition: border-color 0.2s;
         }
 
-        .input-group input[type="text"]:focus {
+        input[type="number"]:focus {
             outline: none;
-            border-color: var(--primary);
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
         }
 
-        .actions {
+        .button-group {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 10px;
             margin-top: 20px;
         }
 
         button {
-            padding: 15px;
-            border-radius: 12px;
+            padding: 16px 24px;
             border: none;
-            font-weight: 700;
+            border-radius: 12px;
+            font-size: clamp(1rem, 3vw, 1.1rem);
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            min-height: 50px;
         }
 
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); }
-        .btn-outline { background: #f1f5f9; color: var(--text); }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
 
-        .feedback {
-            margin-top: 20px;
-            padding: 15px;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .result-panel {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(5px);
             border-radius: 12px;
-            font-weight: 600;
+            padding: 20px;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin-top: 20px;
             display: none;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .result-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .result-panel::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .result-panel::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 4px;
+        }
+
+        .result-panel::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .result-panel.show {
+            display: block;
+            animation: slideDown 0.4s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-title {
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            font-weight: 700;
+            margin-bottom: 12px;
             text-align: center;
         }
 
-        .feedback.correct { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .feedback.wrong { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .result-correct {
+            border-left: 4px solid #4ade80;
+        }
+
+        .result-incorrect {
+            border-left: 4px solid #f87171;
+        }
+
+        .calculation {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 12px 0;
+            text-align: center;
+        }
+
+        .math-step {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: clamp(0.95rem, 3.5vw, 1.1rem);
+            font-weight: 500;
+            line-height: 1.8;
+        }
+
+        .math-fraction {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            margin: 0 6px;
+        }
+
+        .math-numerator {
+            border-bottom: 2px solid white;
+            padding: 4px 12px;
+            min-width: 70px;
+            font-size: clamp(0.85rem, 3vw, 1rem);
+        }
+
+        .math-denominator {
+            padding: 4px 12px;
+            min-width: 70px;
+            font-size: clamp(0.85rem, 3vw, 1rem);
+        }
+
+        .math-equals {
+            margin: 0 8px;
+            font-size: clamp(1.1rem, 4vw, 1.3rem);
+        }
+
+        .step-label {
+            font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+            opacity: 0.9;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .final-answer {
+            background: rgba(255, 255, 255, 0.4);
+            padding: 15px;
+            margin-top: 12px;
+            border-radius: 10px;
+            font-size: clamp(1.1rem, 4vw, 1.4rem);
+            font-weight: 700;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .instruction {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+            margin-bottom: 20px;
+            border-left: 4px solid #4ade80;
+            font-size: clamp(0.85rem, 2vw, 0.95rem);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            canvas {
+                touch-action: none;
+            }
+
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+
+            .canvas-container {
+                padding: 10px;
+            }
+
+            .info-panel, .input-panel, .result-panel {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .subtitle {
+                font-size: 0.95rem;
+            }
+        }
 
         .footer {
-            padding: 20px;
             text-align: center;
-            font-size: 0.8rem;
-            color: #94a3b8;
-            border-top: 1px solid #f1f5f9;
-            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 20px;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
         }
 
-        .progress-container {
-            height: 6px;
-            background: #e2e8f0;
-            width: 100%;
-            position: absolute;
-            bottom: 0;
-        }
-        .progress-bar {
-            height: 100%;
-            background: var(--success);
-            width: 0%;
-            transition: width 0.3s;
-        }
-
-        .formula-display table { border-collapse: collapse; line-height: 1.1; margin: 0 auto; }
-        .formula-display td { padding: 0 5px; text-align: center; font-family: 'Courier New', monospace; font-weight: bold; }
-
-        @media (max-width: 600px) {
-            .actions { grid-template-columns: 1fr; }
-            .grid-menu { grid-template-columns: 1fr; }
+        .units {
+            font-size: 0.85em;
+            opacity: 0.9;
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h1>📐 Calculadora de Pendientes Físicas</h1>
+        <p class="subtitle">Desarrollado por Javier Gijón - Prof. del IES María Moliner (Segovia)</p>
 
-    <div class="app-container">
-        <div class="header" style="position: relative;">
-            <h1 id="titleText">Formulación Orgánica</h1>
-            <p id="subtitleText">Base de datos optimizada para 4º ESO</p>
-            <div class="progress-container">
-                <div class="progress-bar" id="progressBar"></div>
+        <div class="context-panel" id="contextPanel">
+            <div class="context-title">
+                <span id="contextIcon">🚗</span>
+                <span id="contextTitleText">Cargando...</span>
             </div>
+            <div class="context-description" id="contextDescription"></div>
         </div>
 
-        <div id="view-menu" class="view active">
-            
-            <div class="group-title">Hidrocarburos y Alcoholes</div>
-            <div class="grid-menu">
-                <button class="card-btn" onclick="initPractice('hidrocarburos')">
-                    <span>⚡ Hidrocarburos</span>
-                    <small id="cnt-hid">Cargando...</small>
-                </button>
-                <button class="card-btn" onclick="initPractice('alcoholes')">
-                    <span>🍷 Alcoholes</span>
-                    <small id="cnt-alc">Cargando...</small>
-                </button>
-            </div>
+        <div class="instruction">
+            <strong>📌 Instrucciones:</strong> Haz clic en DOS puntos sobre la recta para calcular su pendiente. Observa las unidades de las magnitudes físicas.
+        </div>
 
-            <div class="group-title">Familias de Compuestos Oxigenados</div>
-            <div class="grid-menu">
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <button class="card-btn" style="width: 100%;" onclick="initPractice('aldehidos')">
-                        <span>🔬 Aldehídos</span>
-                        <small id="cnt-ald">Cargando...</small>
-                    </button>
-                    <button class="card-btn" style="width: 100%;" onclick="initPractice('cetonas')">
-                        <span>🧬 Cetonas</span>
-                        <small id="cnt-cet">Cargando...</small>
-                    </button>
+        <div class="canvas-container">
+            <canvas id="canvas" width="700" height="500"></canvas>
+        </div>
+
+        <div class="controls">
+            <div class="info-panel">
+                <div class="info-row">
+                    <span class="info-label">Puntos seleccionados:</span>
+                    <span class="info-value" id="pointCount">0 / 2</span>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <button class="card-btn" style="width: 100%;" onclick="initPractice('acidos')">
-                        <span>🧪 Ácidos Carboxílicos</span>
-                        <small id="cnt-aci">Cargando...</small>
-                    </button>
-                    <button class="card-btn" style="width: 100%;" onclick="initPractice('esteres')">
-                        <span>🧪 Ésteres</span>
-                        <small id="cnt-est">Cargando...</small>
-                    </button>
+                <div class="info-row" id="point1Info" style="display: none;">
+                    <span class="info-label">Punto 1:</span>
+                    <span class="info-value" id="point1Text"></span>
+                </div>
+                <div class="info-row" id="point2Info" style="display: none;">
+                    <span class="info-label">Punto 2:</span>
+                    <span class="info-value" id="point2Text"></span>
+                </div>
+                <div class="info-row" id="deltaInfo" style="display: none;">
+                    <span class="info-label" id="deltaXLabel">Δt:</span>
+                    <span class="info-value" id="deltaX"></span>
+                    <span class="info-label" id="deltaYLabel">Δv:</span>
+                    <span class="info-value" id="deltaY"></span>
                 </div>
             </div>
 
-            <div class="group-title">Repaso General</div>
-            <button class="card-btn" style="width: 100%; background: #f8fafc;" onclick="initPractice('todos')">
-                <span>🔀 Mezclado Proporcional</span>
-                <small id="cnt-all">Calculando...</small>
-            </button>
-
-            <div class="config-section">
-                <label class="config-label" style="display:block; margin-bottom:10px; font-weight:700;">¿Cuántos compuestos quieres practicar?</label>
-                <input type="number" id="practice-limit" class="input-number" min="1" placeholder="Todos">
-                <p style="font-size: 0.75rem; color: #64748b; margin-top: 10px;">(El sistema recordará tus aciertos para no repetirlos)</p>
-            </div>
-        </div>
-
-        <div id="view-practice" class="view">
-            <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
-                <button class="btn-outline" style="padding: 8px 15px; font-size: 0.8rem;" onclick="showMenu()">← Menú</button>
-                <span id="label-group" style="font-weight: 800; color: var(--primary); font-size: 0.9rem;"></span>
-            </div>
-
-            <div class="stats-bar">
-                <div class="stat-item"><div class="stat-label">Pregunta</div><div class="stat-value" id="stat-pos">1/0</div></div>
-                <div class="stat-item"><div class="stat-label">Puntos</div><div class="stat-value" id="stat-score" style="color: var(--success);">0</div></div>
-                <div class="stat-item"><div class="stat-label">Acierto</div><div class="stat-value" id="stat-acc">0%</div></div>
-            </div>
-
-            <div class="question-container">
-                <h4 id="question-prompt" style="margin-bottom: 15px; color: #64748b;">Nombra este compuesto:</h4>
-                <div class="formula-box" id="formula-display"></div>
-                <span class="mobile-hint">(Si no se ve bien la fórmula, gira el móvil horizontalmente)</span>
-
+            <div class="input-panel" id="inputPanel" style="display: none;">
                 <div class="input-group">
-                    <input type="text" id="answer-input" placeholder="Nombre IUPAC..." autocomplete="off">
-                    <div id="feedback-box" class="feedback"></div>
+                    <label for="slopeInput" id="slopeQuestion">¿Cuál es la pendiente?</label>
+                    <input type="number" id="slopeInput" step="0.01" placeholder="Introduce tu respuesta...">
                 </div>
-
-                <div class="actions">
-                    <button id="btn-check" class="btn-primary" onclick="checkAnswer()">Comprobar</button>
-                    <button id="btn-next" class="btn-primary" style="display: none; background: var(--success);" onclick="nextQuestion()">Siguiente ➜</button>
-                    <button id="btn-hint" class="btn-outline" onclick="getHint()">Pedir Pista</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                    <button class="btn-success" onclick="checkAnswer()">✓ Comprobar</button>
+                    <button class="btn-secondary" onclick="resetPoints()">↺ Reintentar</button>
                 </div>
             </div>
-        </div>
 
-        <div id="view-results" class="view">
-            <div style="text-align: center; padding: 20px;">
-                <h2 style="font-size: 4rem; margin-bottom: 15px;">🏆</h2>
-                <h2 style="margin-bottom: 10px;">¡Sesión Finalizada!</h2>
-                <div class="stats-bar" style="max-width: 400px; margin: 20px auto;">
-                    <div class="stat-item"><div class="stat-label">Aciertos</div><div class="stat-value" id="final-score">0</div></div>
-                    <div class="stat-item"><div class="stat-label">Eficacia</div><div class="stat-value" id="final-acc">0%</div></div>
-                </div>
-                <button class="btn-primary" onclick="showMenu()" style="padding: 15px 50px;">Volver al Menú</button>
+            <div class="result-panel" id="resultPanel"></div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn-primary" onclick="generateNewScenario()">🎲 Nuevo Escenario</button>
+                <button class="btn-secondary" onclick="resetPoints()">🔄 Limpiar Puntos</button>
             </div>
-        </div>
-
-        <div class="footer">
-            Javier Gijón. Prof del IES María Moliner (Segovia)
         </div>
     </div>
 
     <script>
-        const DB = {
-            hidrocarburos: [
-                { formula: "CH₄", nombre: "metano" },
-                { formula: "CH₃—CH₃", nombre: "etano" },
-                { formula: "CH₃—CH₂—CH₃", nombre: "propano" },
-                { formula: "CH₃—CH₂—CH₂—CH₃", nombre: "butano" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—CH₃</td></tr><tr><td></td><td>|</td><td></td></tr><tr><td></td><td>CH₃</td><td></td></tr></table>`, nombre: "2,2-dimetilpropano" },
-                { formula: "CH₂=CH₂", nombre: "eteno" },
-                { formula: "CH₂=CH—CH₃", nombre: "propeno" },
-                { formula: "CH₂=CH—CH₂—CH₃", nombre: "but-1-eno" },
-                { formula: "CH₃—CH=CH—CH₃", nombre: "but-2-eno" },
-                { formula: "CH₂=CH—CH₂—CH₂—CH₃", nombre: "pent-1-eno" },
-                { formula: "CH₃—CH=CH—CH₂—CH₃", nombre: "pent-2-eno" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₂=</td><td>C</td><td>—CH₃</td></tr></table>`, nombre: "2-metilpropeno" },
-                { formula: "CH₂=CH—CH=CH₂", nombre: "buta-1,3-dieno" },
-                { formula: "CH₂=CH—CH₂—CH=CH₂", nombre: "penta-1,4-dieno" },
-                { formula: "CH₃—CH=CH—CH=CH₂", nombre: "penta-1,3-dieno" },
-                { formula: "CH≡CH", nombre: "etino" },
-                { formula: "CH≡C—CH₃", nombre: "propino" },
-                { formula: "CH≡C—CH₂—CH₃", nombre: "but-1-ino" },
-                { formula: "CH₃—C≡C—CH₃", nombre: "but-2-ino" },
-                { formula: "CH≡C—CH₂—CH₂—CH₃", nombre: "pent-1-ino" },
-                { formula: "CH₃—C≡C—CH₂—CH₃", nombre: "pent-2-ino" },
-                { formula: "CH≡C—CH₂—CH₂—CH₂—CH₃", nombre: "hex-1-ino" },
-                { formula: "CH₃—C≡C—C≡CH", nombre: "penta-1,3-diino" },
-                { formula: "CH≡C—C≡CH", nombre: "butadiino" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH≡C—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "3-metilbut-1-ino" },
-                { formula: "CH₂=CH—C≡CH", nombre: "but-1-en-3-ino" },
-                { formula: "CH₂=CH—CH₂—C≡CH", nombre: "pent-1-en-4-ino" },
-                { formula: "CH≡C—CH=CH—CH₃", nombre: "pent-3-en-1-ino" },
-                { formula: "CH₂=CH—C≡C—CH₃", nombre: "pent-1-en-3-ino" },
-                { formula: "CH≡C—CH₂—CH=CH₂", nombre: "pent-1-en-4-ino" },
-                { formula: "CH₂=CH—CH=CH—C≡CH", nombre: "hexa-1,3-dien-5-ino" },
-                { formula: "CH≡C—CH=CH—C≡CH", nombre: "hexa-3-en-1,5-diino" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₂=</td><td>C</td><td>—C≡</td><td>CH</td></tr></table>`, nombre: "2-metilbut-1-en-3-ino" },
-                { formula: "CH≡C—CH₂—CH=CH—CH₃", nombre: "hex-4-en-1-ino" },
-                { formula: "CH₂=CH—CH₂—C≡C—CH₃", nombre: "hex-1-en-4-ino" }
-            ],
-            alcoholes: [
-                { formula: "CH₃—OH", nombre: "metanol" },
-                { formula: "CH₃—CH₂—OH", nombre: "etanol" },
-                { formula: "CH₃—CH₂—CH₂—OH", nombre: "propan-1-ol" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—OH", nombre: "butan-1-ol" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—CH₂—OH", nombre: "pentan-1-ol" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—CH₂—CH₂—OH", nombre: "hexan-1-ol" },
-                { formula: `<table><tr><td></td><td>OH</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "propan-2-ol" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "butan-2-ol" },
-                { formula: `<table><tr><td></td><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "pentan-2-ol" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td></td><td></td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH₂—</td><td>CH₃</td></tr></table>`, nombre: "pentan-3-ol" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>OH</td></tr></table>`, nombre: "2-metilpropan-1-ol" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—CH₃</td></tr><tr><td></td><td>|</td><td></td></tr><tr><td></td><td>OH</td><td></td></tr></table>`, nombre: "2-metilpropan-2-ol" },
-                { formula: `<table><tr><td></td><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH₂—</td><td>OH</td></tr></table>`, nombre: "3-metilbutan-1-ol" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>CH₂—</td><td>OH</td></tr></table>`, nombre: "2-metilbutan-1-ol" },
-                { formula: `<table><tr><td>OH</td><td>OH</td></tr><tr><td>|</td><td>|</td></tr><tr><td>CH₂</td><td>—CH₂</td></tr></table>`, nombre: "etano-1,2-diol" },
-                { formula: `<table><tr><td>OH</td><td></td><td>OH</td></tr><tr><td>|</td><td></td><td>|</td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH₂</td></tr></table>`, nombre: "propano-1,3-diol" },
-                { formula: `<table><tr><td>OH</td><td>OH</td><td></td></tr><tr><td>|</td><td>|</td><td></td></tr><tr><td>CH₂</td><td>—CH</td><td>—CH₃</td></tr></table>`, nombre: "propano-1,2-diol" },
-                { formula: `<table><tr><td>OH</td><td></td><td></td><td>OH</td></tr><tr><td>|</td><td></td><td></td><td>|</td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH₂—</td><td>CH₂</td></tr></table>`, nombre: "butano-1,4-diol" },
-                { formula: `<table><tr><td></td><td>OH</td><td>OH</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr></table>`, nombre: "butano-2,3-diol" },
-                { formula: `<table><tr><td></td><td></td><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH₂—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "hexan-2-ol" },
-                { formula: `<table><tr><td></td><td></td><td></td><td>OH</td><td></td><td></td></tr><tr><td></td><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH₂—</td><td>CH</td><td>—CH₂—</td><td>CH₃</td></tr></table>`, nombre: "hexan-3-ol" },
-                { formula: `<table><tr><td></td><td>OH</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr></table>`, nombre: "3-metilbutan-2-ol" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—CH₂—</td><td>CH₃</td><tr><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td>OH</td><td></td><td></td></tr></table>`, nombre: "2-metilbutan-2-ol" },
-                { formula: `<table><tr><td></td><td>OH</td><td></td><td>OH</td></tr><tr><td></td><td>|</td><td></td><td>|</td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>CH₂</td></tr></table>`, nombre: "butano-1,3-diol" },
-                { formula: `<table><tr><td>OH</td><td></td><td></td><td>OH</td><td></td></tr><tr><td>|</td><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "pentano-1,4-diol" },
-                { formula: `<table><tr><td></td><td>OH</td><td></td><td>OH</td><td></td></tr><tr><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "pentano-2,4-diol" },
-                { formula: `<table><tr><td>OH</td><td>OH</td><td>OH</td></tr><tr><td>|</td><td>|</td><td>|</td></tr><tr><td>CH₂</td><td>—CH</td><td>—CH₂</td></tr></table>`, nombre: "propano-1,2,3-triol" },
-                { formula: `<table><tr><td>OH</td><td></td><td>OH</td><td></td><td>OH</td></tr><tr><td>|</td><td></td><td>|</td><td></td><td>|</td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH</td><td>—CH₂—</td><td>CH₂</td></tr></table>`, nombre: "pentano-1,3,5-triol" },
-                { formula: `<table><tr><td>OH</td><td></td><td></td><td></td><td>OH</td></tr><tr><td>|</td><td></td><td></td><td></td><td>|</td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH₂—</td><td>CH₂—</td><td>CH₂</td></tr></table>`, nombre: "pentano-1,5-diol" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr></table>`, nombre: "pentano-2,3-diol" },
-                { formula: `<table><tr><td>OH</td><td></td><td>OH</td><td></td><td>OH</td><td></td></tr><tr><td>|</td><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "hexano-1,3,5-triol" },
-                { formula: `<table><tr><td>OH</td><td></td><td></td><td></td><td></td><td>OH</td></tr><tr><td>|</td><td></td><td></td><td></td><td></td><td>|</td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH₂—</td><td>CH₂—</td><td>CH₂—</td><td>CH₂</td></tr></table>`, nombre: "hexano-1,6-diol" },
-                { formula: `<table><tr><td>OH</td><td>CH₃</td><td>CH₃</td><td></td></tr><tr><td>|</td><td>|</td><td>|</td><td></td></tr><tr><td>CH₂</td><td>—CH</td><td>—CH</td><td>—CH₃</td></tr></table>`, nombre: "2,3-dimetilbutan-1-ol" },
-                { formula: `<table><tr><td>OH</td><td>CH₃</td><td></td><td>CH₃</td><td></td></tr><tr><td>|</td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₂</td><td>—CH</td><td>—CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "2,4-dimetilpentan-1-ol" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—CH₂—</td><td>OH</td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td>CH₃</td><td></td><td></td></tr></table>`, nombre: "2,2-dimetilpropan-1-ol" },
-                { formula: `<table><tr><td>OH</td><td>CH₃</td><td></td><td></td></tr><tr><td>|</td><td>|</td><td></td><td></td></tr><tr><td>CH₂</td><td>—C</td><td>—CH₂—</td><td>CH₃</td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td>CH₃</td><td></td><td></td></tr></table>`, nombre: "2,2-dimetilbutan-1-ol" },
-                { formula: `<table><tr><td>OH</td><td>CH₃</td><td>CH₃</td><td></td></tr><tr><td>|</td><td>|</td><td>|</td><td></td></tr><tr><td>CH₂</td><td>—CH</td><td>—C</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>CH₃</td><td></td></tr></table>`, nombre: "2,3,3-trimetilbutan-1-ol" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—CH₂—CH₂—CH₂—OH", nombre: "heptan-1-ol" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—CH₂—CH₂—CH₂—CH₂—OH", nombre: "octan-1-ol" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—CH₂—CH₂—CH₂—CH₂—CH₂—OH", nombre: "nonan-1-ol" },
-                { formula: "CH₃—(CH₂)₉—OH", nombre: "decan-1-ol" }
-            ],
-            aldehidos: [
-                { formula: "CH₃—CHO", nombre: "etanal" },
-                { formula: "CH₃—CH₂—CHO", nombre: "propanal" },
-                { formula: "CH₃—CH₂—CH₂—CHO", nombre: "butanal" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—CHO", nombre: "pentanal" },
-                { formula: "CH₃—(CH₂)₄—CHO", nombre: "hexanal" },
-                { formula: "CH₃—(CH₂)₅—CHO", nombre: "heptanal" },
-                { formula: "CHO—CHO", nombre: "etanodial" },
-                { formula: "CHO—CH₂—CHO", nombre: "propanodial" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "2-metilpropanal" },
-                { formula: `<table><tr><td></td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "2-metilbutanal" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>CHO</td></tr></table>`, nombre: "3-metilbutanal" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—CHO</td></tr></table>`, nombre: "2,3-dimetilbutanal" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—CHO</td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td>CH₃</td><td></td><td></td></tr></table>`, nombre: "2,2-dimetilpropanal" },
-                { formula: `<table><tr><td></td><td>OH</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "2-hidroxipropanal" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "2-hidroxibutanal" },
-                { formula: `<table><tr><td></td><td>OH</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>CHO</td></tr></table>`, nombre: "3-hidroxibutanal" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "2-hidroxi-4-oxopentanal" },
-                { formula: "CHO—(CH₂)₂—CHO", nombre: "butanodial" },
-                { formula: "CHO—(CH₂)₃—CHO", nombre: "pentanodial" },
-                { formula: "CHO—(CH₂)₄—CHO", nombre: "hexanodial" },
-                { formula: "CH₃—(CH₂)₉—CHO", nombre: "undecanal" },
-                { formula: `<table><tr><td></td><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH₂—</td><td>CHO</td></tr></table>`, nombre: "3-metilpentanal" },
-                { formula: `<table><tr><td></td><td></td><td>CH₃</td><td>CH₃</td><td></td></tr><tr><td></td><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH</td><td>—CHO</td></tr></table>`, nombre: "3,4-dimetilpentanal" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "2,4-dimetilpentanal" },
-                { formula: `<table><tr><td></td><td>C₂H₅</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "2-etilpropanal" },
-                { formula: `<table><tr><td></td><td></td><td>C₂H₅</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "2-etilbutanal" },
-                { formula: `<table><tr><td></td><td>C₂H₅</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—CHO</td></tr></table>`, nombre: "2-etil-3-metilbutanal" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td>CH₃</td><td></td></tr><tr><td></td><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH</td><td>—CHO</td></tr></table>`, nombre: "3-hidroxi-4-metilpentanal" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "3-hidroxi-4-oxopentanal" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr></table>`, nombre: "2-metil-4-oxopentanal" },
-                { formula: `<table><tr><td></td><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CHO</td></tr><tr><td></td><td></td><td>|</td><td>|</td><td></td></tr><tr><td></td><td></td><td>CH₃</td><td>OH</td><td></td></tr></table>`, nombre: "2-hidroxi-3-metil-4-oxopentanal" },
-                { formula: `<table><tr><td></td><td>CH₃—CH₂—CO—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr><tr><td></td><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td></td><td>CH₃</td><td></td></tr></table>`, nombre: "2-metil-4-oxohexanal" },
-                { formula: `<table><tr><td></td><td>CH₃—CO—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CHO</td></tr><tr><td></td><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>OH</td><td></td><td>CH₃</td><td></td></tr></table>`, nombre: "4-hidroxi-2-metil-5-oxohexanal" }
-            ],
-            cetonas: [
-                { formula: "CH₃—CO—CH₃", nombre: "propanona" },
-                { formula: "CH₃—CO—CH₂—CH₃", nombre: "butanona" },
-                { formula: "CH₃—CO—CH₂—CH₂—CH₃", nombre: "pentan-2-ona" },
-                { formula: "CH₃—CH₂—CO—CH₂—CH₃", nombre: "pentan-3-ona" },
-                { formula: "CH₃—CO—CH₂—CH₂—CH₂—CH₃", nombre: "hexan-2-ona" },
-                { formula: "CH₃—CH₂—CO—CH₂—CH₂—CH₃", nombre: "hexan-3-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "3-metilbutan-2-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₂—</td><td>CH₃</td></tr></table>`, nombre: "4-metilpentan-2-ona" },
-                { formula: `<table><tr><td></td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CH₂—CO—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "2-metilpentan-3-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>CH₃</td><td></td></tr></table>`, nombre: "3,4-dimetilpentan-2-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td><td>CH₃</td></tr><tr><td></td><td>|</td><td></td><td></td><td>|</td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "3,5-dimetilhexan-2-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—CO—</td><td>CH₃</td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td>CH₃</td><td></td><td></td></tr></table>`, nombre: "3,3-dimetilbutan-2-ona" },
-                { formula: `<table><tr><td></td><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>C</td><td>—CO—</td><td>CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td></td><td>CH₃</td><td></td><td></td></tr></table>`, nombre: "4,4-dimetilpentan-2-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CO—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "2,4-dimetilpentan-3-ona" },
-                { formula: `<table><tr><td></td><td>C₂H₅</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "3-etilbutan-2-ona" },
-                { formula: `<table><tr><td></td><td>C₂H₅</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₂—</td><td>CH₃</td></tr></table>`, nombre: "3-etilpentan-2-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td></td><td>CH₃</td><td></td><td></td></tr></table>`, nombre: "3,4,5-trimetilhexan-2-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td></td><td></td><td>CH₃</td><td></td></tr></table>`, nombre: "3,5,6-trimetilheptan-2-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>C₂H₅</td><td></td></tr></table>`, nombre: "4-etil-3-metilpentan-2-ona" },
-                { formula: `<table><tr><td></td><td>C₂H₅</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>CH₃</td><td></td></tr></table>`, nombre: "3-etil-4-metilpentan-2-ona" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "4-hidroxipentan-2-ona" },
-                { formula: `<table><tr><td></td><td>OH</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr></table>`, nombre: "3-hidroxi-4-metilpentan-2-ona" },
-                { formula: `<table><tr><td>OH—CH₂—</td><td>CH₂—</td><td>CO—</td><td>CH₂—CH₃</td></tr></table>`, nombre: "5-hidroxipentan-3-ona" },
-                { formula: `<table><tr><td></td><td>OH</td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "3-hidroxi-5-metilhexan-2-ona" },
-                { formula: "CH₃—CO—CH₂—CH₂—CH₂—CH₂—CH₃", nombre: "heptan-2-ona" },
-                { formula: "CH₃—CH₂—CO—CH₂—CH₂—CH₂—CH₃", nombre: "hept-3-ona" },
-                { formula: "CH₃—CH₂—CH₂—CO—CH₂—CH₂—CH₃", nombre: "hept-4-ona" },
-                { formula: "CH₃—CO—(CH₂)₅—CH₃", nombre: "octan-2-ona" },
-                { formula: `<table><tr><td>OH—CH₂—</td><td>CO—</td><td>CH₃</td></tr></table>`, nombre: "hidroxipropanona" },
-                { formula: `<table><tr><td>OH—CH₂—</td><td>CO—</td><td>CH₂—CH₃</td></tr></table>`, nombre: "hidroxibutanona" },
-                { formula: `<table><tr><td></td><td>OH</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "3-hidroxibutan-2-ona" },
-                { formula: `<table><tr><td>OH—CH₂—</td><td>CO—CH₃</td></tr></table>`, nombre: "4-hidroxibutan-2-ona" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>`, nombre: "3-hidroxipentan-2-ona" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>OH</td><td></td></tr></table>`, nombre: "4-hidroxi-3-metilpentan-2-ona" },
-                { formula: `<table><tr><td></td><td>C₂H₅</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>OH</td><td></td></tr></table>`, nombre: "3-etil-4-hidroxipentan-2-ona" }
-            ],
-            acidos: [
-                { formula: "CH₃—COOH", nombre: "ácido etanoico" },
-                { formula: "CH₃—CH₂—COOH", nombre: "ácido propanoico" },
-                { formula: "CH₃—CH₂—CH₂—COOH", nombre: "ácido butanoico" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—COOH", nombre: "ácido pentanoico" },
-                { formula: "CH₃—(CH₂)₄—COOH", nombre: "ácido hexanoico" },
-                { formula: "HOOC—COOH", nombre: "ácido etanodioico" },
-                { formula: "HOOC—CH₂—COOH", nombre: "ácido propanodioico" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 2-metilpropanoico" },
-                { formula: `<table><tr><td></td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 3-metilbutanoico" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—COOH</td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td>CH₃</td><td></td><td></td></tr></table>`, nombre: "ácido 2,2-dimetilpropanoico" },
-                { formula: `<table><tr><td></td><td>C₂H₅</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 2-etilpropanoico" },
-                { formula: `<table><tr><td></td><td>OH</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 2-hidroxipropanoico" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 3-hidroxibutanoico" },
-                { formula: `<table><tr><td>CH₃—CO—</td><td>CH₂—</td><td>COOH</td></tr></table>`, nombre: "ácido 3-oxobutanoico" },
-                { formula: `<table><tr><td></td><td></td><td>OH</td><td></td><td></td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH₂—</td><td>CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 3-hidroxi-4-oxopentanoico" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—CH₂—CH₂—COOH", nombre: "ácido heptanoico" },
-                { formula: "CH₃—(CH₂)₆—COOH", nombre: "ácido octanoico" },
-                { formula: "CH₃—(CH₂)₇—COOH", nombre: "ácido nonanoico" },
-                { formula: "CH₃—(CH₂)₈—COOH", nombre: "ácido decanoico" },
-                { formula: "HOOC—CH₂—CH₂—COOH", nombre: "ácido butanodioico" },
-                { formula: "HOOC—(CH₂)₃—COOH", nombre: "ácido pentanodioico" },
-                { formula: "HOOC—(CH₂)₄—COOH", nombre: "ácido hexanodioico" },
-                { formula: `<table><tr><td></td><td>CH₃</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 2,3-dimetilbutanoico" },
-                { formula: `<table><tr><td></td><td></td><td>C₂H₅</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 2-etilbutanoico" },
-                { formula: `<table><tr><td></td><td>C₂H₅</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 2-etil-3-metilbutanoico" },
-                { formula: `<table><tr><td></td><td>OH</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—COOH</td></tr></table>`, nombre: "ácido 2-hidroxi-3-metilbutanoico" },
-                { formula: "CH₃—CO—CH₂—CH₂—COOH", nombre: "ácido 4-oxopentanoico" }
-            ],
-            esteres: [
-                { formula: "H—COO—Na", nombre: "metanoato de sodio" },
-                { formula: "H—COO—CH₃", nombre: "metanoato de metilo" },
-                { formula: "CH₃—COO—Na", nombre: "etanoato de sodio" },
-                { formula: "CH₃—COO—K", nombre: "etanoato de potasio" },
-                { formula: "CH₃—COO—CH₃", nombre: "etanoato de metilo" },
-                { formula: "CH₃—COO—CH₂—CH₃", nombre: "etanoato de etilo" },
-                { formula: "CH₃—CH₂—COO—Na", nombre: "propanoato de sodio" },
-                { formula: "CH₃—CH₂—COO—CH₃", nombre: "propanoato de metilo" },
-                { formula: "CH₃—CH₂—COO—CH₂—CH₃", nombre: "propanoato de etilo" },
-                { formula: "CH₃—CH₂—CH₂—COO—Na", nombre: "butanoato de sodio" },
-                { formula: "CH₃—CH₂—CH₂—COO—CH₃", nombre: "butanoato de metilo" },
-                { formula: "H—COO—CH₂—CH₂—CH₂—CH₃", nombre: "metanoato de butilo" },
-                { formula: "CH₃—COO—CH₂—CH₂—CH₂—CH₃", nombre: "etanoato de butilo" },
-                { formula: "CH₃—CH₂—COO—K", nombre: "propanoato de potasio" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—COO—Na", nombre: "pentanoato de sodio" },
-                { formula: "CH₃—CH₂—COO—CH₂—CH₂—CH₂—CH₃", nombre: "propanoato de butilo" },
-                { formula: "CH₃—CH₂—CH₂—COO—K", nombre: "butanoato de potasio" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—COO—CH₃", nombre: "pentanoato de metilo" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—COO—CH₂—CH₃", nombre: "pentanoato de etilo" },
-                { formula: "CH₃—CH₂—CH₂—CH₂—CH₂—COO—Na", nombre: "hexanoato de sodio" }
-            ]
-        };
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let slope = 0;
+        let yIntercept = 0;
+        let selectedPoints = [];
+        let currentScenario = null;
+        let showSlopeValue = false;
+        let usedScenarios = []; // Para evitar repetir escenarios en la misma sesión
+        
+        const CANVAS_WIDTH = 700;
+        const CANVAS_HEIGHT = 500;
+        const ORIGIN_X = CANVAS_WIDTH / 2;
+        const ORIGIN_Y = CANVAS_HEIGHT / 2;
+        const SCALE = 30;
 
-        let completedPool = { hidrocarburos: [], alcoholes: [], aldehidos: [], cetonas: [], acidos: [], esteres: [] };
-        let sessionData = [];
-        let currentIndex = 0;
-        let score = 0;
-        let totalAnswered = 0;
-        let hintUsed = false;
-
-        function updateMenuCounters() {
-            for(let k in DB) {
-                let available = DB[k].length - completedPool[k].length;
-                let el = document.getElementById('cnt-' + k.substring(0,3));
-                if(el) el.innerText = `${available} libres (${DB[k].length} total)`;
+        // Escenarios físicos con restricciones de dominio
+        const scenarios = [
+            {
+                icon: '🚗',
+                title: 'Cinemática: Velocidad vs Tiempo',
+                description: 'Un coche se mueve con aceleración constante. La gráfica muestra cómo varía su velocidad con el tiempo.',
+                xVar: 't',
+                yVar: 'v',
+                xUnit: 's',
+                yUnit: 'm/s',
+                slopeVar: 'a',
+                slopeUnit: 'm/s²',
+                slopeName: 'aceleración',
+                xName: 'tiempo',
+                yName: 'velocidad',
+                xMin: 0,
+                yMin: null,
+                xMax: 10,
+                yMax: 10,
+                slopePositive: false
+            },
+            {
+                icon: '📏',
+                title: 'Cinemática: Posición vs Tiempo (MRU)',
+                description: 'Un objeto se mueve con velocidad constante. La pendiente representa su velocidad.',
+                xVar: 't',
+                yVar: 'x',
+                xUnit: 's',
+                yUnit: 'm',
+                slopeVar: 'v',
+                slopeUnit: 'm/s',
+                slopeName: 'velocidad',
+                xName: 'tiempo',
+                yName: 'posición',
+                xMin: 0,
+                yMin: null,
+                xMax: 10,
+                yMax: 10,
+                slopePositive: false
+            },
+            {
+                icon: '🔋',
+                title: 'Ley de Ohm: Voltaje vs Intensidad',
+                description: 'En un circuito eléctrico, la relación entre el voltaje y la corriente es lineal según la Ley de Ohm.',
+                xVar: 'I',
+                yVar: 'V',
+                xUnit: 'A',
+                yUnit: 'V',
+                slopeVar: 'R',
+                slopeUnit: 'Ω',
+                slopeName: 'resistencia',
+                xName: 'intensidad',
+                yName: 'voltaje',
+                xMin: 0,
+                yMin: 0,
+                xMax: 10,
+                yMax: 10,
+                slopePositive: true
+            },
+            {
+                icon: '⚖️',
+                title: 'Ley de Hooke: Fuerza vs Elongación',
+                description: 'Un muelle se estira proporcionalmente a la fuerza aplicada. La pendiente es la constante elástica.',
+                xVar: '(Δx)',
+                yVar: 'F',
+                xUnit: 'm',
+                yUnit: 'N',
+                slopeVar: 'k',
+                slopeUnit: 'N/m',
+                slopeName: 'constante elástica',
+                xName: 'elongación',
+                yName: 'fuerza',
+                xMin: 0,
+                yMin: 0,
+                xMax: 10,
+                yMax: 10,
+                slopePositive: true
+            },
+            {
+                icon: '🌡️',
+                title: 'Calorimetría: Calor vs Temperatura',
+                description: 'Al calentar una sustancia, la cantidad de calor absorbido es proporcional al cambio de temperatura.',
+                xVar: '(ΔT)',
+                yVar: 'Q',
+                xUnit: '°C',
+                yUnit: 'J',
+                slopeVar: 'C',
+                slopeUnit: 'J/°C',
+                slopeName: 'capacidad calorífica',
+                xName: 'variación de temperatura',
+                yName: 'calor',
+                xMin: null,
+                yMin: null,
+                xMax: 10,
+                yMax: 10,
+                slopePositive: true
+            },
+            {
+                icon: '💰',
+                title: 'Economía: Coste vs Cantidad',
+                description: 'El coste total de producción depende linealmente de la cantidad producida.',
+                xVar: 'n',
+                yVar: 'C',
+                xUnit: 'unidades',
+                yUnit: '€',
+                slopeVar: 'p',
+                slopeUnit: '€/unidad',
+                slopeName: 'coste unitario',
+                xName: 'cantidad',
+                yName: 'coste total',
+                xMin: 0,
+                yMin: 0,
+                xMax: 10,
+                yMax: 10,
+                slopePositive: true
+            },
+            {
+                icon: '⚡',
+                title: 'Potencia vs Tiempo',
+                description: 'Un dispositivo consume energía de forma constante. La pendiente representa la potencia.',
+                xVar: 't',
+                yVar: 'E',
+                xUnit: 's',
+                yUnit: 'J',
+                slopeVar: 'P',
+                slopeUnit: 'W',
+                slopeName: 'potencia',
+                xName: 'tiempo',
+                yName: 'energía',
+                xMin: 0,
+                yMin: 0,
+                xMax: 10,
+                yMax: 10,
+                slopePositive: true
+            },
+            {
+                icon: '🧪',
+                title: 'Química: Concentración vs Volumen',
+                description: 'En una dilución, la cantidad de soluto es proporcional al volumen de disolución.',
+                xVar: 'V',
+                yVar: 'n',
+                xUnit: 'L',
+                yUnit: 'mol',
+                slopeVar: 'M',
+                slopeUnit: 'mol/L',
+                slopeName: 'concentración molar',
+                xName: 'volumen',
+                yName: 'moles de soluto',
+                xMin: 0,
+                yMin: 0,
+                xMax: 10,
+                yMax: 10,
+                slopePositive: true
+            },
+            {
+                icon: '🌡️',
+                title: 'Gases Ideales: Presión vs Temperatura',
+                description: 'A volumen constante, la presión de un gas ideal es proporcional a su temperatura absoluta (Ley de Gay-Lussac).',
+                xVar: 'T',
+                yVar: 'P',
+                xUnit: 'K',
+                yUnit: 'Pa',
+                slopeVar: 'k',
+                slopeUnit: 'Pa/K',
+                slopeName: 'constante de proporcionalidad',
+                xName: 'temperatura',
+                yName: 'presión',
+                xMin: 0,
+                yMin: 0,
+                xMax: 10,
+                yMax: 10,
+                slopePositive: true
+            },
+            {
+                icon: '🎈',
+                title: 'Gases Ideales: Volumen vs Temperatura',
+                description: 'A presión constante, el volumen de un gas ideal es proporcional a su temperatura absoluta (Ley de Charles).',
+                xVar: 'T',
+                yVar: 'V',
+                xUnit: 'K',
+                yUnit: 'L',
+                slopeVar: 'k',
+                slopeUnit: 'L/K',
+                slopeName: 'constante de proporcionalidad',
+                xName: 'temperatura',
+                yName: 'volumen',
+                xMin: 0,
+                yMin: 0,
+                xMax: 10,
+                yMax: 10,
+                slopePositive: true
+            },
+            {
+                icon: '⚗️',
+                title: 'Densidad: Masa vs Volumen',
+                description: 'Para una sustancia homogénea, la masa es proporcional al volumen. La pendiente es la densidad.',
+                xVar: 'V',
+                yVar: 'm',
+                xUnit: 'cm³',
+                yUnit: 'g',
+                slopeVar: 'ρ',
+                slopeUnit: 'g/cm³',
+                slopeName: 'densidad',
+                xName: 'volumen',
+                yName: 'masa',
+                xMin: 0,
+                yMin: 0,
+                xMax: 10,
+                yMax: 10,
+                slopePositive: true
+            },
+            {
+                icon: '💧',
+                title: 'Hidrostática: Presión vs Profundidad',
+                description: 'La presión en un fluido aumenta linealmente con la profundidad.',
+                xVar: 'h',
+                yVar: 'P',
+                xUnit: 'm',
+                yUnit: 'Pa',
+                slopeVar: 'ρg',
+                slopeUnit: 'Pa/m',
+                slopeName: 'gradiente de presión',
+                xName: 'profundidad',
+                yName: 'presión',
+                xMin: 0,
+                yMin: null,
+                xMax: 10,
+                yMax: 10,
+                slopePositive: true
+            },
+            {
+                icon: '🔬',
+                title: 'Ley de Hooke (Compresión): Presión vs Deformación',
+                description: 'En un sólido elástico, la presión aplicada es proporcional a la deformación volumétrica.',
+                xVar: '(ΔV/V)',
+                yVar: 'P',
+                xUnit: '%',
+                yUnit: 'Pa',
+                slopeVar: 'K',
+                slopeUnit: 'Pa/%',
+                slopeName: 'módulo volumétrico',
+                xName: 'deformación relativa',
+                yName: 'presión',
+                xMin: 0,
+                yMin: 0,
+                xMax: 10,
+                yMax: 10,
+                slopePositive: true
+            },
+            {
+                icon: '🌊',
+                title: 'Caudal: Volumen vs Tiempo',
+                description: 'El volumen de fluido que pasa por un conducto es proporcional al tiempo. La pendiente es el caudal.',
+                xVar: 't',
+                yVar: 'V',
+                xUnit: 's',
+                yUnit: 'L',
+                slopeVar: 'Q',
+                slopeUnit: 'L/s',
+                slopeName: 'caudal',
+                xName: 'tiempo',
+                yName: 'volumen',
+                xMin: 0,
+                yMin: 0,
+                xMax: 10,
+                yMax: 10,
+                slopePositive: true
+            },
+            {
+                icon: '📻',
+                title: 'Ondas: Longitud vs Frecuencia',
+                description: 'Para ondas electromagnéticas, la longitud de onda es inversamente proporcional a la frecuencia (pendiente negativa).',
+                xVar: 'f',
+                yVar: 'λ',
+                xUnit: 'Hz',
+                yUnit: 'm',
+                slopeVar: 'k',
+                slopeUnit: 'm·Hz',
+                slopeName: 'constante (inversa)',
+                xName: 'frecuencia',
+                yName: 'longitud de onda',
+                xMin: 0,
+                yMin: 0,
+                xMax: 10,
+                yMax: 10,
+                slopePositive: false,
+                inverseRelation: true
             }
-            let totalLeft = 0, totalInDb = 0;
-            for(let k in DB) { totalLeft += (DB[k].length - completedPool[k].length); totalInDb += DB[k].length; }
-            document.getElementById('cnt-all').innerText = `${totalLeft} libres de ${totalInDb}`;
+        ];
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const maxWidth = Math.min(container.clientWidth - 40, 700);
+            canvas.style.width = maxWidth + 'px';
+            canvas.style.height = (maxWidth * 500 / 700) + 'px';
         }
 
-        function showMenu() {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById('view-menu').classList.add('active');
-            document.getElementById('progressBar').style.width = "0%";
-            updateMenuCounters();
-        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
-        function initPractice(type) {
-            let limitVal = parseInt(document.getElementById('practice-limit').value);
-            let pool = [];
-
-            if(type === 'todos') {
-                document.getElementById('label-group').innerText = "MIXTO PROPORCIONAL";
-                for(let k in DB) {
-                    let available = DB[k].filter(item => !completedPool[k].includes(item.nombre));
-                    pool = pool.concat(available);
+        function generateNewScenario() {
+            selectedPoints = [];
+            showSlopeValue = false;
+            updatePointInfo();
+            document.getElementById('inputPanel').style.display = 'none';
+            document.getElementById('resultPanel').classList.remove('show');
+            
+            // Si ya se usaron todos los escenarios, reiniciar la lista
+            if (usedScenarios.length >= scenarios.length) {
+                usedScenarios = [];
+            }
+            
+            // Seleccionar escenario aleatorio que no se haya usado
+            let availableScenarios = scenarios.filter((s, index) => !usedScenarios.includes(index));
+            let selectedIndex = Math.floor(Math.random() * availableScenarios.length);
+            currentScenario = availableScenarios[selectedIndex];
+            
+            // Marcar como usado
+            let globalIndex = scenarios.indexOf(currentScenario);
+            usedScenarios.push(globalIndex);
+            
+            // Actualizar contexto
+            document.getElementById('contextIcon').textContent = currentScenario.icon;
+            document.getElementById('contextTitleText').textContent = currentScenario.title;
+            document.getElementById('contextDescription').textContent = currentScenario.description;
+            
+            // Actualizar pregunta
+            document.getElementById('slopeQuestion').innerHTML = 
+                `¿Cuál es la ${currentScenario.slopeName}? <span class="units">(${currentScenario.slopeUnit})</span>`;
+            
+            // Generar pendiente apropiada según restricciones
+            if (currentScenario.slopePositive) {
+                // La pendiente DEBE ser positiva (resistencia, capacidad calorífica, etc.)
+                slope = (Math.random() * 1.5 + 0.3).toFixed(2) * 1;
+                if (currentScenario.xMin !== null && currentScenario.xMin >= 0 && 
+                    currentScenario.yMin !== null && currentScenario.yMin >= 0) {
+                    yIntercept = (Math.random() * 2).toFixed(2) * 1;
+                } else {
+                    yIntercept = (Math.random() * 6 - 3).toFixed(2) * 1;
                 }
-                if(pool.length === 0) { alert("¡Has completado todo! Reinicia."); return; }
+            } else if (currentScenario.xMin !== null && currentScenario.xMin >= 0 && 
+                currentScenario.yMin !== null && currentScenario.yMin >= 0) {
+                // Ambas variables deben ser positivas: pendiente positiva y que pase por (0,0) o cerca
+                slope = (Math.random() * 1.5 + 0.3).toFixed(2) * 1;
+                yIntercept = (Math.random() * 2).toFixed(2) * 1;
+            } else if (currentScenario.xMin !== null && currentScenario.xMin >= 0) {
+                // Solo x debe ser positivo: pendiente puede ser positiva o negativa
+                slope = (Math.random() * 2 - 1).toFixed(2) * 1;
+                if (Math.abs(slope) < 0.2) slope = slope < 0 ? -0.5 : 0.5;
+                yIntercept = (Math.random() * 6 - 3).toFixed(2) * 1;
             } else {
-                document.getElementById('label-group').innerText = type.toUpperCase();
-                pool = DB[type].filter(item => !completedPool[type].includes(item.nombre));
-                if(pool.length === 0) { alert(`Has completado todos los ${type}. Reiniciando categoría...`); completedPool[type] = []; pool = [...DB[type]]; }
+                // Ambas pueden ser negativas: cualquier pendiente
+                slope = (Math.random() * 2 - 1).toFixed(2) * 1;
+                if (Math.abs(slope) < 0.2) slope = slope < 0 ? -0.5 : 0.5;
+                yIntercept = (Math.random() * 4 - 2).toFixed(2) * 1;
             }
-
-            pool.sort(() => Math.random() - 0.5);
-            if(isNaN(limitVal) || limitVal <= 0) limitVal = pool.length;
-            sessionData = pool.slice(0, limitVal);
-
-            currentIndex = 0; score = 0; totalAnswered = 0;
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById('view-practice').classList.add('active');
-            loadQuestion();
+            
+            drawGraph();
         }
 
-        function loadQuestion() {
-            if(currentIndex >= sessionData.length) { showResults(); return; }
-            hintUsed = false;
-            const item = sessionData[currentIndex];
-            document.getElementById('formula-display').innerHTML = `<div class="formula-display">${item.formula}</div>`;
-            document.getElementById('answer-input').value = "";
-            document.getElementById('answer-input').disabled = false;
-            document.getElementById('feedback-box').style.display = "none";
-            document.getElementById('btn-check').style.display = "block";
-            document.getElementById('btn-next').style.display = "none";
-            document.getElementById('btn-hint').disabled = false;
-            updateStats();
-            document.getElementById('answer-input').focus();
-        }
-
-        function checkAnswer() {
-            const userVal = normalizeText(document.getElementById('answer-input').value);
-            const correctVal = normalizeText(sessionData[currentIndex].nombre);
-            const feedback = document.getElementById('feedback-box');
-            if(!userVal) return;
-            totalAnswered++;
-            document.getElementById('answer-input').disabled = true;
-            document.getElementById('btn-check').style.display = "none";
-            document.getElementById('btn-next').style.display = "block";
-            document.getElementById('btn-hint').disabled = true;
-
-            if(userVal === correctVal) {
-                if(!hintUsed) {
-                    score++;
-                    for(let k in DB) {
-                        if(DB[k].some(dbItem => dbItem.nombre === sessionData[currentIndex].nombre)) {
-                            if(!completedPool[k].includes(sessionData[currentIndex].nombre))
-                                completedPool[k].push(sessionData[currentIndex].nombre);
-                            break;
-                        }
-                    }
+        function drawGraph() {
+            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            
+            // Fondo
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            
+            // Determinar rango de ejes según restricciones
+            const xMin = currentScenario.xMin !== null ? currentScenario.xMin : -10;
+            const xMax = currentScenario.xMax;
+            const yMin = currentScenario.yMin !== null ? currentScenario.yMin : -10;
+            const yMax = currentScenario.yMax;
+            
+            // Calcular origen y escala según restricciones
+            let originX, originY, scaleX, scaleY;
+            
+            if (currentScenario.xMin !== null && currentScenario.xMin >= 0 && 
+                currentScenario.yMin !== null && currentScenario.yMin >= 0) {
+                // Ambos positivos: maximizar el espacio útil
+                originX = 60;  // Margen izquierdo para etiquetas
+                originY = CANVAS_HEIGHT - 60;  // Margen inferior para etiquetas
+                
+                // Escala adaptativa para aprovechar todo el espacio
+                const availableWidth = CANVAS_WIDTH - 80;  // Espacio horizontal disponible
+                const availableHeight = CANVAS_HEIGHT - 80;  // Espacio vertical disponible
+                scaleX = availableWidth / 10;  // 10 unidades en X
+                scaleY = availableHeight / 10;  // 10 unidades en Y
+            } else if (currentScenario.xMin !== null && currentScenario.xMin >= 0) {
+                // Solo X positivo: origen a la izquierda, Y centrado
+                originX = 60;
+                originY = ORIGIN_Y;
+                scaleX = (CANVAS_WIDTH - 80) / 10;
+                scaleY = SCALE;
+            } else if (currentScenario.yMin !== null && currentScenario.yMin >= 0) {
+                // Solo Y positivo: X centrado, origen abajo
+                originX = ORIGIN_X;
+                originY = CANVAS_HEIGHT - 60;
+                scaleX = SCALE;
+                scaleY = (CANVAS_HEIGHT - 80) / 10;
+            } else {
+                // Ambos pueden ser negativos: origen centrado
+                originX = ORIGIN_X;
+                originY = ORIGIN_Y;
+                scaleX = SCALE;
+                scaleY = SCALE;
+            }
+            
+            // Cuadrícula
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            
+            const gridStartX = currentScenario.xMin !== null && currentScenario.xMin >= 0 ? 0 : -10;
+            const gridStartY = currentScenario.yMin !== null && currentScenario.yMin >= 0 ? 0 : -10;
+            
+            for (let i = gridStartX; i <= 10; i++) {
+                ctx.beginPath();
+                ctx.moveTo(originX + i * scaleX, 0);
+                ctx.lineTo(originX + i * scaleX, CANVAS_HEIGHT);
+                ctx.stroke();
+            }
+            
+            for (let i = gridStartY; i <= 10; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, originY - i * scaleY);
+                ctx.lineTo(CANVAS_WIDTH, originY - i * scaleY);
+                ctx.stroke();
+            }
+            
+            // Ejes
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 2;
+            
+            // Eje X
+            ctx.beginPath();
+            ctx.moveTo(0, originY);
+            ctx.lineTo(CANVAS_WIDTH, originY);
+            ctx.stroke();
+            
+            // Eje Y
+            ctx.beginPath();
+            ctx.moveTo(originX, 0);
+            ctx.lineTo(originX, CANVAS_HEIGHT);
+            ctx.stroke();
+            
+            // Flechas
+            drawArrow(CANVAS_WIDTH - 10, originY, 10, 5, 'right');
+            drawArrow(originX, 10, 10, 5, 'up');
+            
+            // Etiquetas de ejes con variables físicas
+            ctx.fillStyle = '#1e293b';
+            ctx.font = 'bold 18px Arial';
+            const xLabel = `${currentScenario.xVar} (${currentScenario.xUnit})`;
+            const yLabel = `${currentScenario.yVar} (${currentScenario.yUnit})`;
+            ctx.fillText(xLabel, CANVAS_WIDTH - 90, originY - 15);
+            ctx.fillText(yLabel, originX + 15, 25);
+            
+            // Números en los ejes
+            ctx.font = '12px Arial';
+            for (let i = gridStartX; i <= 10; i++) {
+                if (i !== 0 || (currentScenario.xMin !== null && currentScenario.xMin >= 0)) {
+                    ctx.fillText(i, originX + i * scaleX - 5, originY + 20);
                 }
-                feedback.innerHTML = "✨ ¡Correcto!";
-                feedback.className = "feedback correct";
-            } else {
-                feedback.innerHTML = `❌ Incorrecto. Es: <b>${sessionData[currentIndex].nombre}</b>`;
-                feedback.className = "feedback wrong";
             }
-            feedback.style.display = "block";
-            updateStats();
+            
+            for (let i = gridStartY; i <= 10; i++) {
+                if (i !== 0 || (currentScenario.yMin !== null && currentScenario.yMin >= 0)) {
+                    ctx.fillText(i, originX - 20, originY - i * scaleY + 5);
+                }
+            }
+            
+            // Dibujar la recta
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            // Calcular límites de la recta según restricciones
+            const lineXMin = currentScenario.xMin !== null ? currentScenario.xMin : -12;
+            const lineXMax = currentScenario.xMax || 12;
+            
+            const x1 = lineXMin;
+            const y1 = slope * x1 + yIntercept;
+            const x2 = lineXMax;
+            const y2 = slope * x2 + yIntercept;
+            
+            ctx.moveTo(originX + x1 * scaleX, originY - y1 * scaleY);
+            ctx.lineTo(originX + x2 * scaleX, originY - y2 * scaleY);
+            ctx.stroke();
+            
+            // Dibujar puntos seleccionados y triángulo
+            if (selectedPoints.length > 0) {
+                selectedPoints.forEach((point, index) => {
+                    drawPoint(point.x, point.y, index + 1, originX, originY, scaleX, scaleY);
+                    drawDashedLinesToAxes(point.x, point.y, originX, originY, scaleX, scaleY);
+                });
+                
+                if (selectedPoints.length === 2) {
+                    drawTriangle(selectedPoints[0], selectedPoints[1], originX, originY, scaleX, scaleY);
+                }
+            }
+            
+            // Mostrar el valor de la pendiente y ecuación al FINAL para que quede por encima
+            if (showSlopeValue) {
+                ctx.font = 'bold 16px Arial';
+                
+                // Construir la ecuación de la recta según el escenario
+                let equation = '';
+                if (yIntercept >= 0) {
+                    equation = `${currentScenario.yVar}(${currentScenario.xVar}) = ${yIntercept.toFixed(2)} + ${slope.toFixed(2)}${currentScenario.xVar}`;
+                } else {
+                    equation = `${currentScenario.yVar}(${currentScenario.xVar}) = ${yIntercept.toFixed(2)} ${slope.toFixed(2)}${currentScenario.xVar}`;
+                }
+                
+                const slopeText = `${currentScenario.slopeVar} = ${slope.toFixed(2)} ${currentScenario.slopeUnit}`;
+                const maxWidth = Math.max(ctx.measureText(slopeText).width, ctx.measureText(equation).width);
+                
+                // Determinar posición óptima según el origen
+                let boxX, boxY;
+                if (currentScenario.xMin !== null && currentScenario.xMin >= 0 && 
+                    currentScenario.yMin !== null && currentScenario.yMin >= 0) {
+                    // Origen en esquina inferior izquierda: poner en superior derecha
+                    boxX = CANVAS_WIDTH - maxWidth - 50;
+                    boxY = 15;
+                } else if (currentScenario.xMin !== null && currentScenario.xMin >= 0) {
+                    // Origen a la izquierda: poner en superior derecha
+                    boxX = CANVAS_WIDTH - maxWidth - 50;
+                    boxY = 15;
+                } else {
+                    // Origen centrado: poner arriba a la izquierda para evitar ejes
+                    boxX = 20;
+                    boxY = 15;
+                }
+                
+                // Fondo para el texto (ahora más alto para dos líneas)
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.fillRect(boxX, boxY, maxWidth + 40, 65);
+                ctx.strokeStyle = '#3b82f6';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(boxX, boxY, maxWidth + 40, 65);
+                
+                // Texto - Primera línea: pendiente
+                ctx.fillStyle = '#3b82f6';
+                ctx.font = 'bold 16px Arial';
+                ctx.fillText(slopeText, boxX + 20, boxY + 25);
+                
+                // Texto - Segunda línea: ecuación
+                ctx.fillStyle = '#059669';
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText(equation, boxX + 20, boxY + 50);
+            }
         }
 
-        function nextQuestion() { currentIndex++; loadQuestion(); }
-
-        function getHint() {
-            const correct = sessionData[currentIndex].nombre;
-            const input = document.getElementById('answer-input');
-            hintUsed = true;
-            let hText = correct.startsWith("ácido") ? "ácido " + correct.split(" ")[1].substring(0, 3) + "..." : correct.substring(0, 4) + "...";
-            input.value = hText;
-            input.focus();
-            const fb = document.getElementById('feedback-box');
-            fb.innerHTML = "💡 Pista activa (no puntuable).";
-            fb.className = "feedback wrong";
-            fb.style.display = "block";
-            document.getElementById('btn-hint').disabled = true;
+        function drawArrow(x, y, width, height, direction = 'right') {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            if (direction === 'right') {
+                ctx.lineTo(x - width, y - height);
+                ctx.lineTo(x - width, y + height);
+            } else if (direction === 'up') {
+                ctx.lineTo(x - height, y + width);
+                ctx.lineTo(x + height, y + width);
+            }
+            ctx.closePath();
+            ctx.fillStyle = '#1e293b';
+            ctx.fill();
         }
 
-        function updateStats() {
-            document.getElementById('stat-pos').innerText = `${currentIndex + 1}/${sessionData.length}`;
-            document.getElementById('stat-score').innerText = score;
-            const acc = totalAnswered === 0 ? 0 : Math.round((score / totalAnswered) * 100);
-            document.getElementById('stat-acc').innerText = `${acc}%`;
-            document.getElementById('progressBar').style.width = `${(currentIndex / sessionData.length) * 100}%`;
+        function drawPoint(x, y, label, originX, originY, scaleX, scaleY) {
+            const canvasX = originX + x * scaleX;
+            const canvasY = originY - y * scaleY;
+            
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath();
+            ctx.arc(canvasX, canvasY, 6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.strokeStyle = '#991b1b';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            ctx.fillStyle = '#1e293b';
+            ctx.font = 'bold 14px Arial';
+            const pointLabel = `P${label}(${x.toFixed(1)}, ${y.toFixed(1)})`;
+            ctx.fillText(pointLabel, canvasX + 10, canvasY - 10);
         }
 
-        function showResults() {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById('view-results').classList.add('active');
-            const acc = totalAnswered === 0 ? 0 : Math.round((score / totalAnswered) * 100);
-            document.getElementById('final-score').innerText = `${score}/${sessionData.length}`;
-            document.getElementById('final-acc').innerText = `${acc}%`;
-            document.getElementById('progressBar').style.width = "100%";
+        function drawDashedLinesToAxes(x, y, originX, originY, scaleX, scaleY) {
+            const canvasX = originX + x * scaleX;
+            const canvasY = originY - y * scaleY;
+            
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            
+            ctx.beginPath();
+            ctx.moveTo(canvasX, canvasY);
+            ctx.lineTo(canvasX, originY);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(canvasX, canvasY);
+            ctx.lineTo(originX, canvasY);
+            ctx.stroke();
+            
+            ctx.setLineDash([]);
         }
 
-        function normalizeText(str) {
-            return str.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, ' ').replace(/-(?=[a-z])/g, '');
+        function drawTriangle(p1, p2, originX, originY, scaleX, scaleY) {
+            const canvasX1 = originX + p1.x * scaleX;
+            const canvasY1 = originY - p1.y * scaleY;
+            const canvasX2 = originX + p2.x * scaleX;
+            const canvasY2 = originY - p2.y * scaleY;
+            
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([]);
+            
+            ctx.beginPath();
+            ctx.moveTo(canvasX1, canvasY1);
+            ctx.lineTo(canvasX2, canvasY1);
+            ctx.lineTo(canvasX2, canvasY2);
+            ctx.closePath();
+            ctx.stroke();
+            
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.1)';
+            ctx.fill();
+            
+            const deltaX = Math.abs(p2.x - p1.x);
+            const deltaY = Math.abs(p2.y - p1.y);
+            
+            ctx.fillStyle = '#059669';
+            ctx.font = 'bold 14px Arial';
+            
+            // Calcular tamaño del triángulo en píxeles
+            const triangleWidth = Math.abs(canvasX2 - canvasX1);
+            const triangleHeight = Math.abs(canvasY2 - canvasY1);
+            const isSmallTriangle = triangleWidth < 100 || triangleHeight < 100;
+            
+            // Etiqueta horizontal (Δx)
+            const midX = (canvasX1 + canvasX2) / 2;
+            const deltaXText = `Δ${currentScenario.xVar} = ${deltaX.toFixed(1)} ${currentScenario.xUnit}`;
+            
+            if (isSmallTriangle && triangleWidth < 100) {
+                // Si es muy estrecho, poner la etiqueta fuera (abajo)
+                ctx.fillText(deltaXText, midX - 50, canvasY1 + 35);
+            } else {
+                // Normal: dentro del triángulo
+                ctx.fillText(deltaXText, midX - 50, canvasY1 + 20);
+            }
+            
+            // Etiqueta vertical (Δy)
+            const midY = (canvasY1 + canvasY2) / 2;
+            const deltaYText = `Δ${currentScenario.yVar} = ${deltaY.toFixed(1)} ${currentScenario.yUnit}`;
+            
+            if (isSmallTriangle && triangleHeight < 100) {
+                // Si es muy bajo, poner la etiqueta fuera (a la derecha)
+                ctx.fillText(deltaYText, canvasX2 + 15, midY);
+            } else {
+                // Normal: pegada al lado derecho
+                ctx.fillText(deltaYText, canvasX2 + 10, midY);
+            }
+            
+            // Dibujar pequeñas marcas en las esquinas del triángulo para mayor claridad
+            ctx.strokeStyle = '#059669';
+            ctx.lineWidth = 2;
+            
+            // Marca esquina inferior derecha (ángulo recto)
+            const cornerSize = 10;
+            ctx.beginPath();
+            ctx.moveTo(canvasX2 - cornerSize, canvasY1);
+            ctx.lineTo(canvasX2 - cornerSize, canvasY1 - cornerSize);
+            ctx.lineTo(canvasX2, canvasY1 - cornerSize);
+            ctx.stroke();
         }
 
-        document.getElementById('answer-input').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') {
-                if(document.getElementById('btn-check').style.display !== 'none') checkAnswer();
-                else nextQuestion();
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = CANVAS_WIDTH / rect.width;
+            const scaleY = CANVAS_HEIGHT / rect.height;
+            
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
+
+        canvas.addEventListener('click', function(e) {
+            if (selectedPoints.length >= 2) return;
+            
+            const pos = getMousePos(e);
+            
+            // Calcular origen y escalas según restricciones
+            let originX, originY, scaleX, scaleY;
+            
+            if (currentScenario.xMin !== null && currentScenario.xMin >= 0 && 
+                currentScenario.yMin !== null && currentScenario.yMin >= 0) {
+                originX = 60;
+                originY = CANVAS_HEIGHT - 60;
+                scaleX = (CANVAS_WIDTH - 80) / 10;
+                scaleY = (CANVAS_HEIGHT - 80) / 10;
+            } else if (currentScenario.xMin !== null && currentScenario.xMin >= 0) {
+                originX = 60;
+                originY = ORIGIN_Y;
+                scaleX = (CANVAS_WIDTH - 80) / 10;
+                scaleY = SCALE;
+            } else if (currentScenario.yMin !== null && currentScenario.yMin >= 0) {
+                originX = ORIGIN_X;
+                originY = CANVAS_HEIGHT - 60;
+                scaleX = SCALE;
+                scaleY = (CANVAS_HEIGHT - 80) / 10;
+            } else {
+                originX = ORIGIN_X;
+                originY = ORIGIN_Y;
+                scaleX = SCALE;
+                scaleY = SCALE;
+            }
+            
+            const x = (pos.x - originX) / scaleX;
+            const y = -(pos.y - originY) / scaleY;
+            
+            // Verificar que el punto esté dentro del dominio válido
+            if (currentScenario.xMin !== null && x < currentScenario.xMin) return;
+            if (currentScenario.yMin !== null && y < currentScenario.yMin) return;
+            
+            const expectedY = slope * x + yIntercept;
+            const distance = Math.abs(y - expectedY);
+            
+            if (distance < 0.5) {
+                const roundedX = Math.round(x * 2) / 2;
+                const exactY = slope * roundedX + yIntercept;
+                
+                // Verificar nuevamente que el punto esté en el dominio válido
+                if (currentScenario.xMin !== null && roundedX < currentScenario.xMin) return;
+                if (currentScenario.yMin !== null && exactY < currentScenario.yMin) return;
+                
+                selectedPoints.push({ x: roundedX, y: exactY });
+                drawGraph();
+                updatePointInfo();
+                
+                if (selectedPoints.length === 2) {
+                    document.getElementById('inputPanel').style.display = 'block';
+                    document.getElementById('slopeInput').focus();
+                }
             }
         });
 
-        window.onload = updateMenuCounters;
+        function updatePointInfo() {
+            document.getElementById('pointCount').textContent = `${selectedPoints.length} / 2`;
+            
+            if (selectedPoints.length >= 1) {
+                const p1 = selectedPoints[0];
+                document.getElementById('point1Info').style.display = 'flex';
+                document.getElementById('point1Text').textContent = 
+                    `(${p1.x.toFixed(1)} ${currentScenario.xUnit}, ${p1.y.toFixed(1)} ${currentScenario.yUnit})`;
+            } else {
+                document.getElementById('point1Info').style.display = 'none';
+            }
+            
+            if (selectedPoints.length === 2) {
+                const p1 = selectedPoints[0];
+                const p2 = selectedPoints[1];
+                document.getElementById('point2Info').style.display = 'flex';
+                document.getElementById('point2Text').textContent = 
+                    `(${p2.x.toFixed(1)} ${currentScenario.xUnit}, ${p2.y.toFixed(1)} ${currentScenario.yUnit})`;
+                
+                const deltaX = Math.abs(p2.x - p1.x);
+                const deltaY = Math.abs(p2.y - p1.y);
+                
+                document.getElementById('deltaXLabel').textContent = `Δ${currentScenario.xVar}:`;
+                document.getElementById('deltaYLabel').textContent = `Δ${currentScenario.yVar}:`;
+                
+                document.getElementById('deltaInfo').style.display = 'flex';
+                document.getElementById('deltaX').textContent = `${deltaX.toFixed(2)} ${currentScenario.xUnit}`;
+                document.getElementById('deltaY').textContent = `${deltaY.toFixed(2)} ${currentScenario.yUnit}`;
+            } else {
+                document.getElementById('point2Info').style.display = 'none';
+                document.getElementById('deltaInfo').style.display = 'none';
+            }
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseFloat(document.getElementById('slopeInput').value);
+            
+            if (isNaN(userAnswer)) {
+                alert('Por favor, introduce un valor numérico');
+                return;
+            }
+            
+            const p1 = selectedPoints[0];
+            const p2 = selectedPoints[1];
+            
+            const deltaX = p2.x - p1.x;
+            const deltaY = p2.y - p1.y;
+            const calculatedSlope = deltaY / deltaX;
+            
+            const isCorrect = Math.abs(userAnswer - calculatedSlope) < 0.05;
+            
+            // Construir la ecuación de la recta
+            let equation = '';
+            if (yIntercept >= 0) {
+                equation = `${currentScenario.yVar}(${currentScenario.xVar}) = ${yIntercept.toFixed(2)} + ${slope.toFixed(2)}${currentScenario.xVar}`;
+            } else {
+                equation = `${currentScenario.yVar}(${currentScenario.xVar}) = ${yIntercept.toFixed(2)} ${slope.toFixed(2)}${currentScenario.xVar}`;
+            }
+            
+            // Activar visualización de la pendiente en el gráfico
+            showSlopeValue = true;
+            drawGraph();
+            
+            const resultPanel = document.getElementById('resultPanel');
+            resultPanel.className = 'result-panel show';
+            resultPanel.classList.add(isCorrect ? 'result-correct' : 'result-incorrect');
+            
+            const xVar = currentScenario.xVar;
+            const yVar = currentScenario.yVar;
+            const slopeVar = currentScenario.slopeVar;
+            const xUnit = currentScenario.xUnit;
+            const yUnit = currentScenario.yUnit;
+            const slopeUnit = currentScenario.slopeUnit;
+            
+            let html = `
+                <div class="result-title">${isCorrect ? '✅ ¡Correcto!' : '❌ Incorrecto'}</div>
+                <div class="calculation">
+                    <div class="step-label">Fórmula de la ${currentScenario.slopeName}:</div>
+                    <div class="math-step">
+                        ${slopeVar} <span class="math-equals">=</span>
+                        <div class="math-fraction">
+                            <div class="math-numerator">Δ${yVar}</div>
+                            <div class="math-denominator">Δ${xVar}</div>
+                        </div>
+                        <span class="math-equals">=</span>
+                        <div class="math-fraction">
+                            <div class="math-numerator">${yVar}₂ - ${yVar}₁</div>
+                            <div class="math-denominator">${xVar}₂ - ${xVar}₁</div>
+                        </div>
+                    </div>
+                    
+                    <div class="step-label">Sustituyendo los valores:</div>
+                    <div class="math-step">
+                        ${slopeVar} <span class="math-equals">=</span>
+                        <div class="math-fraction">
+                            <div class="math-numerator">(${p2.y.toFixed(2)}) - (${p1.y.toFixed(2)})</div>
+                            <div class="math-denominator">(${p2.x.toFixed(2)}) - (${p1.x.toFixed(2)})</div>
+                        </div>
+                    </div>
+                    
+                    <div class="step-label">Calculando:</div>
+                    <div class="math-step">
+                        ${slopeVar} <span class="math-equals">=</span>
+                        <div class="math-fraction">
+                            <div class="math-numerator">${deltaY.toFixed(2)}</div>
+                            <div class="math-denominator">${deltaX.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="final-answer">
+                        ${slopeVar} = ${calculatedSlope.toFixed(2)} ${slopeUnit}
+                    </div>
+                </div>
+            `;
+            
+            if (!isCorrect) {
+                html += `
+                    <div style="margin-top: 12px; font-size: clamp(0.9rem, 2.5vw, 1rem); line-height: 1.6;">
+                        <strong>Tu respuesta:</strong> ${userAnswer.toFixed(2)} ${slopeUnit}<br>
+                        <strong>Respuesta correcta:</strong> ${calculatedSlope.toFixed(2)} ${slopeUnit}
+                    </div>
+                `;
+            }
+            
+            html += `
+                <div style="margin-top: 15px; padding: 15px; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border-radius: 10px; border: 2px solid #d97706; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);">
+                    <div style="font-size: clamp(0.85rem, 2.5vw, 0.95rem); font-weight: 600; margin-bottom: 8px; color: #78350f; text-align: center;">
+                        📐 Ecuación de la recta:
+                    </div>
+                    <div style="font-size: clamp(1rem, 3.5vw, 1.15rem); font-family: 'Courier New', monospace; color: #1e293b; font-weight: 700; text-align: center; background: rgba(255, 255, 255, 0.9); padding: 10px; border-radius: 6px;">
+                        ${equation}
+                    </div>
+                </div>
+            `;
+            
+            resultPanel.innerHTML = html;
+        }
+
+        function resetPoints() {
+            selectedPoints = [];
+            showSlopeValue = false;
+            updatePointInfo();
+            document.getElementById('inputPanel').style.display = 'none';
+            document.getElementById('resultPanel').classList.remove('show');
+            document.getElementById('slopeInput').value = '';
+            drawGraph();
+        }
+
+        // Inicializar
+        generateNewScenario();
     </script>
 </body>
 </html>
