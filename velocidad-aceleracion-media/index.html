@@ -1120,7 +1120,9 @@ function drawAxis() {
     ctx.moveTo(px, axisY - 5); ctx.lineTo(px, axisY + 5);
     ctx.stroke();
     ctx.textAlign = 'center';
-    ctx.fillText(m + 'm', px, axisY + 20);
+    // Si el eje apunta a la derecha, mostrar m como está; si apunta a la izquierda, invertir el signo
+    var labelValue = axisRight ? m : -m;
+    ctx.fillText(labelValue + 'm', px, axisY + 20);
   }
 }
 
@@ -1470,6 +1472,13 @@ function frac(num, den, cls) {
   return '<span class="frac ' + cls + '"><span class="frac-num">' + num + '</span><span class="frac-den">' + den + '</span></span>';
 }
 
+function countDecimals(value) {
+  // Función para contar el número de decimales de un valor
+  var text = value.toString();
+  if (text.indexOf('.') === -1) return 0;
+  return text.split('.')[1].length || 0;
+}
+
 function showResults() {
   var t0 = parseFloat(document.getElementById('t0Input').value) || 0;
   var tf = t0 + elapsedTime;
@@ -1488,6 +1497,12 @@ function showResults() {
 
   if (mode === 'velocity') {
     var vm = displacement / dt;
+    
+    // Obtener el número de decimales de la velocidad del coche elegida
+    var speedInput = parseFloat(document.getElementById('carSpeed').value) || 20;
+    var decimals = countDecimals(speedInput);
+    // Si no tiene decimales, usar 0 decimales en el resultado
+    if (decimals === 0) decimals = 0;
 
     title.innerHTML = '📊 Datos: Velocidad Media';
     grid.innerHTML =
@@ -1519,7 +1534,7 @@ function showResults() {
         'v<sub>m</sub> <span class="sym">=</span> ' +
         frac(displacement.toFixed(1), dt.toFixed(1), 'frac-result') +
       '</div>' +
-      '<div class="formula-result">v<sub>m</sub> = ' + signVm + vm.toFixed(2) + ' m/s</div>' +
+      '<div class="formula-result">v<sub>m</sub> = ' + signVm + vm.toFixed(decimals) + ' m/s</div>' +
       '<div class="formula-interpretation">' +
       (vm > 0 ? '\u2192 Velocidad positiva: se mueve en el sentido (+) del eje' : vm < 0 ? '\u2192 Velocidad negativa: se mueve en el sentido (\u2212) del eje' : '\u2192 El coche no se ha desplazado') +
       '</div>';
@@ -1538,6 +1553,14 @@ function showResults() {
 
     var dv = vfaxis - v0axis;
     var am = dv / dt;
+    
+    // Obtener el número de decimales de la velocidad inicial y final
+    var decimalsV0 = countDecimals(v0abs);
+    var speedInput = parseFloat(document.getElementById('carSpeed').value) || 20;
+    var decimalsSpeed = countDecimals(speedInput);
+    // Usar el máximo número de decimales entre v0 y la velocidad del coche
+    var decimals = Math.max(decimalsV0, decimalsSpeed);
+    if (decimals === 0) decimals = 0;
 
     title.innerHTML = '📊 Datos: Aceleraci\u00f3n Media';
     grid.innerHTML =
@@ -1570,7 +1593,7 @@ function showResults() {
         'a<sub>m</sub> <span class="sym">=</span> ' +
         frac(dv.toFixed(1), dt.toFixed(1), 'frac-result') +
       '</div>' +
-      '<div class="formula-result">a<sub>m</sub> = ' + signAm + am.toFixed(2) + ' m/s\u00B2</div>' +
+      '<div class="formula-result">a<sub>m</sub> = ' + signAm + am.toFixed(decimals) + ' m/s\u00B2</div>' +
       '<div class="formula-interpretation">' +
       (am > 0 ? '\u2192 Aceleraci\u00f3n positiva: la velocidad aumenta en sentido (+)' : am < 0 ? '\u2192 Aceleraci\u00f3n negativa: la velocidad disminuye en sentido (+)' : '\u2192 No hay cambio de velocidad') +
       '</div>';
