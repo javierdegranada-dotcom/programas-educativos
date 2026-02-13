@@ -495,8 +495,7 @@
                 yMin: null,
                 xMax: 10,
                 yMax: 10,
-                slopePositive: false,
-                throughOrigin: false  // v(0) = v₀ (puede tener velocidad inicial)
+                slopePositive: false
             },
             {
                 icon: '📏',
@@ -515,8 +514,7 @@
                 yMin: null,
                 xMax: 10,
                 yMax: 10,
-                slopePositive: false,
-                throughOrigin: false  // x(0) = x₀ (puede tener posición inicial)
+                slopePositive: false
             },
             {
                 icon: '🔋',
@@ -535,8 +533,7 @@
                 yMin: 0,
                 xMax: 10,
                 yMax: 10,
-                slopePositive: true,
-                throughOrigin: true  // V = RI (sin I no hay V)
+                slopePositive: true
             },
             {
                 icon: '⚖️',
@@ -555,8 +552,7 @@
                 yMin: 0,
                 xMax: 10,
                 yMax: 10,
-                slopePositive: true,
-                throughOrigin: true  // F = kΔx (sin elongación no hay fuerza)
+                slopePositive: true
             },
             {
                 icon: '🌡️',
@@ -575,8 +571,7 @@
                 yMin: null,
                 xMax: 10,
                 yMax: 10,
-                slopePositive: true,
-                throughOrigin: true  // Q = CΔT (sin cambio de T no hay Q)
+                slopePositive: true
             },
             {
                 icon: '💰',
@@ -595,8 +590,7 @@
                 yMin: 0,
                 xMax: 10,
                 yMax: 10,
-                slopePositive: true,
-                throughOrigin: false  // C = Cf + p·n (puede haber coste fijo)
+                slopePositive: true
             },
             {
                 icon: '⚡',
@@ -615,8 +609,7 @@
                 yMin: 0,
                 xMax: 10,
                 yMax: 10,
-                slopePositive: true,
-                throughOrigin: false  // E = E₀ + Pt (puede tener energía inicial)
+                slopePositive: true
             },
             {
                 icon: '🧪',
@@ -635,8 +628,7 @@
                 yMin: 0,
                 xMax: 10,
                 yMax: 10,
-                slopePositive: true,
-                throughOrigin: true  // n = M·V (sin volumen no hay moles)
+                slopePositive: true
             },
             {
                 icon: '🌡️',
@@ -655,8 +647,7 @@
                 yMin: 0,
                 xMax: 10,
                 yMax: 10,
-                slopePositive: true,
-                throughOrigin: true  // P = kT (0 K → 0 Pa)
+                slopePositive: true
             },
             {
                 icon: '🎈',
@@ -675,8 +666,7 @@
                 yMin: 0,
                 xMax: 10,
                 yMax: 10,
-                slopePositive: true,
-                throughOrigin: true  // V = kT (0 K → 0 L)
+                slopePositive: true
             },
             {
                 icon: '⚗️',
@@ -695,8 +685,7 @@
                 yMin: 0,
                 xMax: 10,
                 yMax: 10,
-                slopePositive: true,
-                throughOrigin: true  // m = ρV (sin volumen no hay masa)
+                slopePositive: true
             },
             {
                 icon: '💧',
@@ -715,8 +704,7 @@
                 yMin: null,
                 xMax: 10,
                 yMax: 10,
-                slopePositive: true,
-                throughOrigin: false  // P = P₀ + ρgh (hay presión atmosférica)
+                slopePositive: true
             },
             {
                 icon: '🔬',
@@ -735,8 +723,7 @@
                 yMin: 0,
                 xMax: 10,
                 yMax: 10,
-                slopePositive: true,
-                throughOrigin: true  // P = K(ΔV/V) (sin deformación no hay presión adicional)
+                slopePositive: true
             },
             {
                 icon: '🌊',
@@ -755,8 +742,27 @@
                 yMin: 0,
                 xMax: 10,
                 yMax: 10,
-                slopePositive: true,
-                throughOrigin: true  // V = Qt (sin tiempo no hay volumen acumulado)
+                slopePositive: true
+            },
+            {
+                icon: '📻',
+                title: 'Ondas: Longitud vs Frecuencia',
+                description: 'Para ondas electromagnéticas, la longitud de onda es inversamente proporcional a la frecuencia (pendiente negativa).',
+                xVar: 'f',
+                yVar: 'λ',
+                xUnit: 'Hz',
+                yUnit: 'm',
+                slopeVar: 'k',
+                slopeUnit: 'm·Hz',
+                slopeName: 'constante (inversa)',
+                xName: 'frecuencia',
+                yName: 'longitud de onda',
+                xMin: 0,
+                yMin: 0,
+                xMax: 10,
+                yMax: 10,
+                slopePositive: false,
+                inverseRelation: true
             }
         ];
 
@@ -803,32 +809,28 @@
             // Generar pendiente apropiada según restricciones
             if (currentScenario.slopePositive) {
                 // La pendiente DEBE ser positiva (resistencia, capacidad calorífica, etc.)
-                slope = (Math.random() * 1.5 + 0.3).toFixed(2) * 1;
-                
-                // Verificar si la recta DEBE pasar por el origen (relación directa sin término independiente)
-                if (currentScenario.throughOrigin) {
-                    yIntercept = 0; // DEBE pasar por (0,0)
-                } else if (currentScenario.xMin !== null && currentScenario.xMin >= 0 && 
+                slope = (Math.random() * 1.5 + 0.3).toFixed(1) * 1;
+                if (currentScenario.xMin !== null && currentScenario.xMin >= 0 && 
                     currentScenario.yMin !== null && currentScenario.yMin >= 0) {
-                    yIntercept = (Math.random() * 2).toFixed(2) * 1;
+                    yIntercept = (Math.random() * 2).toFixed(1) * 1;
                 } else {
-                    yIntercept = (Math.random() * 6 - 3).toFixed(2) * 1;
+                    yIntercept = (Math.random() * 6 - 3).toFixed(1) * 1;
                 }
             } else if (currentScenario.xMin !== null && currentScenario.xMin >= 0 && 
                 currentScenario.yMin !== null && currentScenario.yMin >= 0) {
                 // Ambas variables deben ser positivas: pendiente positiva y que pase por (0,0) o cerca
-                slope = (Math.random() * 1.5 + 0.3).toFixed(2) * 1;
-                yIntercept = currentScenario.throughOrigin ? 0 : (Math.random() * 2).toFixed(2) * 1;
+                slope = (Math.random() * 1.5 + 0.3).toFixed(1) * 1;
+                yIntercept = (Math.random() * 2).toFixed(1) * 1;
             } else if (currentScenario.xMin !== null && currentScenario.xMin >= 0) {
                 // Solo x debe ser positivo: pendiente puede ser positiva o negativa
-                slope = (Math.random() * 2 - 1).toFixed(2) * 1;
+                slope = (Math.random() * 2 - 1).toFixed(1) * 1;
                 if (Math.abs(slope) < 0.2) slope = slope < 0 ? -0.5 : 0.5;
-                yIntercept = currentScenario.throughOrigin ? 0 : (Math.random() * 6 - 3).toFixed(2) * 1;
+                yIntercept = (Math.random() * 6 - 3).toFixed(1) * 1;
             } else {
                 // Ambas pueden ser negativas: cualquier pendiente
-                slope = (Math.random() * 2 - 1).toFixed(2) * 1;
+                slope = (Math.random() * 2 - 1).toFixed(1) * 1;
                 if (Math.abs(slope) < 0.2) slope = slope < 0 ? -0.5 : 0.5;
-                yIntercept = currentScenario.throughOrigin ? 0 : (Math.random() * 4 - 2).toFixed(2) * 1;
+                yIntercept = (Math.random() * 4 - 2).toFixed(1) * 1;
             }
             
             drawGraph();
@@ -981,12 +983,12 @@
                 // Construir la ecuación de la recta según el escenario
                 let equation = '';
                 if (yIntercept >= 0) {
-                    equation = `${currentScenario.yVar}(${currentScenario.xVar}) = ${yIntercept.toFixed(2)} + ${slope.toFixed(2)}${currentScenario.xVar}`;
+                    equation = `${currentScenario.yVar}(${currentScenario.xVar}) = ${yIntercept.toFixed(1)} + ${slope.toFixed(1)}${currentScenario.xVar}`;
                 } else {
-                    equation = `${currentScenario.yVar}(${currentScenario.xVar}) = ${yIntercept.toFixed(2)} ${slope.toFixed(2)}${currentScenario.xVar}`;
+                    equation = `${currentScenario.yVar}(${currentScenario.xVar}) = ${yIntercept.toFixed(1)} ${slope.toFixed(1)}${currentScenario.xVar}`;
                 }
                 
-                const slopeText = `${currentScenario.slopeVar} = ${slope.toFixed(2)} ${currentScenario.slopeUnit}`;
+                const slopeText = `${currentScenario.slopeVar} = ${slope.toFixed(1)} ${currentScenario.slopeUnit}`;
                 const maxWidth = Math.max(ctx.measureText(slopeText).width, ctx.measureText(equation).width);
                 
                 // Determinar posición óptima según el origen
@@ -1273,9 +1275,9 @@
             // Construir la ecuación de la recta
             let equation = '';
             if (yIntercept >= 0) {
-                equation = `${currentScenario.yVar}(${currentScenario.xVar}) = ${yIntercept.toFixed(2)} + ${slope.toFixed(2)}${currentScenario.xVar}`;
+                equation = `${currentScenario.yVar}(${currentScenario.xVar}) = ${yIntercept.toFixed(1)} + ${slope.toFixed(1)}${currentScenario.xVar}`;
             } else {
-                equation = `${currentScenario.yVar}(${currentScenario.xVar}) = ${yIntercept.toFixed(2)} ${slope.toFixed(2)}${currentScenario.xVar}`;
+                equation = `${currentScenario.yVar}(${currentScenario.xVar}) = ${yIntercept.toFixed(1)} ${slope.toFixed(1)}${currentScenario.xVar}`;
             }
             
             // Activar visualización de la pendiente en el gráfico
