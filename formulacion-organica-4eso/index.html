@@ -3,569 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master en Formulación - 4º ESO (Con IDs)</title>
+    <title>Entrenador de Sucesiones - Foto vs Cubo</title>
     <style>
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #ec4899;
-            --success: #22c55e;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text: #1e293b;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
-
-        body {
-            background-color: var(--bg);
-            background-image: radial-gradient(circle at 2px 2px, #e2e8f0 1px, transparent 0);
-            background-size: 40px 40px;
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .app-container {
-            background: var(--card-bg);
-            width: 100%;
-            max-width: 950px;
-            border-radius: 24px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            border: 1px solid #e2e8f0;
-            position: relative;
-        }
-
-        .header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            padding: 30px;
-            color: white;
-            text-align: center;
-        }
-
-        .header h1 { font-size: 1.8rem; margin-bottom: 5px; }
-        .header p { opacity: 0.9; font-size: 0.9rem; }
-
-        .view { padding: 30px; display: none; }
-        .view.active { display: block; animation: fadeIn 0.4s ease; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .group-title {
-            font-size: 0.85rem;
-            font-weight: 800;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin: 20px 0 10px 5px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .group-title::after { content: ""; flex: 1; height: 1px; background: #e2e8f0; }
-
-        .grid-menu {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .card-btn {
-            background: white;
-            border: 2px solid #e2e8f0;
-            padding: 18px;
-            border-radius: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            text-align: center;
-        }
-
-        .card-btn:hover { border-color: var(--primary); background: #f5f3ff; transform: translateY(-2px); }
-
-        .stats-bar {
-            display: flex;
-            justify-content: space-between;
-            background: #f1f5f9;
-            padding: 15px 25px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-        }
-
-        .stat-item { text-align: center; }
-        .stat-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; }
-        .stat-value { font-size: 1.2rem; font-weight: 800; color: var(--primary); }
-
-        .formula-box {
-            background: #ffffff;
-            border: 2px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 40px 20px;
-            margin-bottom: 5px;
-            min-height: 260px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.3rem;
-            overflow-x: auto;
-            position: relative;
-        }
-
-        /* ID Badge en esquina superior derecha */
-        .compound-id {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: var(--primary);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 800;
-            font-family: monospace;
-        }
-
-        /* CORRECCIÓN DE ALINEACIÓN DE TABLAS */
-        .formula-display table { border-collapse: collapse; line-height: 1.1; margin: 0 auto; }
-        .formula-display td { 
-            padding: 0 2px; 
-            text-align: center; 
-            font-family: 'Courier New', monospace; 
-            font-weight: bold;
-            min-width: 30px; 
-        }
-
-        .input-group input[type="text"] {
-            width: 100%;
-            padding: 18px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            text-align: center;
-            transition: border-color 0.2s;
-        }
-
-        .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-
-        button { padding: 15px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-outline { background: #f1f5f9; color: var(--text); }
-
-        .feedback {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 12px;
-            font-weight: 600;
-            display: none;
-            text-align: center;
-        }
-        .feedback.correct { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .feedback.wrong { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-
-        .progress-container { height: 6px; background: #e2e8f0; width: 100%; position: absolute; bottom: 0; }
-        .progress-bar { height: 100%; background: var(--success); width: 0%; transition: width 0.3s; }
-
-        @media (max-width: 600px) { .actions { grid-template-columns: 1fr; } }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; margin: 0; height: 100vh; }
+        #sidebar { width: 350px; background-color: #2c3e50; color: white; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); overflow-y: auto; }
+        #main-content { flex-grow: 1; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .formula-card { background: #34495e; padding: 15px; margin-bottom: 15px; border-radius: 8px; border: 2px solid transparent; cursor: pointer; transition: 0.3s; }
+        .formula-card:hover { border-color: #3498db; background: #3e5871; }
+        .formula-card h3 { margin: 0 0 5px 0; color: #3498db; font-size: 1.1em; }
+        .formula-card p { margin: 5px 0; font-size: 0.9em; opacity: 0.9; }
+        .formula-math { font-size: 1.2em; font-weight: bold; color: #f1c40f; display: block; margin-top: 5px; }
+        
+        #problem-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 600px; width: 100%; text-align: center; }
+        #problem-text { font-size: 1.3em; margin-bottom: 25px; line-height: 1.5; color: #333; }
+        #stats { margin-top: 20px; font-weight: bold; color: #7f8c8d; }
+        #feedback { margin-top: 15px; font-weight: bold; height: 20px; }
+        .correct { color: #27ae60; }
+        .incorrect { color: #e74c3c; }
+        
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.8em; margin-bottom: 5px; text-transform: uppercase; }
+        .badge-foto { background: #e67e22; color: white; }
+        .badge-cubo { background: #9b59b6; color: white; }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        <div class="header" style="position: relative;">
-            <h1>Master en Formulación - 4º ESO</h1>
-            <p>Versión con IDs de compuestos para facilitar correcciones</p>
-            <div class="progress-container">
-                <div class="progress-bar" id="progressBar"></div>
-            </div>
-        </div>
-
-        <div id="view-menu" class="view active">
-            <div class="group-title">Hidrocarburos y Alcoholes</div>
-            <div class="grid-menu">
-                <button class="card-btn" onclick="initPractice('hidrocarburos')"><span>⚡ Hidrocarburos</span><small id="cnt-hid">...</small></button>
-                <button class="card-btn" onclick="initPractice('alcoholes')"><span>🍷 Alcoholes</span><small id="cnt-alc">...</small></button>
-            </div>
-
-            <div class="group-title">Familias de Compuestos Oxigenados</div>
-            <div class="grid-menu">
-                <button class="card-btn" onclick="initPractice('aldehidos')"><span>🔬 Aldehídos</span><small id="cnt-ald">...</small></button>
-                <button class="card-btn" onclick="initPractice('cetonas')"><span>🧬 Cetonas</span><small id="cnt-cet">...</small></button>
-                <button class="card-btn" onclick="initPractice('acidos')"><span>🧪 Ácidos Carboxílicos</span><small id="cnt-aci">...</small></button>
-                <button class="card-btn" onclick="initPractice('esteres')"><span>🧪 Ésteres</span><small id="cnt-est">...</small></button>
-            </div>
-
-            <div class="group-title">Repaso General</div>
-            <button class="card-btn" style="width: 100%; background: #f8fafc;" onclick="initPractice('todos')">
-                <span>🔀 Mezclado Proporcional</span>
-                <small id="cnt-all">...</small>
-            </button>
-
-            <div style="margin-top: 30px; padding: 20px; background: #f1f5f9; border-radius: 16px; text-align: center;">
-                <label style="display:block; margin-bottom:10px; font-weight:700;">Límite de preguntas:</label>
-                <input type="number" id="practice-limit" style="padding: 12px; width: 100px; border-radius: 8px; border: 2px solid #cbd5e1; text-align: center; font-weight: 800;" placeholder="Todas">
-            </div>
-        </div>
-
-        <div id="view-practice" class="view">
-            <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
-                <button class="btn-outline" style="padding: 8px 15px; font-size: 0.8rem;" onclick="showMenu()">← Menú</button>
-                <span id="label-group" style="font-weight: 800; color: var(--primary);"></span>
-            </div>
-
-            <div class="stats-bar">
-                <div class="stat-item"><div class="stat-label">Pregunta</div><div class="stat-value" id="stat-pos">1/0</div></div>
-                <div class="stat-item"><div class="stat-label">Puntos</div><div class="stat-value" id="stat-score" style="color: var(--success);">0</div></div>
-                <div class="stat-item"><div class="stat-label">Acierto</div><div class="stat-value" id="stat-acc">0%</div></div>
-            </div>
-
-            <div class="question-container">
-                <h4 style="margin-bottom: 15px; color: #64748b;">Nombra este compuesto:</h4>
-                <div class="formula-box" id="formula-display">
-                    <span class="compound-id" id="compound-id">ID: H001</span>
-                </div>
-                <div class="input-group">
-                    <input type="text" id="answer-input" placeholder="Nombre IUPAC..." autocomplete="off">
-                    <div id="feedback-box" class="feedback"></div>
-                </div>
-
-                <div class="actions">
-                    <button id="btn-check" class="btn-primary" onclick="checkAnswer()">Comprobar</button>
-                    <button id="btn-next" class="btn-primary" style="display: none; background: var(--success);" onclick="nextQuestion()">Siguiente ➜</button>
-                    <button id="btn-hint" class="btn-outline" onclick="getHint()">Pedir Pista</button>
-                </div>
-            </div>
-        </div>
+<div id="sidebar">
+    <h2>Selecciona la Fórmula Correcta</h2>
+    <p style="font-size: 0.8em; opacity: 0.7; margin-bottom: 20px;">Haz clic en la fórmula que resuelve el problema central.</p>
+    
+    <div class="formula-card" onclick="checkAnswer(1)">
+        <span class="badge badge-foto">PA - Foto</span>
+        <h3>Término General</h3>
+        <p>Valor en un momento exacto</p>
+        <span class="formula-math">an = a1 + (n-1)·d</span>
     </div>
 
-    <script>
-const DB = {
-    hidrocarburos: [
-        { id: "H001", formula: "CH₄", nombre: "metano" },
-        { id: "H002", formula: "CH₃—CH₃", nombre: "etano" },
-        { id: "H003", formula: "CH₃—CH₂—CH₃", nombre: "propano" },
-        { id: "H004", formula: "CH₃—CH₂—CH₂—CH₃", nombre: "butano" },
-        { id: "H005", formula: "<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—CH₃</td></tr><tr><td></td><td>|</td><td></td></tr><tr><td></td><td>CH₃</td><td></td></tr></table>", nombre: "2,2-dimetilpropano" },
-        { id: "H006", formula: "CH₂=CH₂", nombre: "eteno" },
-        { id: "H007", formula: "CH₂=CH—CH₃", nombre: "propeno" },
-        { id: "H008", formula: "CH₂=CH—CH₂—CH₃", nombre: "but-1-eno" },
-        { id: "H009", formula: "CH₃—CH=CH—CH₃", nombre: "but-2-eno" },
-        { id: "H010", formula: "CH₂=CH—CH₂—CH₂—CH₃", nombre: "pent-1-eno" },
-        { id: "H011", formula: "CH₃—CH=CH—CH₂—CH₃", nombre: "pent-2-eno" },
-        { id: "H012", formula: "<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₂=</td><td>C</td><td>—CH₃</td></tr></table>", nombre: "2-metilpropeno" },
-        { id: "H013", formula: "CH₂=CH—CH=CH₂", nombre: "buta-1,3-dieno" },
-        { id: "H014", formula: "CH₂=CH—CH₂—CH=CH₂", nombre: "penta-1,4-dieno" },
-        { id: "H015", formula: "CH₃—CH=CH—CH=CH₂", nombre: "penta-1,3-dieno" },
-        { id: "H016", formula: "CH≡CH", nombre: "etino" },
-        { id: "H017", formula: "CH≡C—CH₃", nombre: "propino" },
-        { id: "H018", formula: "CH≡C—CH₂—CH₃", nombre: "but-1-ino" },
-        { id: "H019", formula: "CH₃—C≡C—CH₃", nombre: "but-2-ino" },
-        { id: "H020", formula: "CH≡C—CH₂—CH₂—CH₃", nombre: "pent-1-ino" },
-        { id: "H021", formula: "CH₃—C≡C—CH₂—CH₃", nombre: "pent-2-ino" },
-        { id: "H022", formula: "CH≡C—CH₂—CH₂—CH₂—CH₃", nombre: "hex-1-ino" },
-        { id: "H023", formula: "CH₃—C≡C—C≡CH", nombre: "penta-1,3-diino" },
-        { id: "H024", formula: "CH≡C—C≡CH", nombre: "buta-1,3-diino" },
-        { id: "H025", formula: "<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH≡C—</td><td>CH</td><td>—CH₃</td></tr></table>", nombre: "3-metilbut-1-ino" },
-        { id: "H026", formula: "CH₂=CH—C≡CH", nombre: "but-1-en-3-ino" },
-        { id: "H027", formula: "CH₂=CH—CH₂—C≡CH", nombre: "pent-1-en-4-ino" },
-        { id: "H028", formula: "CH≡C—CH=CH—CH₃", nombre: "pent-3-en-1-ino" },
-        { id: "H029", formula: "CH₂=CH—C≡C—CH₃", nombre: "pent-1-en-3-ino" },
-        { id: "H030", formula: "CH₂=CH—CH=CH—C≡CH", nombre: "hexa-1,3-dien-5-ino" },
-        { id: "H031", formula: "CH≡C—CH=CH—C≡CH", nombre: "hexa-3-en-1,5-diino" },
-        { id: "H032", formula: "<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₂=</td><td>C</td><td>—C≡</td><td>CH</td></tr></table>", nombre: "2-metilbut-1-en-3-ino" },
-        { id: "H033", formula: "CH≡C—CH₂—CH=CH—CH₃", nombre: "hex-4-en-1-ino" },
-        { id: "H034", formula: "CH₂=CH—CH₂—C≡C—CH₃", nombre: "hex-1-en-4-ino" }
-    ],
-    alcoholes: [
-        { id: "A001", formula: "CH₃—OH", nombre: "metanol" },
-        { id: "A002", formula: "CH₃—CH₂—OH", nombre: "etanol" },
-        { id: "A003", formula: "CH₃—CH₂—CH₂—OH", nombre: "propan-1-ol" },
-        { id: "A004", formula: "CH₃—CH₂—CH₂—CH₂—OH", nombre: "butan-1-ol" },
-        { id: "A005", formula: "CH₃—CH₂—CH₂—CH₂—CH₂—OH", nombre: "pentan-1-ol" },
-        { id: "A006", formula: "CH₃—CH₂—CH₂—CH₂—CH₂—CH₂—OH", nombre: "hexan-1-ol" },
-        { id: "A007", formula: "<table><tr><td></td><td>OH</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₃</td></tr></table>", nombre: "propan-2-ol" },
-        { id: "A008", formula: "<table><tr><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>", nombre: "butan-2-ol" },
-        { id: "A009", formula: "<table><tr><td></td><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>", nombre: "pentan-2-ol" },
-        { id: "A010", formula: "<table><tr><td></td><td></td><td>OH</td><td></td><td></td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH₂—</td><td>CH₃</td></tr></table>", nombre: "pentan-3-ol" },
-        { id: "A011", formula: "<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>OH</td></tr></table>", nombre: "2-metilpropan-1-ol" },
-        { id: "A012", formula: "<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—CH₃</td></tr><tr><td></td><td>|</td><td></td></tr><tr><td></td><td>OH</td><td></td></tr></table>", nombre: "2-metilpropan-2-ol" },
-        { id: "A013", formula: "<table><tr><td></td><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH₂—</td><td>OH</td></tr></table>", nombre: "2-metilbutan-1-ol" },
-        { id: "A014", formula: "<table><tr><td></td><td>CH₃</td><td></td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>CH₂—</td><td>OH</td></tr></table>", nombre: "3-metilbutan-1-ol" },
-        { id: "A015", formula: "<table><tr><td>OH</td><td>OH</td></tr><tr><td>|</td><td>|</td></tr><tr><td>CH₂</td><td>—CH₂</td></tr></table>", nombre: "etano-1,2-diol" },
-        { id: "A016", formula: "<table><tr><td>OH</td><td></td><td>OH</td></tr><tr><td>|</td><td></td><td>|</td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH₂</td></tr></table>", nombre: "propano-1,3-diol" },
-        { id: "A017", formula: "<table><tr><td>OH</td><td>OH</td><td></td></tr><tr><td>|</td><td>|</td><td></td></tr><tr><td>CH₂</td><td>—CH</td><td>—CH₃</td></tr></table>", nombre: "propano-1,2-diol" },
-        { id: "A018", formula: "<table><tr><td>OH</td><td></td><td></td><td>OH</td></tr><tr><td>|</td><td></td><td></td><td>|</td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH₂—</td><td>CH₂</td></tr></table>", nombre: "butano-1,4-diol" },
-        { id: "A019", formula: "<table><tr><td></td><td>OH</td><td>OH</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr></table>", nombre: "butano-2,3-diol" },
-        { id: "A020", formula: "<table><tr><td></td><td></td><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH₂—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>", nombre: "hexan-2-ol" },
-        { id: "A021", formula: "<table><tr><td></td><td></td><td></td><td>OH</td><td></td><td></td></tr><tr><td></td><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH₂—</td><td>CH</td><td>—CH₂—</td><td>CH₃</td></tr></table>", nombre: "hexan-3-ol" },
-        { id: "A022", formula: "<table><tr><td></td><td>OH</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr></table>", nombre: "3-metilbutan-2-ol" },
-        { id: "A023", formula: "<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—CH₂—</td><td>CH₃</td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td>OH</td><td></td><td></td></tr></table>", nombre: "2-metilbutan-2-ol" },
-        { id: "A024", formula: "<table><tr><td></td><td>OH</td><td></td><td>OH</td></tr><tr><td></td><td>|</td><td></td><td>|</td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>CH₂</td></tr></table>", nombre: "butano-1,3-diol" },
-        { id: "A025", formula: "<table><tr><td>OH</td><td></td><td></td><td>OH</td><td></td></tr><tr><td>|</td><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>", nombre: "pentano-1,4-diol" },
-        { id: "A026", formula: "<table><tr><td></td><td>OH</td><td></td><td>OH</td><td></td></tr><tr><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>", nombre: "pentano-2,4-diol" },
-        { id: "A027", formula: "<table><tr><td>OH</td><td>OH</td><td>OH</td></tr><tr><td>|</td><td>|</td><td>|</td></tr><tr><td>CH₂</td><td>—CH</td><td>—CH₂</td></tr></table>", nombre: "propano-1,2,3-triol" },
-        { id: "A028", formula: "<table><tr><td>OH</td><td></td><td>OH</td><td></td><td>OH</td></tr><tr><td>|</td><td></td><td>|</td><td></td><td>|</td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH</td><td>—CH₂—</td><td>CH₂</td></tr></table>", nombre: "pentano-1,3,5-triol" },
-        { id: "A029", formula: "<table><tr><td>OH</td><td></td><td></td><td></td><td>OH</td></tr><tr><td>|</td><td></td><td></td><td></td><td>|</td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH₂—</td><td>CH₂—</td><td>CH₂</td></tr></table>", nombre: "pentano-1,5-diol" },
-        { id: "A030", formula: "<table><tr><td></td><td></td><td>OH</td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr></table>", nombre: "pentano-2,3-diol" },
-        { id: "A031", formula: "<table><tr><td>OH</td><td></td><td>OH</td><td></td><td>OH</td><td></td></tr><tr><td>|</td><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>", nombre: "hexano-1,3,5-triol" },
-        { id: "A032", formula: "<table><tr><td>OH</td><td></td><td></td><td></td><td></td><td>OH</td></tr><tr><td>|</td><td></td><td></td><td></td><td></td><td>|</td></tr><tr><td>CH₂</td><td>—CH₂—</td><td>CH₂—</td><td>CH₂—</td><td>CH₂—</td><td>CH₂</td></tr></table>", nombre: "hexano-1,6-diol" },
-        { id: "A033", formula: "<table><tr><td>OH</td><td>CH₃</td><td>CH₃</td><td></td></tr><tr><td>|</td><td>|</td><td>|</td><td></td></tr><tr><td>CH₂</td><td>—CH</td><td>—CH</td><td>—CH₃</td></tr></table>", nombre: "2,3-dimetilbutan-1-ol" },
-        { id: "A034", formula: "<table><tr><td>OH</td><td>CH₃</td><td></td><td>CH₃</td><td></td></tr><tr><td>|</td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₂</td><td>—CH</td><td>—CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>", nombre: "2,4-dimetilpentan-1-ol" },
-        { id: "A035", formula: "<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—CH₂—</td><td>OH</td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td>CH₃</td><td></td><td></td></tr></table>", nombre: "2,2-dimetilpropan-1-ol" },
-        { id: "A036", formula: "<table><tr><td>OH</td><td>CH₃</td><td></td><td></td></tr><tr><td>|</td><td>|</td><td></td><td></td></tr><tr><td>CH₂</td><td>—C</td><td>—CH₂—</td><td>CH₃</td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td>CH₃</td><td></td><td></td></tr></table>", nombre: "2,2-dimetilbutan-1-ol" },
-        { id: "A037", formula: "<table><tr><td></td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>HO—CH₂—</td><td>CH₂—</td><td>C</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>CH₃</td><td></td></tr></table>", nombre: "3,3-dimetilbutan-1-ol" },
-        { id: "A038", formula: "CH₃—CH₂—CH₂—CH₂—CH₂—CH₂—CH₂—OH", nombre: "heptan-1-ol" },
-        { id: "A039", formula: "CH₃—CH₂—CH₂—CH₂—CH₂—CH₂—CH₂—CH₂—OH", nombre: "octan-1-ol" },
-        { id: "A040", formula: "CH₃—CH₂—CH₂—CH₂—CH₂—CH₂—CH₂—CH₂—CH₂—OH", nombre: "nonan-1-ol" },
-        { id: "A041", formula: "CH₃—(CH₂)₉—OH", nombre: "decan-1-ol" }
-    ],
-    aldehidos: [
-        { id: "AL001", formula: "CH₃—CHO", nombre: "etanal" },
-        { id: "AL002", formula: "CH₃—CH₂—CHO", nombre: "propanal" },
-        { id: "AL003", formula: "CH₃—CH₂—CH₂—CHO", nombre: "butanal" },
-        { id: "AL004", formula: "CH₃—CH₂—CH₂—CH₂—CHO", nombre: "pentanal" },
-        { id: "AL005", formula: "CH₃—(CH₂)₄—CHO", nombre: "hexanal" },
-        { id: "AL006", formula: "CH₃—(CH₂)₅—CHO", nombre: "heptanal" },
-        { id: "AL007", formula: "CHO—CHO", nombre: "etanodial" },
-        { id: "AL008", formula: "CHO—CH₂—CHO", nombre: "propanodial" },
-        { id: "AL009", formula: "<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CHO</td></tr></table>", nombre: "2-metilpropanal" },
-        { id: "AL010", formula: "<table><tr><td></td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr></table>", nombre: "2-metilbutanal" },
-        { id: "AL011", formula: "<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>CHO</td></tr></table>", nombre: "3-metilbutanal" },
-        { id: "AL012", formula: "<table><tr><td></td><td>CH₃</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—CHO</td></tr></table>", nombre: "2,3-dimetilbutanal" },
-        { id: "AL013", formula: "<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—CHO</td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td>CH₃</td><td></td><td></td></tr></table>", nombre: "2,2-dimetilpropanal" },
-        { id: "AL014", formula: "<table><tr><td></td><td>OH</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CHO</td></tr></table>", nombre: "2-hidroxipropanal" },
-        { id: "AL015", formula: "<table><tr><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr></table>", nombre: "2-hidroxibutanal" },
-        { id: "AL016", formula: "<table><tr><td></td><td>OH</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>CHO</td></tr></table>", nombre: "3-hidroxibutanal" },
-        { id: "AL017", formula: "<table><tr><td></td><td></td><td>OH</td><td></td><td></td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr></table>", nombre: "2-hidroxi-4-oxopentanal" },
-        { id: "AL018", formula: "CHO—(CH₂)₂—CHO", nombre: "butanodial" },
-        { id: "AL019", formula: "CHO—(CH₂)₃—CHO", nombre: "pentanodial" },
-        { id: "AL020", formula: "CHO—(CH₂)₄—CHO", nombre: "hexanodial" },
-        { id: "AL021", formula: "CH₃—(CH₂)₉—CHO", nombre: "undecanal" },
-        { id: "AL022", formula: "<table><tr><td></td><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH₂—</td><td>CHO</td></tr></table>", nombre: "3-metilpentanal" },
-        { id: "AL023", formula: "<table><tr><td></td><td></td><td>CH₃</td><td>CH₃</td><td></td></tr><tr><td></td><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH</td><td>—CHO</td></tr></table>", nombre: "2,3-dimetilpentanal" },
-        { id: "AL024", formula: "<table><tr><td></td><td>CH₃</td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CHO</td></tr></table>", nombre: "2,4-dimetilpentanal" },
-        { id: "AL025", formula: "<table><tr><td></td><td>C₂H₅</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CHO</td></tr></table>", nombre: "2-metilbutanal" },
-        { id: "AL026", formula: "CH₃—CH₂—CH(C₂H₅)—CHO", nombre: "2-etilbutanal" },
-        { id: "AL027", formula: "<table><tr><td></td><td>C₂H₅</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—CHO</td></tr></table>", nombre: "2,3-dimetilpentanal" },
-        { id: "AL028", formula: "<table><tr><td></td><td></td><td>OH</td><td>CH₃</td><td></td></tr><tr><td></td><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—CH</td><td>—CHO</td></tr></table>", nombre: "3-hidroxi-2-metilpentanal" },
-        { id: "AL029", formula: "<table><tr><td></td><td>OH</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₂—</td><td>CHO</td></tr></table>", nombre: "3-hidroxi-4-oxopentanal" },
-        { id: "AL030", formula: "<table><tr><td></td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr></table>", nombre: "2-metil-4-oxopentanal" },
-        { id: "AL031", formula: "<table><tr><td></td><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CHO</td></tr><tr><td></td><td></td><td>|</td><td>|</td><td></td></tr><tr><td></td><td></td><td>CH₃</td><td>OH</td><td></td></tr></table>", nombre: "2-hidroxi-3-metil-4-oxopentanal" },
-        { id: "AL032", formula: "<table><tr><td></td><td>CH₃—CH₂—CO—</td><td>CH₂—</td><td>CH</td><td>—CHO</td></tr><tr><td></td><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td></td><td>CH₃</td><td></td></tr></table>", nombre: "2-metil-4-oxohexanal" },
-        { id: "AL033", formula: "<table><tr><td></td><td>CH₃—CO—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CHO</td></tr><tr><td></td><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>OH</td><td></td><td>CH₃</td><td></td></tr></table>", nombre: "4-hidroxi-2-metil-5-oxohexanal" }
-    ],
-    cetonas: [
-        { id: "C001", formula: "CH₃—CO—CH₃", nombre: "propanona" },
-        { id: "C002", formula: "CH₃—CO—CH₂—CH₃", nombre: "butan-2-ona" },
-        { id: "C003", formula: "CH₃—CO—CH₂—CH₂—CH₃", nombre: "pentan-2-ona" },
-        { id: "C004", formula: "CH₃—CH₂—CO—CH₂—CH₃", nombre: "pentan-3-ona" },
-        { id: "C005", formula: "CH₃—CO—CH₂—CH₂—CH₂—CH₃", nombre: "hexan-2-ona" },
-        { id: "C006", formula: "CH₃—CH₂—CO—CH₂—CH₂—CH₃", nombre: "hexan-3-ona" },
-        { id: "C007", formula: "<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₃</td></tr></table>", nombre: "3-metilbutan-2-ona" },
-        { id: "C008", formula: "<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₂—</td><td>CH₃</td></tr></table>", nombre: "3-metilpentan-2-ona" },
-        { id: "C009", formula: "CH₃—CH₂—CO—CH(CH₃)—CH₃", nombre: "2-metilpentan-3-ona" },
-        { id: "C010", formula: "<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>CH₃</td><td></td></tr></table>", nombre: "3,4-dimetilpentan-2-ona" },
-        { id: "C011", formula: "<table><tr><td></td><td>CH₃</td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>", nombre: "3,5-dimetilhexan-2-ona" },
-        { id: "C012", formula: "<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—CO—</td><td>CH₃</td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td>CH₃</td><td></td><td></td></tr></table>", nombre: "3,3-dimetilbutan-2-ona" },
-        { id: "C013", formula: "<table><tr><td></td><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>C</td><td>—CO—</td><td>CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td></td><td>CH₃</td><td></td><td></td></tr></table>", nombre: "3,3-dimetilpentan-2-ona" },
-        { id: "C014", formula: "<table><tr><td></td><td>CH₃</td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CO—</td><td>CH</td><td>—CH₃</td></tr></table>", nombre: "2,4-dimetilpentan-3-ona" },
-        { id: "C015", formula: "<table><tr><td></td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>", nombre: "4-metilpentan-2-ona" },
-        { id: "C016", formula: "<table><tr><td></td><td>C₂H₅</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₂—</td><td>CH₃</td></tr></table>", nombre: "3-etilpentan-2-ona" },
-        { id: "C017", formula: "<table><tr><td></td><td>CH₃</td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td></td><td>CH₃</td><td></td><td></td></tr></table>", nombre: "3,4,5-trimetilhexan-2-ona" },
-        { id: "C018", formula: "CH₃—CO—CH(CH₃)—CH₂—CH(CH₃)—CH(CH₃)—CH₃", nombre: "3,5,6-trimetilheptan-2-ona" },
-        { id: "C019", formula: "<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>C₂H₅</td><td></td></tr></table>", nombre: "3,4-dimetilhexan-2-ona" },
-        { id: "C020", formula: "<table><tr><td></td><td>C₂H₅</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>CH₃</td><td></td></tr></table>", nombre: "3-etil-4-metilpentan-2-ona" },
-        { id: "C021", formula: "<table><tr><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>", nombre: "4-hidroxipentan-2-ona" },
-        { id: "C022", formula: "<table><tr><td></td><td>OH</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr></table>", nombre: "3-hidroxi-4-metilpentan-2-ona" },
-        { id: "C023", formula: "HO—CH₂—CH₂—CO—CH₂—CH₃", nombre: "1-hidroxipentan-3-ona" },
-        { id: "C024", formula: "<table><tr><td></td><td>OH</td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>", nombre: "3-hidroxi-5-metilhexan-2-ona" },
-        { id: "C025", formula: "CH₃—CO—CH₂—CH₂—CH₂—CH₂—CH₃", nombre: "heptan-2-ona" },
-        { id: "C026", formula: "CH₃—CH₂—CO—CH₂—CH₂—CH₂—CH₃", nombre: "heptan-3-ona" },
-        { id: "C027", formula: "CH₃—CH₂—CH₂—CO—CH₂—CH₂—CH₃", nombre: "heptan-4-ona" },
-        { id: "C028", formula: "CH₃—CO—(CH₂)₅—CH₃", nombre: "octan-2-ona" },
-        { id: "C029", formula: "HO—CH₂—CO—CH₃", nombre: "1-hidroxipropan-2-ona" },
-        { id: "C030", formula: "HO—CH₂—CO—CH₂—CH₃", nombre: "1-hidroxibutan-2-ona" },
-        { id: "C031", formula: "<table><tr><td></td><td>OH</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH₃</td></tr></table>", nombre: "3-hidroxibutan-2-ona" },
-        { id: "C032", formula: "<table><tr><td></td><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—CO—</td><td>CH₂—</td><td>CH₂—</td><td>CH</td><td>—CH₃</td></tr></table>", nombre: "5-hidroxihexan-2-ona" },
-        { id: "C033", formula: "<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>OH</td><td></td></tr></table>", nombre: "4-hidroxi-3-metilpentan-2-ona" },
-        { id: "C034", formula: "<table><tr><td></td><td>C₂H₅</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH</td><td>—CH</td><td>—CH₃</td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td></td><td></td><td>OH</td><td></td></tr></table>", nombre: "3-etil-4-hidroxipentan-2-ona" }
-    ],
-    acidos: [
-        { id: "AC001", formula: "CH₃—COOH", nombre: "ácido etanoico" },
-        { id: "AC002", formula: "CH₃—CH₂—COOH", nombre: "ácido propanoico" },
-        { id: "AC003", formula: "CH₃—CH₂—CH₂—COOH", nombre: "ácido butanoico" },
-        { id: "AC004", formula: "CH₃—CH₂—CH₂—CH₂—COOH", nombre: "ácido pentanoico" },
-        { id: "AC005", formula: "CH₃—(CH₂)₄—COOH", nombre: "ácido hexanoico" },
-        { id: "AC006", formula: "HOOC—COOH", nombre: "ácido etanodioico" },
-        { id: "AC007", formula: "HOOC—CH₂—COOH", nombre: "ácido propanodioico" },
-        { id: "AC008", formula: "<table><tr><td></td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—COOH</td></tr></table>", nombre: "ácido 2-metilpropanoico" },
-        { id: "AC009", formula: "<table><tr><td></td><td></td><td>CH₃</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—COOH</td></tr></table>", nombre: "ácido 2-metilbutanoico" },
-        { id: "AC010", formula: "<table><tr><td></td><td>CH₃</td><td></td><td></td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—</td><td>C</td><td>—COOH</td></tr><tr><td></td><td>|</td><td></td><td></td></tr><tr><td></td><td>CH₃</td><td></td><td></td></tr></table>", nombre: "ácido 2,2-dimetilpropanoico" },
-        { id: "AC011", formula: "<table><tr><td></td><td>C₂H₅</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—COOH</td></tr></table>", nombre: "ácido 2-metilbutanoico" },
-        { id: "AC012", formula: "<table><tr><td></td><td>OH</td><td></td></tr><tr><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—COOH</td></tr></table>", nombre: "ácido 2-hidroxipropanoico" },
-        { id: "AC013", formula: "<table><tr><td></td><td></td><td>OH</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—COOH</td></tr></table>", nombre: "ácido 2-hidroxibutanoico" },
-        { id: "AC014", formula: "CH₃—CO—CH₂—COOH", nombre: "ácido 3-oxobutanoico" },
-        { id: "AC015", formula: "<table><tr><td></td><td></td><td>OH</td><td></td><td></td></tr><tr><td></td><td></td><td>|</td><td></td><td></td></tr><tr><td>CH₃—CO—</td><td>CH₂—</td><td>CH</td><td>—COOH</td></tr></table>", nombre: "ácido 2-hidroxi-4-oxopentanoico" },
-        { id: "AC016", formula: "CH₃—(CH₂)₅—COOH", nombre: "ácido heptanoico" },
-        { id: "AC017", formula: "CH₃—(CH₂)₆—COOH", nombre: "ácido octanoico" },
-        { id: "AC018", formula: "CH₃—(CH₂)₇—COOH", nombre: "ácido nonanoico" },
-        { id: "AC019", formula: "CH₃—(CH₂)₈—COOH", nombre: "ácido decanoico" },
-        { id: "AC020", formula: "HOOC—(CH₂)₂—COOH", nombre: "ácido butanodioico" },
-        { id: "AC021", formula: "HOOC—(CH₂)₃—COOH", nombre: "ácido pentanodioico" },
-        { id: "AC022", formula: "HOOC—(CH₂)₄—COOH", nombre: "ácido hexanodioico" },
-        { id: "AC023", formula: "<table><tr><td></td><td>CH₃</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—COOH</td></tr></table>", nombre: "ácido 2,3-dimetilbutanoico" },
-        { id: "AC024", formula: "<table><tr><td></td><td></td><td>C₂H₅</td><td></td></tr><tr><td></td><td></td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH₂—</td><td>CH</td><td>—COOH</td></tr></table>", nombre: "ácido 2-etilbutanoico" },
-        { id: "AC025", formula: "<table><tr><td></td><td>C₂H₅</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—COOH</td></tr></table>", nombre: "ácido 2,3-dimetilpentanoico" },
-        { id: "AC026", formula: "<table><tr><td></td><td>OH</td><td>CH₃</td><td></td></tr><tr><td></td><td>|</td><td>|</td><td></td></tr><tr><td>CH₃—</td><td>CH</td><td>—CH</td><td>—COOH</td></tr></table>", nombre: "ácido 3-hidroxi-2-metilbutanoico" },
-        { id: "AC027", formula: "CH₃—CO—CH₂—CH₂—COOH", nombre: "ácido 4-oxopentanoico" }
-    ],
-    esteres: [
-        { id: "E001", formula: "H—COO—Na", nombre: "metanoato de sodio" },
-        { id: "E002", formula: "H—COO—CH₃", nombre: "metanoato de metilo" },
-        { id: "E003", formula: "CH₃—COO—Na", nombre: "etanoato de sodio" },
-        { id: "E004", formula: "CH₃—COO—K", nombre: "etanoato de potasio" },
-        { id: "E005", formula: "CH₃—COO—CH₃", nombre: "etanoato de metilo" },
-        { id: "E006", formula: "CH₃—COO—CH₂—CH₃", nombre: "etanoato de etilo" },
-        { id: "E007", formula: "CH₃—CH₂—COO—Na", nombre: "propanoato de sodio" },
-        { id: "E008", formula: "CH₃—CH₂—COO—CH₃", nombre: "propanoato de metilo" },
-        { id: "E009", formula: "CH₃—CH₂—COO—CH₂—CH₃", nombre: "propanoato de etilo" },
-        { id: "E010", formula: "CH₃—CH₂—CH₂—COO—Na", nombre: "butanoato de sodio" },
-        { id: "E011", formula: "CH₃—CH₂—CH₂—COO—CH₃", nombre: "butanoato de metilo" },
-        { id: "E012", formula: "H—COO—CH₂—CH₂—CH₂—CH₃", nombre: "metanoato de butilo" },
-        { id: "E013", formula: "CH₃—COO—CH₂—CH₂—CH₂—CH₃", nombre: "etanoato de butilo" },
-        { id: "E014", formula: "CH₃—CH₂—COO—K", nombre: "propanoato de potasio" },
-        { id: "E015", formula: "CH₃—CH₂—CH₂—CH₂—COO—Na", nombre: "pentanoato de sodio" },
-        { id: "E016", formula: "CH₃—CH₂—COO—CH₂—CH₂—CH₂—CH₃", nombre: "propanoato de butilo" },
-        { id: "E017", formula: "CH₃—CH₂—CH₂—COO—K", nombre: "butanoato de potasio" },
-        { id: "E018", formula: "CH₃—CH₂—CH₂—CH₂—COO—CH₃", nombre: "pentanoato de metilo" },
-        { id: "E019", formula: "CH₃—CH₂—CH₂—CH₂—COO—CH₂—CH₃", nombre: "pentanoato de etilo" },
-        { id: "E020", formula: "CH₃—CH₂—CH₂—CH₂—CH₂—COO—Na", nombre: "hexanoato de sodio" }
-    ]
-};
+    <div class="formula-card" onclick="checkAnswer(2)">
+        <span class="badge badge-cubo">PA - Cubo</span>
+        <h3>Suma Finita</h3>
+        <p>Total acumulado de 'n' términos</p>
+        <span class="formula-math">Sn = [(a1 + an)·n] / 2</span>
+    </div>
 
-        let sessionData = [];
-        let currentIndex = 0;
-        let score = 0;
-        let totalAnswered = 0;
+    <div class="formula-card" onclick="checkAnswer(3)">
+        <span class="badge badge-foto">PG - Foto</span>
+        <h3>Término General</h3>
+        <p>Valor en un momento exacto</p>
+        <span class="formula-math">an = a1 · r^(n-1)</span>
+    </div>
 
-        function updateMenuCounters() {
-            for(let k in DB) {
-                let el = document.getElementById('cnt-' + k.substring(0,3));
-                if(el) el.innerText = `${DB[k].length} compuestos`;
-            }
-            let total = Object.values(DB).reduce((a, b) => a + b.length, 0);
-            document.getElementById('cnt-all').innerText = `${total} compuestos disponibles`;
+    <div class="formula-card" onclick="checkAnswer(4)">
+        <span class="badge badge-cubo">PG - Cubo</span>
+        <h3>Suma Finita</h3>
+        <p>Total acumulado de 'n' términos</p>
+        <span class="formula-math">Sn = a1·(r^n - 1) / (r - 1)</span>
+    </div>
+
+    <div class="formula-card" onclick="checkAnswer(5)">
+        <span class="badge badge-cubo">PG - Cubo ∞</span>
+        <h3>Suma Infinita</h3>
+        <p>Total de algo que nunca acaba (r < 1)</p>
+        <span class="formula-math">S∞ = a1 / (1 - r)</span>
+    </div>
+</div>
+
+<div id="main-content">
+    <div id="problem-container">
+        <div id="problem-text">Cargando problemas...</div>
+        <div id="feedback"></div>
+    </div>
+    <div id="stats">Problema: <span id="current">1</span> / 30 | Aciertos: <span id="score">0</span></div>
+</div>
+
+<script>
+    const problems = [
+        { q: "Un ahorro de 5€ cada semana. ¿Cuánto dinero meterás en la hucha SOLO la semana número 20?", a: 1 },
+        { q: "Un ahorro de 5€ cada semana. ¿Cuánto dinero tendrás EN TOTAL después de 20 semanas?", a: 2 },
+        { q: "Una bacteria se duplica cada hora. Si hay 1 al principio, ¿cuántas habrá exactamente a la hora 10?", a: 3 },
+        { q: "Recibes 2€ el primer día, 4€ el segundo, 8€ el tercero... ¿Cuánto dinero has recibido EN TOTAL tras una semana?", a: 4 },
+        { q: "Una pelota cae de 100m y rebota siempre a la mitad de altura. ¿Qué distancia recorre hasta PARARSE por completo?", a: 5 },
+        { q: "En un cine, la primera fila tiene 20 asientos y cada fila siguiente tiene 2 más. ¿Cuántos asientos hay en la FILA 15?", a: 1 },
+        { q: "En el mismo cine de antes, ¿cuántas personas caben EN TODO el cine si tiene 15 filas?", a: 2 },
+        { q: "Un coche pierde el 10% de su valor cada año (se multiplica por 0.9). ¿Cuánto valdrá al cabo de 5 años?", a: 3 },
+        { q: "Un cuentacuentos recibe 3€ el primer día y cada día le dan 2€ más que el anterior. ¿Cuánto gana el día 30?", a: 1 },
+        { q: "Si el cuentacuentos guarda todo lo que gana en 30 días, ¿cuánto dinero tiene al final?", a: 2 },
+        { q: "Una planta crece 2cm cada día. ¿Qué altura tendrá a los 20 días si medía 5cm al nacer?", a: 1 },
+        { q: "En una progresión, cada número es el triple del anterior. ¿Cuál es el valor del décimo número?", a: 3 },
+        { q: "Sumamos las infinitas partes de un pastel: 1/2 + 1/4 + 1/8... ¿Cuánto suma todo?", a: 5 },
+        { q: "Un atleta corre 10km el primer día y aumenta 1km cada día. ¿Cuántos km hace el día 12?", a: 1 },
+        { q: "Un atleta corre 10km el primer día y aumenta 1km cada día. ¿Cuántos km ha corrido en total en 12 días?", a: 2 },
+        { q: "El número de infectados por un virus se triplica cada día. ¿Cuántos habrá el día 7?", a: 3 },
+        { q: "Un salario empieza en 1000€ y sube 50€ cada año. ¿Cuál será el sueldo en el año 10?", a: 1 },
+        { q: "Una estalactita crece 0.5mm al mes. ¿Cuánto habrá crecido en total tras 100 meses?", a: 2 },
+        { q: "Un péndulo recorre 20cm en su primera oscilación y en cada una siguiente recorre el 90% de la anterior. ¿Qué distancia total recorre hasta detenerse?", a: 5 },
+        { q: "Compras un móvil a plazos: 10€ el primer mes, 20€ el segundo, 40€ el tercero... ¿Cuánto habrás pagado tras 6 meses?", a: 4 },
+        { q: "Cada paso que das es 1.1 veces más largo que el anterior. ¿Cuánto mide el paso número 50?", a: 3 },
+        { q: "En un hormiguero la población crece un 5% mensual. ¿Cuántas hormigas habrá en el mes 12?", a: 3 },
+        { q: "Un concurso da 100€ por la primera pregunta, 200€ por la segunda, 300€ por la tercera... ¿Cuánto dinero te llevas si respondes 10?", a: 2 },
+        { q: "Un artesano fabrica 3 jarrones el primer día y cada día multiplica su producción por 1.5. ¿Cuántos jarrones hace el día 10?", a: 3 },
+        { q: "Si el artesano vende todos los jarrones fabricados durante los 10 días, ¿cuántos vendió?", a: 4 },
+        { q: "Un sonido pierde la mitad de su intensidad cada vez que atraviesa un muro. ¿Qué intensidad tiene tras 5 muros?", a: 3 },
+        { q: "Un pozo tiene 20 metros de profundidad. Sacar el primer metro cuesta 5€ y cada metro extra cuesta 2€ más. ¿Cuánto cuesta el metro 20?", a: 1 },
+        { q: "En el pozo anterior, ¿cuánto cuesta excavar el pozo completo de 20 metros?", a: 2 },
+        { q: "Una progresión geométrica tiene r=0.2 y a1=10. ¿Cuánto vale la suma de todos sus infinitos términos?", a: 5 },
+        { q: "Un repartidor entrega 50 paquetes el lunes y 5 menos cada día. ¿Cuántos entrega el viernes?", a: 1 }
+    ];
+
+    let currentIndex = 0;
+    let score = 0;
+
+    function displayProblem() {
+        if (currentIndex < problems.length) {
+            document.getElementById('problem-text').innerText = problems[currentIndex].q;
+            document.getElementById('current').innerText = currentIndex + 1;
+            document.getElementById('feedback').innerText = "";
+        } else {
+            document.getElementById('problem-text').innerText = "¡Entrenamiento completado! Puntuación final: " + score + "/" + problems.length;
+            document.getElementById('sidebar').style.pointerEvents = "none";
         }
+    }
 
-        function showMenu() {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById('view-menu').classList.add('active');
-            document.getElementById('progressBar').style.width = "0%";
-            updateMenuCounters();
+    function checkAnswer(selected) {
+        const feedback = document.getElementById('feedback');
+        if (selected === problems[currentIndex].a) {
+            feedback.innerText = "¡CORRECTO! ✨";
+            feedback.className = "correct";
+            score++;
+            document.getElementById('score').innerText = score;
+        } else {
+            feedback.innerText = "Incorrecto. Era la fórmula " + problems[currentIndex].a;
+            feedback.className = "incorrect";
         }
+        
+        setTimeout(() => {
+            currentIndex++;
+            displayProblem();
+        }, 1500);
+    }
 
-        function initPractice(type) {
-            let limitVal = parseInt(document.getElementById('practice-limit').value);
-            let pool = [];
+    displayProblem();
+</script>
 
-            if(type === 'todos') {
-                for(let k in DB) pool = pool.concat(DB[k]);
-            } else {
-                pool = [...DB[type]];
-            }
-
-            pool.sort(() => Math.random() - 0.5);
-            if(!isNaN(limitVal) && limitVal > 0) pool = pool.slice(0, limitVal);
-            sessionData = pool;
-
-            currentIndex = 0; score = 0; totalAnswered = 0;
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById('view-practice').classList.add('active');
-            document.getElementById('label-group').innerText = type.toUpperCase();
-            loadQuestion();
-        }
-
-        function loadQuestion() {
-            if(currentIndex >= sessionData.length) { showMenu(); return; }
-            const item = sessionData[currentIndex];
-            
-            // Actualizar el badge con el ID del compuesto
-            document.getElementById('compound-id').innerText = `ID: ${item.id}`;
-            
-            document.getElementById('formula-display').innerHTML = `
-                <span class="compound-id" id="compound-id">ID: ${item.id}</span>
-                <div class="formula-display">${item.formula}</div>
-            `;
-            document.getElementById('answer-input').value = "";
-            document.getElementById('answer-input').disabled = false;
-            document.getElementById('feedback-box').style.display = "none";
-            document.getElementById('btn-check').style.display = "block";
-            document.getElementById('btn-next').style.display = "none";
-            updateStats();
-            document.getElementById('answer-input').focus();
-        }
-
-        function checkAnswer() {
-            const userVal = normalizeText(document.getElementById('answer-input').value);
-            const correctVal = normalizeText(sessionData[currentIndex].nombre);
-            const feedback = document.getElementById('feedback-box');
-            
-            if(!userVal) return;
-            totalAnswered++;
-            document.getElementById('answer-input').disabled = true;
-            document.getElementById('btn-check').style.display = "none";
-            document.getElementById('btn-next').style.display = "block";
-
-            if(userVal === correctVal) {
-                score++;
-                feedback.innerHTML = "✨ ¡Correcto!";
-                feedback.className = "feedback correct";
-            } else {
-                feedback.innerHTML = `❌ Incorrecto. Es: <b>${sessionData[currentIndex].nombre}</b><br><small>ID del compuesto: ${sessionData[currentIndex].id}</small>`;
-                feedback.className = "feedback wrong";
-            }
-            feedback.style.display = "block";
-            updateStats();
-        }
-
-        function nextQuestion() { currentIndex++; loadQuestion(); }
-
-        function getHint() {
-            const correct = sessionData[currentIndex].nombre;
-            const id = sessionData[currentIndex].id;
-            alert(`Pista (ID: ${id}):\nEmpieza por "${correct.substring(0, 4)}..."`);
-        }
-
-        function updateStats() {
-            document.getElementById('stat-pos').innerText = `${currentIndex + 1}/${sessionData.length}`;
-            document.getElementById('stat-score').innerText = score;
-            const acc = totalAnswered === 0 ? 0 : Math.round((score / totalAnswered) * 100);
-            document.getElementById('stat-acc').innerText = `${acc}%`;
-            document.getElementById('progressBar').style.width = `${(currentIndex / sessionData.length) * 100}%`;
-        }
-
-        function normalizeText(str) {
-            return str.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, ' ').replace(/-/g, '');
-        }
-
-        document.getElementById('answer-input').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') {
-                if(document.getElementById('btn-check').style.display !== 'none') checkAnswer();
-                else nextQuestion();
-            }
-        });
-
-        window.onload = updateMenuCounters;
-    </script>
 </body>
 </html>
