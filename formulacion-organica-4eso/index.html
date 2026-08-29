@@ -213,7 +213,7 @@
 
             <div style="margin-top: 30px; padding: 20px; background: #f1f5f9; border-radius: 16px; text-align: center;">
                 <label style="display:block; margin-bottom:10px; font-weight:700;">Límite de preguntas:</label>
-                <input type="number" id="practice-limit" style="padding: 12px; width: 100px; border-radius: 8px; border: 2px solid #cbd5e1; text-align: center; font-weight: 800;" placeholder="Todas">
+                <input type="number" id="practice-limit" min="1" step="1" style="padding: 12px; width: 100px; border-radius: 8px; border: 2px solid #cbd5e1; text-align: center; font-weight: 800;" placeholder="Todas">
             </div>
         </div>
 
@@ -237,6 +237,7 @@
                 <div class="input-group">
                     <input type="text" id="answer-input" placeholder="Nombre IUPAC..." autocomplete="off">
                     <div id="feedback-box" class="feedback"></div>
+                    <div id="hint-box" class="feedback" style="background:#fef9c3; color:#854d0e; border:1px solid #fde68a;"></div>
                 </div>
 
                 <div class="actions">
@@ -245,6 +246,23 @@
                     <button id="btn-hint" class="btn-outline" onclick="getHint()">Pedir Pista</button>
                 </div>
             </div>
+        </div>
+
+        <div id="view-summary" class="view">
+            <div style="text-align:center; padding: 10px 0 25px;">
+                <div style="font-size: 3rem;">🎯</div>
+                <h2 style="margin: 10px 0 5px;">¡Repaso completado!</h2>
+                <p style="color:#64748b;">Grupo: <span id="summary-group" style="font-weight:800; color:var(--primary);"></span></p>
+            </div>
+
+            <div class="stats-bar" style="margin-bottom: 25px;">
+                <div class="stat-item"><div class="stat-label">Correctas</div><div class="stat-value" id="summary-score" style="color: var(--success);">0/0</div></div>
+                <div class="stat-item"><div class="stat-label">Acierto</div><div class="stat-value" id="summary-pct">0%</div></div>
+            </div>
+
+            <div id="summary-comment" style="background:#f1f5f9; border-radius:16px; padding:20px; font-size:0.95rem; line-height:1.5; margin-bottom: 25px;"></div>
+
+            <button class="btn-primary" style="width:100%;" onclick="showMenu()">← Volver al menú</button>
         </div>
     </div>
 
@@ -457,6 +475,14 @@ const DB = {
         let currentIndex = 0;
         let score = 0;
         let totalAnswered = 0;
+        let currentType = '';
+        let catStats = {};
+
+        const GROUP_ORDER = ['hidrocarburos', 'alcoholes', 'aldehidos', 'cetonas', 'acidos', 'esteres'];
+        const GROUP_LABELS = {
+            hidrocarburos: 'Hidrocarburos', alcoholes: 'Alcoholes', aldehidos: 'Aldehídos',
+            cetonas: 'Cetonas', acidos: 'Ácidos Carboxílicos', esteres: 'Ésteres', todos: 'Repaso Mezclado'
+        };
 
         function updateMenuCounters() {
             for(let k in DB) {
@@ -475,13 +501,15 @@ const DB = {
         }
 
         function initPractice(type) {
-            let limitVal = parseInt(document.getElementById('practice-limit').value);
+            const limitInput = document.getElementById('practice-limit');
+            let limitVal = parseInt(limitInput.value);
+            if(!isNaN(limitVal) && limitVal < 1) { limitVal = NaN; limitInput.value = ""; }
             let pool = [];
 
             if(type === 'todos') {
-                for(let k in DB) pool = pool.concat(DB[k]);
+                for(let k in DB) pool = pool.concat(DB[k].map(item => ({...item, cat: k})));
             } else {
-                pool = [...DB[type]];
+                pool = DB[type].map(item => ({...item, cat: type}));
             }
 
             pool.sort(() => Math.random() - 0.5);
@@ -489,6 +517,8 @@ const DB = {
             sessionData = pool;
 
             currentIndex = 0; score = 0; totalAnswered = 0;
+            currentType = type;
+            catStats = {};
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.getElementById('view-practice').classList.add('active');
             document.getElementById('label-group').innerText = type.toUpperCase();
@@ -496,12 +526,9 @@ const DB = {
         }
 
         function loadQuestion() {
-            if(currentIndex >= sessionData.length) { showMenu(); return; }
+            if(currentIndex >= sessionData.length) { showSummary(); return; }
             const item = sessionData[currentIndex];
-            
-            // Actualizar el badge con el ID del compuesto
-            document.getElementById('compound-id').innerText = `ID: ${item.id}`;
-            
+
             document.getElementById('formula-display').innerHTML = `
                 <span class="compound-id" id="compound-id">ID: ${item.id}</span>
                 <div class="formula-display">${item.formula}</div>
@@ -509,6 +536,7 @@ const DB = {
             document.getElementById('answer-input').value = "";
             document.getElementById('answer-input').disabled = false;
             document.getElementById('feedback-box').style.display = "none";
+            document.getElementById('hint-box').style.display = "none";
             document.getElementById('btn-check').style.display = "block";
             document.getElementById('btn-next').style.display = "none";
             updateStats();
@@ -517,7 +545,8 @@ const DB = {
 
         function checkAnswer() {
             const userVal = normalizeText(document.getElementById('answer-input').value);
-            const correctVal = normalizeText(sessionData[currentIndex].nombre);
+            const item = sessionData[currentIndex];
+            const correctVal = normalizeText(item.nombre);
             const feedback = document.getElementById('feedback-box');
             
             if(!userVal) return;
@@ -526,12 +555,16 @@ const DB = {
             document.getElementById('btn-check').style.display = "none";
             document.getElementById('btn-next').style.display = "block";
 
+            if(!catStats[item.cat]) catStats[item.cat] = { correct: 0, total: 0 };
+            catStats[item.cat].total++;
+
             if(userVal === correctVal) {
                 score++;
+                catStats[item.cat].correct++;
                 feedback.innerHTML = "✨ ¡Correcto!";
                 feedback.className = "feedback correct";
             } else {
-                feedback.innerHTML = `❌ Incorrecto. Es: <b>${sessionData[currentIndex].nombre}</b><br><small>ID del compuesto: ${sessionData[currentIndex].id}</small>`;
+                feedback.innerHTML = `❌ Incorrecto. Es: <b>${item.nombre}</b><br><small>ID del compuesto: ${item.id}</small>`;
                 feedback.className = "feedback wrong";
             }
             feedback.style.display = "block";
@@ -543,7 +576,56 @@ const DB = {
         function getHint() {
             const correct = sessionData[currentIndex].nombre;
             const id = sessionData[currentIndex].id;
-            alert(`Pista (ID: ${id}):\nEmpieza por "${correct.substring(0, 4)}..."`);
+            const hintBox = document.getElementById('hint-box');
+            hintBox.innerHTML = `💡 Pista (ID: ${id}): empieza por "<b>${correct.substring(0, 4)}...</b>"`;
+            hintBox.style.display = "block";
+        }
+
+        function showSummary() {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById('view-summary').classList.add('active');
+
+            const pct = totalAnswered === 0 ? 0 : Math.round((score / totalAnswered) * 100);
+            document.getElementById('summary-group').innerText = GROUP_LABELS[currentType] || currentType;
+            document.getElementById('summary-score').innerText = `${score}/${totalAnswered}`;
+            document.getElementById('summary-pct').innerText = `${pct}%`;
+            document.getElementById('summary-comment').innerHTML = buildRecommendation(pct);
+        }
+
+        function buildRecommendation(pct) {
+            if(currentType === 'todos') {
+                let weakestCat = null, weakestPct = 101;
+                for(const cat in catStats) {
+                    const s = catStats[cat];
+                    if(s.total === 0) continue;
+                    const p = (s.correct / s.total) * 100;
+                    if(p < weakestPct) { weakestPct = p; weakestCat = cat; }
+                }
+                if(pct >= 85) {
+                    return `¡Excelente nivel general! Dominas bien todos los grupos de este repaso mezclado.`;
+                } else if(weakestCat && weakestPct < 65) {
+                    return `Vas razonablemente bien, pero el grupo de <b>${GROUP_LABELS[weakestCat]}</b> (${Math.round(weakestPct)}% de aciertos) es donde más flojeas. Te vendría bien practicarlo por separado antes de repetir el repaso mezclado.`;
+                } else {
+                    return `Vas por buen camino. Repite el repaso mezclado una vez más para afianzar los detalles que aún se te resisten.`;
+                }
+            }
+
+            const idx = GROUP_ORDER.indexOf(currentType);
+            const label = GROUP_LABELS[currentType];
+
+            if(pct >= 85) {
+                const next = GROUP_ORDER[idx + 1];
+                return next
+                    ? `¡Excelente dominio de ${label}! Puedes avanzar con confianza al grupo de <b>${GROUP_LABELS[next]}</b>.`
+                    : `¡Excelente dominio de ${label}! Has completado con nota el último grupo de la progresión.`;
+            } else if(pct >= 60) {
+                return `Vas bien con ${label}, pero conviene repetir este mismo grupo una vez más para afianzarlo antes de avanzar.`;
+            } else {
+                const prev = idx > 0 ? GROUP_ORDER[idx - 1] : null;
+                return prev
+                    ? `Este grupo se te está resistiendo. Te recomendamos bajar a repasar <b>${GROUP_LABELS[prev]}</b> para reforzar la base antes de volver a intentar ${label}.`
+                    : `Este grupo se te está resistiendo. Repite este mismo bloque con calma, compuesto a compuesto, antes de seguir avanzando.`;
+            }
         }
 
         function updateStats() {
@@ -565,7 +647,11 @@ const DB = {
             }
         });
 
+        document.getElementById('practice-limit').addEventListener('input', function() {
+            if(this.value !== "" && parseInt(this.value) < 1) this.value = "";
+        });
+
         window.onload = updateMenuCounters;
     </script>
 </body>
-</html> 
+</html>
