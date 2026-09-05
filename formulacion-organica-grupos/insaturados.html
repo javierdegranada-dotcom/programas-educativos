@@ -229,7 +229,7 @@
 
         /** MAZO BÁSICO (50 Compuestos) **/
         const DB_NORMAL = [
-            { id: 1, chain: 3, bonds: [2, 1], subs: [], nombres: ["propeno"] },
+            { id: 1, chain: 3, bonds: [2, 1], subs: [], nombres: ["propeno", "prop-1-eno"] },
             { id: 2, chain: 4, bonds: [2, 1, 1], subs: [], nombres: ["but-1-eno"] },
             { id: 3, chain: 4, bonds: [1, 2, 1], subs: [], nombres: ["but-2-eno"] },
             { id: 4, chain: 5, bonds: [2, 1, 1, 1], subs: [], nombres: ["pent-1-eno"] },
@@ -237,10 +237,10 @@
             { id: 6, chain: 6, bonds: [2, 1, 1, 1, 1], subs: [], nombres: ["hex-1-eno"] },
             { id: 7, chain: 4, bonds: [2, 1, 2], subs: [], nombres: ["buta-1,3-dieno"] },
             { id: 8, chain: 5, bonds: [2, 1, 1, 2], subs: [], nombres: ["penta-1,4-dieno"] },
-            { id: 9, chain: 3, bonds: [2, 1], subs: [{pos: 2, type: "CH3", dir: "up"}], nombres: ["metilpropeno"] },
+            { id: 9, chain: 3, bonds: [2, 1], subs: [{pos: 2, type: "CH3", dir: "up"}], nombres: ["metilpropeno", "2-metilprop-1-eno", "isobutileno"] },
             { id: 10, chain: 4, bonds: [2, 1, 1], subs: [{pos: 3, type: "CH3", dir: "up"}], nombres: ["3-metilbut-1-eno"] },
             { id: 11, chain: 2, bonds: [3], subs: [], nombres: ["etino", "acetileno"] },
-            { id: 12, chain: 3, bonds: [3, 1], subs: [], nombres: ["propino"] },
+            { id: 12, chain: 3, bonds: [3, 1], subs: [], nombres: ["propino", "prop-1-ino"] },
             { id: 13, chain: 4, bonds: [3, 1, 1], subs: [], nombres: ["but-1-ino"] },
             { id: 14, chain: 4, bonds: [1, 3, 1], subs: [], nombres: ["but-2-ino"] },
             { id: 15, chain: 5, bonds: [3, 1, 1, 1], subs: [], nombres: ["pent-1-ino"] },
@@ -271,8 +271,8 @@
             { id: 40, chain: 6, bonds: [3, 1, 1, 1, 1], subs: [{pos: 5, type: "CH3", dir: "up"}], nombres: ["5-metilhex-1-ino"] },
             { id: 41, chain: 6, bonds: [1, 3, 1, 1, 1], subs: [{pos: 5, type: "CH3", dir: "down"}], nombres: ["5-metilhex-2-ino"] },
             { id: 42, chain: 7, bonds: [3, 1, 1, 1, 1, 1], subs: [], nombres: ["hept-1-ino"] },
-            { id: 43, chain: 5, bonds: [2, 1, 1, 3], subs: [], nombres: ["pent-1-en-4-ino"] },
-            { id: 44, chain: 6, bonds: [1, 2, 1, 1, 3], subs: [], nombres: ["hex-2-en-5-ino"] },
+            { id: 43, chain: 6, bonds: [3,1,1,1,1], subs: [{pos: 3, type: 'CH3', dir: 'up'}], nombres: ["3-metilhex-1-ino"] },
+            { id: 44, chain: 6, bonds: [1, 2, 1, 1, 3], subs: [], nombres: ["hex-4-en-1-ino"] },
             { id: 45, chain: 6, bonds: [3, 1, 1, 1, 3], subs: [], nombres: ["hexa-1,5-diino"] },
             { id: 46, chain: 5, bonds: [2, 1, 1, 1], subs: [{pos: 4, type: "CH3", dir: "up"}, {pos: 4, type: "CH3", dir: "down"}], nombres: ["4,4-dimetilpent-1-eno"] },
             { id: 47, chain: 6, bonds: [2, 1, 3, 1, 1], subs: [], nombres: ["hex-1-en-3-ino"] },
@@ -283,57 +283,57 @@
 
         /** MAZO EXPERTO (50 Compuestos de Élite) **/
         const DB_EXPERT = [
-            { id: 101, chain: 5, bonds: [2, 1, 1, 1], subs: [{pos: 2, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["2-vinilpenta-1,4-dieno", "3-metilenpenta-1,4-dieno"] },
-            { id: 102, chain: 6, bonds: [2, 1, 1, 1, 1], subs: [{pos: 3, type: "C(CH3)=CH2", dir: "up", bond: 1}], nombres: ["3-isopropenilhex-1-eno"] },
-            { id: 103, chain: 5, bonds: [1, 1, 1, 1], subs: [{pos: 3, type: "CH=CH2", dir: "up", bond: 1}], nombres: ["3-vinilpenta-1,4-dieno", "3-etilpenta-1,4-dieno"] },
-            { id: 104, chain: 6, bonds: [3, 1, 1, 1, 1], subs: [{pos: 3, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["3-vinilhex-1-ino"] },
+            { id: 101, chain: 5, bonds: [2,1,1,2], subs: [{pos: 3, type: 'CH3', dir: 'up'}], nombres: ["3-metilpenta-1,4-dieno"] },
+            { id: 102, chain: 6, bonds: [2, 1, 1, 1, 1], subs: [{pos: 3, type: "C(CH3)=CH2", dir: "up", bond: 1}], nombres: ["2-metil-3-propilpenta-1,4-dieno", "2-metil-3-vinilhex-1-eno"] },
+            { id: 103, chain: 7, bonds: [2,1,1,1,1,2], subs: [{pos: 3, type: 'CH3', dir: 'up'}], nombres: ["3-metilhepta-1,6-dieno"] },
+            { id: 104, chain: 6, bonds: [3, 1, 1, 1, 1], subs: [{pos: 3, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["3-propilpent-1-en-4-ino", "3-etinilhex-1-eno"] },
             { id: 105, chain: 4, bonds: [2, 1, 3], subs: [{pos: 2, type: "CH3", dir: "up"}], nombres: ["2-metilbut-1-en-3-ino"] },
             { id: 106, chain: 5, bonds: [2, 1, 3, 1], subs: [{pos: 2, type: "CH3", dir: "down"}], nombres: ["2-metilpent-1-en-3-ino"] },
             { id: 107, chain: 6, bonds: [2, 1, 2, 1, 3], subs: [], nombres: ["hexa-1,3-dien-5-ino"] },
-            { id: 108, chain: 5, bonds: [3, 1, 1, 1], subs: [{pos: 3, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["3-etinilpenta-1,4-dieno"] },
+            { id: 108, chain: 7, bonds: [3,1,1,1,1,1], subs: [{pos: 3, type: 'CH3', dir: 'up'}, {pos: 5, type: 'CH3', dir: 'down'}], nombres: ["3,5-dimetilhept-1-ino"] },
             { id: 109, chain: 7, bonds: [2, 1, 2, 1, 2, 1], subs: [], nombres: ["hepta-1,3,5-trieno"] },
             { id: 110, chain: 6, bonds: [3, 1, 1, 3, 1], subs: [{pos: 3, type: "CH3", dir: "up"}], nombres: ["3-metilhexa-1,4-diino"] },
-            { id: 111, chain: 5, bonds: [1, 2, 1, 1], subs: [{pos: 3, type: "CH=CH2", dir: "up", bond: 1}], nombres: ["3-vinilpent-2-eno"] },
-            { id: 112, chain: 4, bonds: [1, 2, 1], subs: [{pos: 2, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["2-vinilbut-2-eno"] },
+            { id: 111, chain: 5, bonds: [1, 2, 1, 1], subs: [{pos: 3, type: "CH=CH2", dir: "up", bond: 1}], nombres: ["3-etilpenta-1,3-dieno"] },
+            { id: 112, chain: 7, bonds: [1,1,2,1,1,1], subs: [{pos: 2, type: 'CH3', dir: 'up'}, {pos: 6, type: 'CH3', dir: 'down'}], nombres: ["2,6-dimetilhept-3-eno"] },
             { id: 113, chain: 6, bonds: [2, 1, 1, 2, 1], subs: [{pos: 3, type: "C#CH", dir: "up", bond: 1}], nombres: ["3-etinilhexa-1,4-dieno"] },
             { id: 114, chain: 7, bonds: [3, 1, 3, 1, 3, 1], subs: [], nombres: ["hepta-1,3,5-triino"] },
             { id: 115, chain: 5, bonds: [2, 1, 2, 1], subs: [{pos: 3, type: "CH3", dir: "up"}], nombres: ["3-metilpenta-1,3-dieno"] },
-            { id: 116, chain: 6, bonds: [2, 1, 1, 1, 1], subs: [{pos: 4, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["4-vinilhex-1-eno"] },
-            { id: 117, chain: 5, bonds: [3, 1, 1, 1], subs: [{pos: 4, type: "CH=CH2", dir: "up", bond: 1}], nombres: ["4-etinilpent-1-eno"] },
+            { id: 116, chain: 6, bonds: [2, 1, 1, 1, 1], subs: [{pos: 4, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["3-etilhexa-1,5-dieno"] },
+            { id: 117, chain: 7, bonds: [2,1,1,1,3,1], subs: [{pos: 4, type: 'CH3', dir: 'up'}], nombres: ["4-metilhept-1-en-5-ino"] },
             { id: 118, chain: 6, bonds: [3, 1, 3, 1, 1], subs: [{pos: 5, type: "CH3", dir: "up"}], nombres: ["5-metilhexa-1,3-diino"] },
             { id: 119, chain: 7, bonds: [2, 1, 1, 3, 1, 1], subs: [], nombres: ["hept-1-en-4-ino"] },
-            { id: 120, chain: 5, bonds: [2, 1, 1, 1], subs: [{pos: 3, type: "C#CH", dir: "up", bond: 1}], nombres: ["3-etinilpent-1-eno"] },
-            { id: 121, chain: 6, bonds: [1, 2, 1, 1, 3], subs: [{pos: 4, type: "CH3", dir: "down"}], nombres: ["4-metilhex-2-en-5-ino"] },
-            { id: 122, chain: 4, bonds: [2, 1, 1], subs: [{pos: 2, type: "C#CH", dir: "up", bond: 1}], nombres: ["2-etinilbut-1-eno"] },
+            { id: 120, chain: 5, bonds: [2, 1, 1, 1], subs: [{pos: 3, type: "C#CH", dir: "up", bond: 1}], nombres: ["3-etilpent-1-en-4-ino"] },
+            { id: 121, chain: 6, bonds: [1, 2, 1, 1, 3], subs: [{pos: 4, type: "CH3", dir: "down"}], nombres: ["3-metilhex-4-en-1-ino"] },
+            { id: 122, chain: 4, bonds: [2, 1, 1], subs: [{pos: 2, type: "C#CH", dir: "up", bond: 1}], nombres: ["2-etilbut-1-en-3-ino"] },
             { id: 123, chain: 6, bonds: [2, 1, 2, 1, 2], subs: [], nombres: ["hexa-1,3,5-trieno"] },
             { id: 124, chain: 5, bonds: [2, 1, 3, 1], subs: [{pos: 2, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["2-vinilpent-1-en-3-ino"] },
-            { id: 125, chain: 7, bonds: [3, 1, 1, 1, 2, 1], subs: [{pos: 4, type: "CH3", dir: "up"}], nombres: ["4-metilhept-4-en-1-ino"] },
+            { id: 125, chain: 7, bonds: [3, 1, 1, 1, 2, 1], subs: [{pos: 4, type: "CH3", dir: "up"}], nombres: ["4-metilhept-5-en-1-ino"] },
             // ... (Añadiendo 25 más para completar 50 en la lógica interna)
-            { id: 126, chain: 6, bonds: [2, 1, 1, 1, 1], subs: [{pos: 2, type: "CH3", dir: "up"}, {pos: 5, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["5-metilhepta-1,6-dieno"] },
+            { id: 126, chain: 6, bonds: [2, 1, 1, 1, 1], subs: [{pos: 2, type: "CH3", dir: "up"}, {pos: 5, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["2,5-dimetilhepta-1,6-dieno"] },
             { id: 127, chain: 5, bonds: [3, 1, 1, 1], subs: [{pos: 3, type: "CH3", dir: "up"}, {pos: 3, type: "CH3", dir: "down"}], nombres: ["3,3-dimetilpent-1-ino"] },
             { id: 128, chain: 6, bonds: [2, 1, 3, 1, 1], subs: [{pos: 5, type: "CH3", dir: "up"}], nombres: ["5-metilhex-1-en-3-ino"] },
             { id: 129, chain: 4, bonds: [2, 1, 2], subs: [{pos: 2, type: "CH3", dir: "up"}, {pos: 3, type: "CH3", dir: "down"}], nombres: ["2,3-dimetilbuta-1,3-dieno"] },
             { id: 130, chain: 7, bonds: [2, 1, 1, 1, 2, 1], subs: [{pos: 2, type: "CH3", dir: "up"}], nombres: ["2-metilhepta-1,5-dieno"] },
-            { id: 131, chain: 6, bonds: [3, 1, 1, 1, 2], subs: [{pos: 4, type: "CH3", dir: "up"}], nombres: ["4-metilhex-5-en-1-ino"] },
+            { id: 131, chain: 6, bonds: [3, 1, 1, 1, 2], subs: [{pos: 4, type: "CH3", dir: "up"}], nombres: ["3-metilhex-1-en-5-ino"] },
             { id: 132, chain: 5, bonds: [2, 1, 1, 2], subs: [{pos: 2, type: "CH2CH3", dir: "down"}], nombres: ["2-etilpenta-1,4-dieno"] },
-            { id: 133, chain: 6, bonds: [2, 1, 1, 1, 3], subs: [{pos: 3, type: "CH3", dir: "up"}], nombres: ["3-metilhex-1-en-5-ino"] },
-            { id: 134, chain: 7, bonds: [1, 2, 1, 1, 1, 3], subs: [{pos: 4, type: "CH3", dir: "down"}], nombres: ["4-metilhept-2-en-6-ino"] },
+            { id: 133, chain: 7, bonds: [2,1,1,3,1,1], subs: [{pos: 3, type: 'CH3', dir: 'up'}], nombres: ["3-metilhept-1-en-4-ino"] },
+            { id: 134, chain: 7, bonds: [1,2,1,1,1,3], subs: [{pos: 5, type: 'CH3', dir: 'down'}], nombres: ["3-metilhept-5-en-1-ino"] },
             { id: 135, chain: 4, bonds: [2, 1, 2], subs: [{pos: 2, type: "CH2CH3", dir: "up"}], nombres: ["2-etilbuta-1,3-dieno"] },
             { id: 136, chain: 5, bonds: [2, 2, 1, 1], subs: [{pos: 4, type: "CH3", dir: "up"}], nombres: ["4-metilpenta-1,2-dieno"] },
             { id: 137, chain: 6, bonds: [2, 1, 1, 2, 1], subs: [{pos: 2, type: "CH3", dir: "up"}, {pos: 5, type: "CH3", dir: "down"}], nombres: ["2,5-dimetilhexa-1,4-dieno"] },
             { id: 138, chain: 5, bonds: [3, 1, 1, 1], subs: [{pos: 4, type: "CH(CH3)2", dir: "up"}], nombres: ["4,5-dimetilhex-1-ino"] },
             { id: 139, chain: 6, bonds: [2, 1, 1, 1, 1], subs: [{pos: 3, type: "CH2CH3", dir: "down"}], nombres: ["3-etilhex-1-eno"] },
             { id: 140, chain: 4, bonds: [3, 1, 1], subs: [{pos: 3, type: "C#CH", dir: "up", bond: 1}], nombres: ["3-metilpenta-1,4-diino"] },
-            { id: 141, chain: 5, bonds: [2, 1, 3, 1], subs: [{pos: 4, type: "CH3", dir: "down"}], nombres: ["4-metilpent-1-en-3-ino"] },
+            { id: 141, chain: 7, bonds: [1,2,1,1,3,1], subs: [{pos: 4, type: 'CH3', dir: 'down'}], nombres: ["4-metilhept-2-en-5-ino"] },
             { id: 142, chain: 6, bonds: [2, 1, 1, 3, 1], subs: [{pos: 2, type: "CH3", dir: "up"}], nombres: ["2-metilhex-1-en-4-ino"] },
-            { id: 143, chain: 7, bonds: [3, 1, 1, 1, 1, 1], subs: [{pos: 3, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["3-vinilhept-1-ino"] },
+            { id: 143, chain: 7, bonds: [3, 1, 1, 1, 1, 1], subs: [{pos: 3, type: "CH=CH2", dir: "down", bond: 1}], nombres: ["3-butilpent-1-en-4-ino", "3-etinilhept-1-eno"] },
             { id: 144, chain: 5, bonds: [2, 1, 1, 1], subs: [{pos: 3, type: "CH2CH3", dir: "up"}], nombres: ["3-etilpent-1-eno"] },
-            { id: 145, chain: 6, bonds: [1, 3, 1, 1, 1], subs: [{pos: 3, type: "CH3", dir: "up"}], nombres: ["3-metilhex-2-ino"] },
+            { id: 145, chain: 6, bonds: [1,3,1,1,1], subs: [{pos: 5, type: 'CH3', dir: 'up'}], nombres: ["5-metilhex-2-ino"] },
             { id: 146, chain: 4, bonds: [2, 1, 1], subs: [{pos: 2, type: "CH3", dir: "up"}, {pos: 3, type: "CH3", dir: "down"}], nombres: ["2,3-dimetilbut-1-eno"] },
             { id: 147, chain: 5, bonds: [2, 1, 1, 2], subs: [{pos: 2, type: "CH3", dir: "up"}, {pos: 4, type: "CH3", dir: "down"}], nombres: ["2,4-dimetilpenta-1,4-dieno"] },
             { id: 148, chain: 6, bonds: [3, 1, 1, 1, 3], subs: [], nombres: ["hexa-1,5-diino"] },
             { id: 149, chain: 7, bonds: [2, 1, 3, 1, 1, 1], subs: [], nombres: ["hept-1-en-3-ino"] },
-            { id: 150, chain: 5, bonds: [2, 1, 1, 1], subs: [{pos: 2, type: "C#CH", dir: "down", bond: 1}], nombres: ["2-etinilpent-1-eno"] }
+            { id: 150, chain: 5, bonds: [2, 1, 1, 1], subs: [{pos: 2, type: "C#CH", dir: "down", bond: 1}], nombres: ["2-propilbut-1-en-3-ino", "2-etinilpent-1-eno"] }
         ];
 
         let quizPool = [], index = 0, score = 0, sessionHistory = [], currentDiff = '';
@@ -355,6 +355,10 @@
             bStats: document.getElementById('basic-stats'),
             eStats: document.getElementById('expert-stats')
         };
+
+        function escapeHTML(t) { return String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+        function shuffle(a) { const r = [...a]; for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; }
 
         function normalize(s) { return s.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "").replace(/-/g, "").replace(/,/g, ""); }
         
@@ -382,7 +386,7 @@
                 localStorage.removeItem(key); available = [...pool]; 
             }
             
-            quizPool = available.sort(() => 0.5 - Math.random()).slice(0, count);
+            quizPool = shuffle(available).slice(0, count);
             index = 0; score = 0; sessionHistory = [];
             ui.home.classList.add('hidden'); ui.result.classList.add('hidden'); ui.quiz.classList.remove('hidden');
             ui.scoreBadge.innerText = "0 Pts";
@@ -397,7 +401,8 @@
                 ui.bar.style.width = `${((index + 1) / quizPool.length) * 100}%`;
                 ui.input.value = ""; ui.input.disabled = false; ui.input.focus();
                 ui.msg.classList.add('hidden'); ui.btn.classList.remove('hidden'); ui.nextBtn.classList.add('hidden');
-                ui.input.className = ui.input.className.replace(/border-(green|red)-500|bg-(green|red)-50/, "border-slate-200 bg-slate-50");
+                ui.input.classList.remove('border-green-500','bg-green-50','border-red-500','bg-red-50','border-emerald-500','bg-emerald-50','border-cyan-500','bg-cyan-50','border-purple-500','bg-purple-50','border-amber-500','bg-amber-50');
+                ui.input.classList.add('border-slate-200','bg-slate-50');
             } else { showResults(); }
         }
 
@@ -430,7 +435,7 @@
             ui.tableBody.innerHTML = '';
             sessionHistory.forEach(item => {
                 const row = document.createElement('tr'); row.className = "hover:bg-slate-50 transition-colors";
-                row.innerHTML = `<td class="py-3 pl-2">${item.svg}</td><td class="py-3"><span class="text-xs font-bold ${item.ok?'text-green-600':'text-red-500 line-through'}">${item.user}</span></td><td class="py-3"><span class="text-[10px] font-black uppercase text-indigo-700 bg-indigo-50 px-2 py-1 rounded border border-indigo-100">${item.correct}</span></td>`;
+                row.innerHTML = `<td class="py-3 pl-2">${item.svg}</td><td class="py-3"><span class="text-xs font-bold ${item.ok?'text-green-600':'text-red-500 line-through'}">${escapeHTML(item.user)}</span></td><td class="py-3"><span class="text-[10px] font-black uppercase text-indigo-700 bg-indigo-50 px-2 py-1 rounded border border-indigo-100">${item.correct}</span></td>`;
                 ui.tableBody.appendChild(row);
             });
         }
