@@ -351,8 +351,18 @@
                 });
             }
 
+            const posCount = {};
+            substituents.forEach(s => { posCount[s.pos] = (posCount[s.pos] || 0) + 1; });
+            const posSeen = {};
             substituents.forEach(s => {
                 const v = getVertex(s.pos - 1);
+                // si dos sustituyentes comparten carbono, se abren en abanico para que no se solapen
+                let spread = 0;
+                if (posCount[s.pos] > 1) {
+                    posSeen[s.pos] = (posSeen[s.pos] || 0) + 1;
+                    spread = (posSeen[s.pos] === 1 ? -0.42 : 0.42);
+                    v.angle += spread;
+                }
                 const cosA = Math.cos(v.angle);
                 const sinA = Math.sin(v.angle);
                 let color = radColor;
@@ -463,7 +473,7 @@
             // Fenoles y Alcoholes
             { id: 9024, sides: 6, benzene: true, subs: [{pos:1, type:'OH'}, {pos:4, type:'Cl'}], nombres: ["4-clorofenol", "p-clorofenol"] },
             { id: 9025, sides: 6, benzene: true, subs: [{pos:1, type:'OH'}, {pos:3, type:'CH3'}], nombres: ["3-metilfenol", "m-cresol"] },
-            { id: 9026, sides: 6, benzene: true, subs: [{pos:1, type:'OH'}, {pos:2, type:'NO2'}], nombres: ["2-nitrophenol", "o-nitrophenol"] },
+            { id: 9026, sides: 6, benzene: true, subs: [{pos:1, type:'OH'}, {pos:2, type:'NO2'}], nombres: ["2-nitrofenol", "o-nitrofenol", "orto-nitrofenol"] },
             { id: 9027, sides: 6, benzene: true, subs: [{pos:1, type:'OH'}, {pos:4, type:'NH2'}], nombres: ["4-aminofenol", "p-aminofenol"] },
             { id: 9028, sides: 6, benzene: true, subs: [{pos:1, type:'OH'}, {pos:2, type:'NO2'}, {pos:4, type:'NO2'}, {pos:6, type:'NO2'}], nombres: ["2,4,6-trinitrofenol", "acido picrico"] },
             { id: 9029, sides: 6, benzene: true, subs: [{pos:1, type:'OH'}, {pos:3, type:'OCH3'}], nombres: ["3-metoxifenol", "m-metoxifenol"] },
@@ -477,7 +487,7 @@
             { id: 9035, sides: 6, benzene: true, subs: [{pos:1, type:'NH2'}, {pos:2, type:'Br'}, {pos:4, type:'Br'}], nombres: ["2,4-dibromoanilina"] },
             
             // Bencenos Sustituidos
-            { id: 9036, sides: 6, benzene: true, subs: [{pos:1, type:'CH3'}, {pos:2, type:'CH3'}, {pos:3, type:'CH3'}], nombres: ["1,2,3-trimetilbenceno", "hemiceliteno"] },
+            { id: 9036, sides: 6, benzene: true, subs: [{pos:1, type:'CH3'}, {pos:2, type:'CH3'}, {pos:3, type:'CH3'}], nombres: ["1,2,3-trimetilbenceno", "hemimeliteno"] },
             { id: 9037, sides: 6, benzene: true, subs: [{pos:1, type:'CH3'}, {pos:2, type:'CH3'}, {pos:4, type:'CH3'}], nombres: ["1,2,4-trimetilbenceno", "pseudocumeno"] },
             { id: 9038, sides: 6, benzene: true, subs: [{pos:1, type:'CH3'}, {pos:3, type:'CH3'}, {pos:5, type:'CH3'}], nombres: ["1,3,5-trimetilbenceno", "mesitileno"] },
             { id: 9039, sides: 6, benzene: true, subs: [{pos:1, type:'CH=CH2'}], nombres: ["vinilbenceno", "estireno"] },
@@ -485,7 +495,7 @@
             { id: 9041, sides: 6, benzene: true, subs: [{pos:1, type:'Cl'}, {pos:2, type:'NO2'}], nombres: ["1-cloro-2-nitrobenceno", "o-cloronitrobenceno"] },
             { id: 9042, sides: 6, benzene: true, subs: [{pos:1, type:'Br'}, {pos:3, type:'Cl'}], nombres: ["1-bromo-3-clorobenceno", "m-bromoclorobenceno"] },
             { id: 9043, sides: 6, benzene: true, subs: [{pos:1, type:'Cl'}, {pos:4, type:'F'}], nombres: ["1-cloro-4-fluorobenceno", "p-clorofluorobenceno"] },
-            { id: 9044, sides: 6, benzene: true, subs: [{pos:1, type:'CH3'}, {pos:3, type:'CH3'}, {pos:2, type:'NO2'}], nombres: ["2-nitro-1,3-dimetilbenceno"] },
+            { id: 9044, sides: 6, benzene: true, subs: [{pos:1, type:'CH3'}, {pos:3, type:'CH3'}, {pos:2, type:'NO2'}], nombres: ["1,3-dimetil-2-nitrobenceno", "2-nitro-m-xileno"] },
             { id: 9045, sides: 6, benzene: true, subs: [{pos:1, type:'CH3'}, {pos:2, type:'CH=CH2'}], nombres: ["1-etenil-2-metilbenceno", "o-metilestireno"] },
             
             // Cicloalcanos complejos
@@ -497,9 +507,9 @@
 
             // Cicloalquenos básicos
             { id: 9051, sides: 6, benzene: false, subs: [], bonds: [{start:1, type:2}], nombres: ["ciclohexeno"] },
-            { id: 9052, sides: 6, benzene: false, subs: [], bonds: [{start:1, type:2}, {start:3, type:2}], nombres: ["1,3-ciclohexadieno"] },
-            { id: 9053, sides: 6, benzene: false, subs: [], bonds: [{start:1, type:2}, {start:4, type:2}], nombres: ["1,4-ciclohexadieno"] },
-            { id: 9054, sides: 5, benzene: false, subs: [], bonds: [{start:1, type:2}, {start:3, type:2}], nombres: ["1,3-ciclopentadieno"] },
+            { id: 9052, sides: 6, benzene: false, subs: [], bonds: [{start:1, type:2}, {start:3, type:2}], nombres: ["ciclohexa-1,3-dieno", "1,3-ciclohexadieno"] },
+            { id: 9053, sides: 6, benzene: false, subs: [], bonds: [{start:1, type:2}, {start:4, type:2}], nombres: ["ciclohexa-1,4-dieno", "1,4-ciclohexadieno"] },
+            { id: 9054, sides: 5, benzene: false, subs: [], bonds: [{start:1, type:2}, {start:3, type:2}], nombres: ["ciclopenta-1,3-dieno", "1,3-ciclopentadieno"] },
             { id: 9055, sides: 6, benzene: false, subs: [{pos:3, type:'CH3'}], bonds: [{start:1, type:2}], nombres: ["3-metilciclohexeno"] },
             { id: 9056, sides: 5, benzene: false, subs: [{pos:1, type:'CH2CH3'}], bonds: [{start:1, type:2}], nombres: ["1-etilciclopenteno"] },
             { id: 9057, sides: 8, benzene: false, subs: [], bonds: [{start:1, type:3}], nombres: ["ciclooctino"] },
@@ -512,7 +522,7 @@
             { id: 9062, sides: 6, benzene: false, subs: [{pos:3, type:'Br'}], bonds: [{start:1, type:2}], nombres: ["3-bromociclohexeno"] },
             { id: 9063, sides: 5, benzene: false, subs: [{pos:3, type:'Cl'}], bonds: [{start:1, type:2}], nombres: ["3-clorociclopenteno"] },
             { id: 9064, sides: 6, benzene: false, subs: [{pos:1, type:'CH3'}, {pos:4, type:'NO2'}], bonds: [{start:1, type:2}], nombres: ["1-metil-4-nitrociclohexeno"] },
-            { id: 9065, sides: 6, benzene: false, subs: [{pos:1, type:'CH3'}, {pos:5, type:'CH3'}], bonds: [{start:1, type:2}, {start:4, type:2}], nombres: ["1,5-dimetil-1,4-ciclohexadieno"] },
+            { id: 9065, sides: 6, benzene: false, subs: [{pos:1, type:'CH3'}, {pos:5, type:'CH3'}], bonds: [{start:1, type:2}, {start:4, type:2}], nombres: ["1,5-dimetilciclohexa-1,4-dieno", "1,5-dimetil-1,4-ciclohexadieno"] },
             { id: 9066, sides: 4, benzene: false, subs: [{pos:3, type:'CH3'}], bonds: [{start:1, type:2}], nombres: ["3-metilciclobuteno"] },
             { id: 9067, sides: 7, benzene: false, subs: [], bonds: [{start:1, type:2}], nombres: ["ciclohepteno"] },
             { id: 9068, sides: 6, benzene: false, subs: [{pos:4, type:'CH3'}, {pos:4, type:'CH3'}], bonds: [{start:1, type:2}], nombres: ["4,4-dimetilciclohexeno"] },
@@ -570,6 +580,8 @@
             updateHomeStats();
         }
 
+        function escapeHTML(t) { return String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
         function normalize(s) { 
             return s.trim().toLowerCase()
                 .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
@@ -620,7 +632,8 @@
                 ui.bar.style.width = `${((index + 1) / quizPool.length) * 100}%`;
                 ui.input.value = ""; ui.input.disabled = false; ui.input.focus();
                 ui.msg.classList.add('hidden'); ui.btn.classList.remove('hidden'); ui.nextBtn.classList.add('hidden');
-                ui.input.className = ui.input.className.replace(/border-(green|red)-500|bg-(green|red)-50/, "border-slate-200 bg-slate-50 shadow-sm");
+                ui.input.classList.remove('border-green-500','bg-green-50','border-red-500','bg-red-50','border-emerald-500','bg-emerald-50','border-cyan-500','bg-cyan-50','border-purple-500','bg-purple-50','border-amber-500','bg-amber-50');
+                ui.input.classList.add('border-slate-200','bg-slate-50','shadow-sm');
             } else { showResults(); }
         }
 
@@ -677,7 +690,7 @@
                 row.className = "hover:bg-slate-50 transition-colors";
                 row.innerHTML = `
                     <td class="py-4 pl-1 align-middle text-left w-1/3"><div class="flex justify-start">${item.formulaSVG}</div></td>
-                    <td class="py-4 align-middle w-1/3"><span class="text-[10px] md:text-xs font-bold ${item.isCorrect ? 'text-cyan-600' : 'text-red-500 line-through'} break-words block pr-1">${item.user}</span></td>
+                    <td class="py-4 align-middle w-1/3"><span class="text-[10px] md:text-xs font-bold ${item.isCorrect ? 'text-cyan-600' : 'text-red-500 line-through'} break-words block pr-1">${escapeHTML(item.user)}</span></td>
                     <td class="py-4 align-middle w-1/3"><span class="text-[9px] font-bold uppercase text-slate-600 bg-slate-100 px-2 py-1 rounded border border-slate-200 break-words inline-block leading-tight">${item.correctName}</span></td>
                 `;
                 ui.tableBody.appendChild(row);
