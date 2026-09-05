@@ -305,7 +305,7 @@
             { id: 17, chain: ['CH3', 'CH2', 'O', 'CH', 'CH2', 'CH3'], subs: [{pos:4, type:'CH3', dir:'up'}], nombres: ["sec-butil etil eter", "2-etoxibutano"] },
             { id: 18, chain: ['CH3', 'CH2', 'CH2', 'CH2', 'O', 'CH2', 'CH2', 'CH2', 'CH3'], subs: [], nombres: ["dibutil eter", "1-butoxibutano"] },
             { id: 19, chain: ['CH3', 'O', 'CH2', 'CH', 'CH3'], subs: [{pos:4, type:'CH3', dir:'down'}], nombres: ["isobutil metil eter", "1-metoxi-2-metilpropano"] },
-            { id: 20, chain: ['CH3', 'CH2', 'O', 'CH2', 'CH', 'CH3'], subs: [{pos:5, type:'CH3', dir:'down'}], nombres: ["etoxiisobutano", "1-etoxi-2-metilpropano"] },
+            { id: 20, chain: ['CH3', 'CH2', 'O', 'CH2', 'CH', 'CH3'], subs: [{pos:5, type:'CH3', dir:'down'}], nombres: ["1-etoxi-2-metilpropano", "etil isobutil eter", "etoxiisobutano"] },
             { id: 21, chain: ['CH3', 'O', 'CH2', 'CH2', 'OH'], subs: [], nombres: ["2-metoxietanol"] },
             { id: 22, chain: ['CH3', 'O', 'CH2', 'CHO'], subs: [], nombres: ["metoxietanal"] },
             { id: 23, chain: ['CH3', 'O', 'CH2', 'CH2', 'NH2'], subs: [], nombres: ["2-metoxietanamina"] },
@@ -334,7 +334,7 @@
             { id: 112, chain: ['CH3', 'O', 'CH2', 'CH', 'O', 'CH3'], subs: [{pos:4, type:'CH3', dir:'down'}], nombres: ["1,2-dimetoxipropano"] },
             { id: 113, chain: ['CH3', 'O', 'CH2', 'CH2', 'O', 'CH3'], nombres: ["1,2-dimetoxietano", "glima"] },
             { id: 114, chain: ['CH3', 'O', 'CH2', 'CH2', 'NO2'], nombres: ["1-metoxi-2-nitroetano"] },
-            { id: 115, chain: ['CH3', 'O', 'CH2', 'CH', 'CH2', 'OH'], subs: [{pos:4, type:'OH', dir:'up'}], nombres: ["3-metoxipropan-1,2-diol"] },
+            { id: 115, chain: ['CH3', 'O', 'CH2', 'CH', 'CH2', 'OH'], subs: [{pos:4, type:'OH', dir:'up'}], nombres: ["3-metoxipropano-1,2-diol", "3-metoxipropan-1,2-diol"] },
             { id: 116, chain: ['CH3', 'CH2', 'O', 'CH2', 'CH', 'CH3'], subs: [{pos:5, type:'OH', dir:'up'}], nombres: ["1-etoxipropan-2-ol"] },
             { id: 117, chain: ['HO', 'CH2', 'CH2', 'O', 'CH2', 'CH2', 'OH'], nombres: ["2,2'-oxidietanol", "dietilenglicol"] },
             { id: 118, chain: ['CH3', 'O', 'CH2', 'CH2', 'CH2', 'Cl'], nombres: ["1-cloro-3-metoxipropano"] },
@@ -388,6 +388,8 @@
             return array;
         }
 
+        function escapeHTML(t) { return String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
         function normalize(s) { return s.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "").replace(/-/g, "").replace(/,/g, ""); }
         function getGlobalHistory() { const data = localStorage.getItem(`quim_eter_vfinal_fix_${currentMode}`); return data ? JSON.parse(data).map(Number) : []; }
         function saveToGlobalHistory(id) { let seen = getGlobalHistory(); if (!seen.includes(Number(id))) { seen.push(Number(id)); localStorage.setItem(`quim_eter_vfinal_fix_${currentMode}`, JSON.stringify(seen)); } }
@@ -426,7 +428,8 @@
                 ui.bar.style.width = `${((index + 1) / quizPool.length) * 100}%`;
                 ui.input.value = ""; ui.input.disabled = false; ui.input.focus();
                 ui.msg.classList.add('hidden'); ui.btn.classList.remove('hidden'); ui.nextBtn.classList.add('hidden');
-                ui.input.className = ui.input.className.replace(/border-(green|red)-500|bg-(green|red)-50/, "border-stone-200 bg-stone-50 shadow-sm");
+                ui.input.classList.remove('border-green-500','bg-green-50','border-red-500','bg-red-50','border-emerald-500','bg-emerald-50','border-cyan-500','bg-cyan-50','border-purple-500','bg-purple-50','border-amber-500','bg-amber-50');
+                ui.input.classList.add('border-stone-200','bg-stone-50','shadow-sm');
             } else { showResults(); }
         }
 
@@ -468,7 +471,7 @@
                 row.className = "hover:bg-stone-50 transition-colors";
                 row.innerHTML = `
                     <td class="py-10 pl-2 align-middle text-left"><div class="flex justify-start">${item.formulaSVG}</div></td>
-                    <td class="py-10 align-middle"><span class="text-[10px] md:text-xs font-bold ${item.isCorrect ? 'text-amber-600' : 'text-red-500 line-through'} break-words block pr-2">${item.user}</span></td>
+                    <td class="py-10 align-middle"><span class="text-[10px] md:text-xs font-bold ${item.isCorrect ? 'text-amber-600' : 'text-red-500 line-through'} break-words block pr-2">${escapeHTML(item.user)}</span></td>
                     <td class="py-10 align-middle"><span class="text-[10px] md:text-xs font-black uppercase text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-100 break-words inline-block">${item.correctName}</span></td>
                 `;
                 ui.tableBody.appendChild(row);
