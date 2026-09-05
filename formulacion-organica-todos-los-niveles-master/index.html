@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Química Orgánica Master</title>
 
-    <!-- Tailwind CDN (con safelist para clases dinámicas) -->
+    <!-- Tailwind CDN. El CDN debe cargarse ANTES de definir la config: al cargarse
+         sobrescribe window.tailwind, de modo que una config previa se perdería. -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      // IMPORTANTE: con el CDN de Tailwind, las clases creadas dinámicamente en JS no se “detectan”.
-      // Este safelist asegura que existan bg/text/border de los dos temas usados (blue/emerald).
-      tailwind = window.tailwind || {};
-      tailwind.config = {
+      // Safelist: asegura que existan bg/text/border de los dos temas usados (blue/emerald),
+      // porque las clases creadas dinámicamente en JS pueden no detectarse.
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
         safelist: [
           // Header
           'bg-blue-600','bg-emerald-600',
@@ -23,7 +25,6 @@
         ]
       };
     </script>
-    <script src="https://cdn.tailwindcss.com"></script>
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
@@ -313,10 +314,126 @@
                 .toLowerCase()
                 .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
                 .replace(/[–—]/g, '-')
-                .replace(/[\s\-_,]/g, '');
+                .replace(/[\s\-_,()]/g, '');
+        }
+
+        // --- NOMBRES ACEPTADOS ---------------------------------------------------
+        // La app admitia unicamente el nombre exacto de la base de datos, de modo que
+        // "2-buteno" o "2-propanol" (el formato de muchos libros de texto) se contaban
+        // como error. Aqui se generan automaticamente todas las variantes validas.
+
+        const ROOTS = 'undec|dodec|met|et|prop|but|pent|hex|hept|oct|non|dec';
+
+        // Formato clasico: los localizadores intercalados pasan delante de la raiz.
+        //   but-1-eno -> 1-buteno | pentan-2-ona -> 2-pentanona
+        //   4-cloropentan-2-ona -> 4-cloro-2-pentanona | hexa-1,4-dieno -> 1,4-hexadieno
+        function classicLocants(name) {
+            const re = new RegExp('(' + ROOTS + ')(ano|an|a)?-(\\d+(?:,\\d+)*)-');
+            const out = name.replace(re, (all, root, mid, loc, offset) => {
+                const sep = (offset > 0 && /[a-záéíóúñ]/i.test(name[offset - 1])) ? '-' : '';
+                return sep + loc + '-' + root + (mid || '');
+            });
+            return out === name ? null : out;
+        }
+
+        // Nombres tradicionales que se siguen usando en clase y en el laboratorio.
+        const TRADICIONALES = {
+            'eteno': ['etileno'],
+            'propeno': ['propileno', 'prop-1-eno'],
+            'etino': ['acetileno'],
+            'propino': ['prop-1-ino'],
+            '2,2-dimetilpropano': ['neopentano'],
+            '2,2,4-trimetilpentano': ['isooctano'],
+            'metanol': ['alcohol metílico'],
+            'etanol': ['alcohol etílico'],
+            'propan-2-ol': ['alcohol isopropílico'],
+            'etano-1,2-diol': ['etilenglicol', 'glicol etilénico'],
+            'propano-1,2-diol': ['propilenglicol'],
+            'propano-1,2,3-triol': ['glicerina', 'glicerol'],
+            'metoximetano': ['dimetiléter', 'éter dimetílico'],
+            'etoxietano': ['dietiléter', 'éter dietílico', 'éter etílico'],
+            'metanal': ['formaldehído', 'metanaldehído'],
+            'etanal': ['acetaldehído'],
+            'etanodial': ['glioxal'],
+            'propanona': ['propan-2-ona', 'acetona', 'dimetilcetona'],
+            'butanona': ['butan-2-ona', 'metiletilcetona'],
+            'butan-2-ona': ['butanona', 'metiletilcetona'],
+            'ácido metanoico': ['ácido fórmico'],
+            'ácido etanoico': ['ácido acético'],
+            'ácido propanoico': ['ácido propiónico'],
+            'ácido butanoico': ['ácido butírico'],
+            'ácido pentanoico': ['ácido valeriánico'],
+            'ácido etanodioico': ['ácido oxálico'],
+            'ácido propanodioico': ['ácido malónico'],
+            'ácido but-2-enodioico': ['ácido maleico', 'ácido fumárico'],
+            'ácido 2-hidroxipropanoico': ['ácido láctico'],
+            'ácido 2-aminopropanoico': ['alanina'],
+            'metanoato de metilo': ['formiato de metilo'],
+            'etanoato de metilo': ['acetato de metilo'],
+            'etanoato de etilo': ['acetato de etilo'],
+            'propanoato de metilo': ['propionato de metilo'],
+            'butanoato de etilo': ['butirato de etilo'],
+            'etanoato de potasio': ['acetato de potasio'],
+            'propanoato de sodio': ['propionato de sodio'],
+            '2-cloroetanoato de sodio': ['cloroacetato de sodio'],
+            '3-oxobutanoato de etilo': ['acetoacetato de etilo'],
+            'etanamida': ['acetamida'],
+            'etanonitrilo': ['acetonitrilo'],
+            'propanonitrilo': ['propionitrilo'],
+            'metanamina': ['metilamina'],
+            'etanamina': ['etilamina'],
+            'propan-1-amina': ['propilamina'],
+            'propan-2-amina': ['isopropilamina'],
+            'N-metilmetanamina': ['dimetilamina'],
+            'etano-1,2-diamina': ['etilendiamina'],
+            'clorometano': ['cloruro de metilo'],
+            'bromometano': ['bromuro de metilo'],
+            'cloroetano': ['cloruro de etilo']
+        };
+
+        // Sustituyentes con nombre retenido y su equivalente IUPAC sistematico.
+        const SUSTITUYENTES_ALT = [['vinil', 'etenil'], ['isopropil', 'propan-2-il']];
+
+        function acceptedNames(item) {
+            const out = [];
+            const add = v => { if (v && !out.some(x => normName(x) === normName(v))) out.push(v); };
+            add(item.name);
+            (item.alt || []).forEach(add);
+            (TRADICIONALES[item.name] || []).forEach(add);
+            out.slice().forEach(v => add(classicLocants(v)));
+            out.slice().forEach(v => SUSTITUYENTES_ALT.forEach(par => {
+                if (v.indexOf(par[0]) !== -1) add(v.split(par[0]).join(par[1]));
+            }));
+            out.slice().forEach(v => { if (v.indexOf('ácido ') === 0) add('acido ' + v.slice(6)); });
+            return out;
         }
 
         // --- 1. CONFIGURACIÓN APP ---
+
+        // Bloques comunes de la chuleta. Antes la tabla de prefijos sólo llegaba a 8 C
+        // (el juego pregunta hasta 12) y no aparecía en Grupos Funcionales; tampoco se
+        // explicaba en ninguna parte dónde van los localizadores.
+        const CHULETA_PREFIJOS = `<div><h4 class="font-bold border-b-2 mb-2">Prefijos según el nº de carbonos</h4>
+            <div class="grid grid-cols-3 gap-1 text-xs">
+                <div>1 · met-</div><div>2 · et-</div><div>3 · prop-</div>
+                <div>4 · but-</div><div>5 · pent-</div><div>6 · hex-</div>
+                <div>7 · hept-</div><div>8 · oct-</div><div>9 · non-</div>
+                <div>10 · dec-</div><div>11 · undec-</div><div>12 · dodec-</div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Multiplicadores: di- (2), tri- (3), tetra- (4), penta- (5).</p></div>`;
+
+        const CHULETA_FORMATO = `<div class="bg-blue-50 border border-blue-100 rounded-lg p-3">
+            <h4 class="font-bold mb-1">Dónde se escriben los localizadores</h4>
+            <p class="text-xs mb-2">La app usa el formato IUPAC actual, con el número <b>pegado al sufijo</b>:</p>
+            <div class="text-xs space-y-1">
+                <div><b>but-2-eno</b> · <b>pentan-2-ona</b> · <b>propan-1-ol</b> · <b>penta-1,3-dieno</b></div>
+                <div class="text-gray-500">También se aceptan las formas clásicas de muchos libros
+                (2-buteno, 2-pentanona, 1-propanol, 1,3-pentadieno) y los nombres tradicionales
+                (acetona, ácido acético, glicerina...).</div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Los prefijos de sustituyentes se ordenan alfabéticamente:
+            <b>3-etil-2-metilpentano</b> (etil antes que metil).</p></div>`;
+
         const apps = {
             hydro: {
                 title: "Hidrocarburos", color: "blue",
@@ -326,8 +443,9 @@
                     { id: 'alkenes', name: 'Alquenos (=)', icon: 'fa-equals' },
                     { id: 'alkynes', name: 'Alquinos (≡)', icon: 'fa-bars' }
                 ],
-                keyboard: ['-', ',', 'eno', 'ino', 'di', 'tri'],
-                cheatsheet: `<div><h4 class="font-bold border-b-2 mb-2">Prefijos</h4><div class="grid grid-cols-2 gap-2 text-xs"><div>1:Met</div><div>2:Et</div><div>3:Prop</div><div>4:But</div><div>5:Pent</div><div>6:Hex</div><div>7:Hept</div><div>8:Oct</div></div></div><div><h4 class="font-bold border-b-2 mb-2">Sufijos</h4><div class="space-y-1 text-xs"><div>-ano (Simple)</div><div>-eno (Doble)</div><div>-ino (Triple)</div></div></div>`
+                keyboard: ['-', ',', 'a', 'metil', 'etil', 'propil', 'ano', 'eno', 'ino', 'di', 'tri', 'tetra'],
+                cheatsheet: CHULETA_PREFIJOS + `
+                    <div><h4 class="font-bold border-b-2 mb-2">Sufijos</h4><div class="space-y-1 text-xs"><div><b>-ano</b> · sólo enlaces simples</div><div><b>-eno</b> · doble enlace</div><div><b>-ino</b> · triple enlace</div></div></div>` + CHULETA_FORMATO
             },
             func: {
                 title: "Grupos Funcionales", color: "emerald",
@@ -338,8 +456,8 @@
                     { id: 'nitrogen', name: 'Nitrogenados', icon: 'fa-fish' },
                     { id: 'halonitro', name: 'Halógenos/Nitro', icon: 'fa-bomb' }
                 ],
-                keyboard: ['N', '-', ',', 'ol', 'al', 'ona', 'oico', 'il', 'oxi', 'nitrilo', 'amida', 'amina', 'nitro', 'cloro'],
-                cheatsheet: `<p class="text-xs text-gray-500 mb-2 italic">Prioridad (1 mayor):</p><table class="w-full text-left text-xs text-gray-700"><thead class="bg-gray-100 font-bold"><tr><th class="p-2">Grupo</th><th class="p-2">Sufijo</th><th class="p-2">Prefijo</th></tr></thead><tbody class="divide-y"><tr><td class="p-2 text-red-600 font-bold">Ácido</td><td>-oico</td><td>carboxi-</td></tr><tr><td class="p-2 text-red-500 font-bold">Éster</td><td>-oato</td><td>-</td></tr><tr><td class="p-2 text-purple-600 font-bold">Amida</td><td>-amida</td><td>carbamoil-</td></tr><tr class="bg-purple-50"><td class="p-2 text-purple-800 font-bold">Nitrilo</td><td>-nitrilo</td><td>ciano-</td></tr><tr><td class="p-2 text-orange-600 font-bold">Aldehído</td><td>-al</td><td>formil/oxo</td></tr><tr><td class="p-2 text-orange-500 font-bold">Cetona</td><td>-ona</td><td>oxo-</td></tr><tr><td class="p-2 text-blue-600 font-bold">Alcohol</td><td>-ol</td><td>hidroxi-</td></tr><tr><td class="p-2 text-purple-500 font-bold">Amina</td><td>-amina</td><td>amino-</td></tr><tr><td class="p-2 text-blue-400 font-bold">Éter</td><td>éter</td><td>alcoxi-</td></tr><tr class="bg-yellow-50"><td class="p-2 font-bold">Nitro/Halo</td><td>-</td><td>nitro-/cloro-</td></tr></tbody></table>`
+                keyboard: ['-', ',', 'N', 'ácido ', ' de ', 'metil', 'etil', 'vinil', 'isopropil', 'hidroxi', 'oxo', 'amino', 'cloro', 'bromo', 'nitro', 'oxi', 'ol', 'al', 'ona', 'oico', 'oato', 'amina', 'amida', 'nitrilo'],
+                cheatsheet: CHULETA_PREFIJOS + `<p class="text-xs text-gray-500 mb-2 italic">Prioridad del grupo principal (1 = mayor):</p><table class="w-full text-left text-xs text-gray-700"><thead class="bg-gray-100 font-bold"><tr><th class="p-2">Grupo</th><th class="p-2">Sufijo</th><th class="p-2">Prefijo</th></tr></thead><tbody class="divide-y"><tr><td class="p-2 text-red-600 font-bold">Ácido</td><td>-oico</td><td>carboxi-</td></tr><tr><td class="p-2 text-red-500 font-bold">Éster</td><td>-oato</td><td>-</td></tr><tr><td class="p-2 text-purple-600 font-bold">Amida</td><td>-amida</td><td>carbamoil-</td></tr><tr class="bg-purple-50"><td class="p-2 text-purple-800 font-bold">Nitrilo</td><td>-nitrilo</td><td>ciano-</td></tr><tr><td class="p-2 text-orange-600 font-bold">Aldehído</td><td>-al</td><td>formil/oxo</td></tr><tr><td class="p-2 text-orange-500 font-bold">Cetona</td><td>-ona</td><td>oxo-</td></tr><tr><td class="p-2 text-blue-600 font-bold">Alcohol</td><td>-ol</td><td>hidroxi-</td></tr><tr><td class="p-2 text-purple-500 font-bold">Amina</td><td>-amina</td><td>amino-</td></tr><tr><td class="p-2 text-blue-400 font-bold">Éter</td><td>éter</td><td>alcoxi-</td></tr><tr class="bg-yellow-50"><td class="p-2 font-bold">Nitro/Halo</td><td>-</td><td>nitro-/cloro-</td></tr></tbody></table>` + CHULETA_FORMATO
             }
         };
 
@@ -348,7 +466,7 @@
         const prefixes = ['', 'Met', 'Et', 'Prop', 'But', 'Pent', 'Hex', 'Hept', 'Oct', 'Non', 'Dec', 'Undec', 'Dodec'];
         function getN(n) { return prefixes[n] ? prefixes[n].toLowerCase() : 'pol'; }
         function sub(t) { if(!t) return ''; return t.toString().replace(/(\d+)/g, '<sub>$1</sub>'); }
-        function getFormula(n) { return n===1?'CH4':n===2?'CH3-CH3':`CH3-(CH2)${n-2}-CH3`; }
+        function getFormula(n) { return n===1?'CH4':n===2?'CH3-CH3':n===3?'CH3-CH2-CH3':`CH3-(CH2)${n-2}-CH3`; }
         function addUnique(category, item) { if(!db[category].some(x => x.name === item.name)) db[category].push(item); }
 
         function generateData() {
@@ -395,11 +513,12 @@
             alkSeeds.forEach(s=>addUnique('alkenes',{name:s.n,chain:s.c,bonds:s.b.map(x=>({idx:x.i,type:x.t})),branches:s.br?s.br.map(x=>({idx:x.i,g:x.g,pos:x.p})):[]}));
             for(let i=0;i<15;i++){
                 let len=Math.floor(Math.random()*5)+4;
-                let maxPos=Math.ceil(len/2);
-                // FIX: permitir también la posición "mitad" (p.ej. hex-3-eno)
+                // El localizador mas alto posible numerando por el extremo mas proximo es
+                // floor(len/2), NO ceil(len/2): con ceil se generaban "pent-3-eno" y
+                // "hept-4-eno", que estan mal numerados (son pent-2-eno y hept-3-eno).
+                let maxPos=Math.floor(len/2);
                 let dPos=Math.floor(Math.random()*maxPos)+1;
                 let name=`${getN(len)}-${dPos}-eno`;
-                if(dPos===1&&len<=3)name=getN(len)+"eno";
                 let chain=Array(len).fill("CH2");
                 chain[0]="CH3";chain[len-1]="CH3";
                 if(dPos===1){chain[0]="CH2";chain[1]="CH";}
@@ -448,7 +567,8 @@
                 {n:"etanodial",c:["CH","CH"],br:[{i:0,g:"=O",p:"top-double"},{i:1,g:"=O",p:"top-double"}],t:'aldehyde'}
             ];
             oxy2Seeds.forEach(s=>addUnique('oxy2',{name:s.n,chain:s.c,branches:s.br?s.br.map(x=>({idx:x.i,g:x.g,pos:x.p})):[],subtype:s.t}));
-            for(let c=4;c<=8;c++){
+            // Desde 5 C: butan-2-ona ya esta como semilla ("butanona") y se duplicaba.
+            for(let c=5;c<=8;c++){
                 let kPosLimit = Math.ceil(c/2);
                 let kPos=Math.floor(Math.random()*(kPosLimit-1))+2;
                 let chK=Array(c).fill("CH2");
@@ -478,7 +598,7 @@
             const nitroSeeds = [
                 {n:"metanamina",c:["CH3","NH2"],t:'amine'},{n:"etanamina",c:["CH3","CH2","NH2"],t:'amine'},{n:"propan-1-amina",c:["CH3","CH2","CH2","NH2"],t:'amine'},
                 {n:"propan-2-amina",c:["CH3","CH","CH3"],br:[{i:1,g:"NH2",p:"bottom"}],t:'amine'},
-                {n:"N-metilmetanamina",c:["CH3","NH","CH3"],br:[{i:1,g:"CH3",p:"bottom"}],t:'amine'},
+                {n:"N-metilmetanamina",c:["CH3","NH","CH3"],t:'amine',nota:"La cadena CH3-NH-CH3 ya es la molecula completa: el N tiene dos carbonos y un H. Si le anadieramos un tercer metilo seria la N,N-dimetilmetanamina."},
                 {n:"N-metiletanamina",c:["CH3","CH2","NH"],br:[{i:2,g:"CH3",p:"bottom"}],t:'amine'},
                 {n:"N,N-dimetiletanamina",c:["CH3","CH2","N"],br:[{i:2,g:"CH3",p:"top"},{i:2,g:"CH3",p:"bottom"}],t:'amine'},
                 {n:"etano-1,2-diamina",c:["NH2","CH2","CH2","NH2"],t:'amine'},
@@ -544,12 +664,19 @@
                 {n: "2,3,4-trimetilhexa-1,3,5-trieno", c: ["CH2","CH","C","C","C","CH2"], b: [{i:0,t:"="},{i:2,t:"="},{i:4,t:"="}], br: [{i:2,g:"CH3",p:"top"}, {i:3,g:"CH3",p:"bottom"}, {i:4,g:"CH3",p:"top"}], t:'hydro'},
                 {n: "3-etil-3-metilpent-1-en-4-ino", c: ["CH2","CH","C","C","CH"], br: [{i:2,g:"CH3",p:"top"}, {i:2,g:"CH2CH3",p:"bottom"}], b: [{i:0,t:"="},{i:3,t:"3"}], t: 'hydro'},
                 {n: "3-isopropil-4,4-dimetilpent-1-ino", c: ["CH","C","CH","C","CH3"], b: [{i:0,t:"3"}], br: [{i:2,g:"CH(CH3)2",p:"top"}, {i:3,g:"CH3",p:"top"}, {i:3,g:"CH3",p:"bottom"}], t:'hydro'},
-                {n: "3-propil-4-vinilhexa-1,5-dieno", c: ["CH2","CH","CH","CH","CH","CH2"], b: [{i:0,t:"="},{i:4,t:"="}], br: [{i:2,g:"CH2CH2CH3",p:"top"}, {i:3,g:"CH=CH2",p:"bottom"}], t:'hydro'},
-                {n: "3,3-dimetil-4-vinilpenta-1,4-dieno", c: ["CH2","CH","C","C","CH2"], b: [{i:0,t:"="},{i:3,t:"="}], br: [{i:2,g:"CH3",p:"top"}, {i:2,g:"CH3",p:"bottom"}, {i:3,g:"CH=CH2",p:"bottom"}], t:'hydro'},
+                {n: "4-etil-3-metilhepta-1,5-dieno", c: ["CH2","CH","CH","CH","CH","CH","CH3"], b: [{i:0,t:"="},{i:4,t:"="}], br: [{i:2,g:"CH3",p:"top"}, {i:3,g:"CH2CH3",p:"bottom"}], t: 'hydro'},
+                {n: "4-etil-3-metilhept-1-en-5-ino", c: ["CH2","CH","CH","CH","C","C","CH3"], b: [{i:0,t:"="},{i:4,t:"3"}], br: [{i:2,g:"CH3",p:"top"}, {i:3,g:"CH2CH3",p:"bottom"}], t: 'hydro'},
                 {n: "3-etil-3-isopropilpent-1-en-4-ino", c: ["CH2","CH","C","C","CH"], b: [{i:0,t:"="},{i:3,t:"3"}], br: [{i:2,g:"CH2CH3",p:"top"}, {i:2,g:"CH(CH3)2",p:"bottom"}], t:'hydro'},
-                {n: "3,4-dimetil-3-vinilhex-1-ino", c: ["CH","C","C","CH","CH2","CH3"], br: [{i:2,g:"CH3",p:"top"}, {i:2,g:"CH=CH2",p:"bottom"}, {i:3,g:"CH3",p:"top"}], b: [{i:0,t:"3"}], t: 'hydro'}
+                {n: "3-etinil-3,4-dimetilhex-1-eno", alt: ["3,4-dimetil-3-vinilhex-1-ino"], c: ["CH","C","C","CH","CH2","CH3"], br: [{i:2,g:"CH3",p:"top"}, {i:2,g:"CH=CH2",p:"bottom"}, {i:3,g:"CH3",p:"top"}], b: [{i:0,t:"3"}], t: 'hydro'}
+                ,
+                // Ampliación del banco PRO de hidrocarburos: con 9 moléculas se repetían
+                // preguntas en las partidas de 10 y 20.
+                {n: "2,3-dimetilpenta-1,3-dieno", c: ["CH2","C","C","CH","CH3"], b: [{i:0,t:"="},{i:2,t:"="}], br: [{i:1,g:"CH3",p:"top"}, {i:2,g:"CH3",p:"bottom"}], t:'hydro'},
+                {n: "4,4-dimetilpent-2-ino", c: ["CH3","C","C","C","CH3"], b: [{i:1,t:"3"}], br: [{i:3,g:"CH3",p:"top"}, {i:3,g:"CH3",p:"bottom"}], t:'hydro'},
+                {n: "3-etilhex-1-en-4-ino", c: ["CH2","CH","CH","C","C","CH3"], b: [{i:0,t:"="},{i:3,t:"3"}], br: [{i:2,g:"CH2CH3",p:"bottom"}], t:'hydro'},
+                {n: "3-metilhexa-1,4-dieno", c: ["CH2","CH","CH","CH","CH","CH3"], b: [{i:0,t:"="},{i:3,t:"="}], br: [{i:2,g:"CH3",p:"top"}], t:'hydro'}
             ];
-            proHydroSeeds.forEach(s => addUnique('proHydro', {name:s.n, chain:s.c, branches:s.br?s.br.map(x=>({idx:x.i, g:x.g, pos:x.p})):[], bonds:s.b?s.b.map(x=>({idx:x.i, type:x.t})):[], subtype:s.t}));
+            proHydroSeeds.forEach(s => addUnique('proHydro', {name:s.n, alt:s.alt, chain:s.c, branches:s.br?s.br.map(x=>({idx:x.i, g:x.g, pos:x.p})):[], bonds:s.b?s.b.map(x=>({idx:x.i, type:x.t})):[], subtype:s.t}));
 
             // PRO FUNC (tu lista original, con un ajuste químico: evitar CH2Cl como “átomo” y pasarlo a rama)
             const proFuncSeeds = [
@@ -563,7 +690,7 @@
                 {n: "3-vinilhexano-2,5-diona", c: ["CH3","C","CH","CH2","C","CH3"], br: [{i:1,g:"=O",p:"top-double"},{i:2,g:"CH=CH2",p:"bottom"},{i:4,g:"=O",p:"top-double"}], t: 'ketone'},
                 {n: "ácido 2,3-dihidroxi-4-metilpentanoico", c: ["CH3","CH","CH","CH","C","OH"], br: [{i:1,g:"CH3",p:"bottom"},{i:2,g:"OH",p:"top"},{i:3,g:"OH",p:"bottom"},{i:4,g:"=O",p:"top-double"}], t: 'acid'},
                 {n: "4-oxopent-2-enonitrilo", c: ["CH3","C","CH","CH","CN"], br: [{i:1,g:"=O",p:"top-double"}], b: [{i:2,t:"="}], t: 'nitrile', isNitrile:true},
-                {n: "2-cloro-3-isopropilbutanamida", c: ["CH3","CH","CH","CH","NH2"], br: [{i:2,g:"CH(CH3)2",p:"bottom"},{i:3,g:"Cl",p:"top"},{i:4,g:"=O",p:"top-double"}], t: 'amide'},
+                {n: "2-cloro-3-isopropilbutanamida", c: ["CH3","CH","CH","C","NH2"], br: [{i:1,g:"CH(CH3)2",p:"bottom"},{i:2,g:"Cl",p:"top"},{i:3,g:"=O",p:"top-double"}], t: 'amide'},
                 {n: "pentano-1,3,5-triol", c: ["CH2OH","CH2","CH","CH2","CH2OH"], br: [{i:2,g:"OH",p:"bottom"}], t: 'alcohol'},
                 {n: "4-oxopentanal", c: ["CH3","C","CH2","CH2","CH"], br: [{i:1,g:"=O",p:"top-double"},{i:4,g:"=O",p:"top-double"}], t: 'aldehyde'},
                 {n: "2-etilbut-2-enoato de metilo", c: ["CH3","CH","C","C","O","CH3"], br: [{i:2,g:"CH2CH3",p:"top"},{i:3,g:"=O",p:"top-double"}], b: [{i:1,t:"="}], t: 'ester'},
@@ -584,12 +711,54 @@
             proFuncSeeds.forEach(s => addUnique('proMix', {name:s.n, chain:s.c, branches:s.br?s.br.map(x=>({idx:x.i, g:x.g, pos:x.p})):[], bonds:s.b?s.b.map(x=>({idx:x.i, type:x.t})):[], subtype:s.t, isNitrile:s.isNitrile}));
 
             // Añadir también hidro PRO al mix PRO general
-            proHydroSeeds.forEach(s => addUnique('proMix', {name:s.n, chain:s.c, branches:s.br?s.br.map(x=>({idx:x.i, g:x.g, pos:x.p})):[], bonds:s.b?s.b.map(x=>({idx:x.i, type:x.t})):[], subtype:s.t}));
+            proHydroSeeds.forEach(s => addUnique('proMix', {name:s.n, alt:s.alt, chain:s.c, branches:s.br?s.br.map(x=>({idx:x.i, g:x.g, pos:x.p})):[], bonds:s.b?s.b.map(x=>({idx:x.i, type:x.t})):[], subtype:s.t}));
         }
 
         generateData();
 
+        // --- NOTAS PEDAGÓGICAS -------------------------------------------------
+        // Comentario que se muestra al corregir, para explicar nombres tradicionales,
+        // isomería no representada o el criterio de elección de la cadena principal.
+        const NOTAS = {
+            'N-metilmetanamina': 'La cadena CH₃–NH–CH₃ ya es la molécula completa: el nitrógeno lleva dos carbonos y un hidrógeno. Con un tercer metilo sería N,N-dimetilmetanamina (trimetilamina).',
+            '3-etinil-3,4-dimetilhex-1-eno': 'Hay dos cadenas de 6 C con un enlace múltiple cada una. Al empatar en longitud y en número de enlaces múltiples, la IUPAC prefiere la que contiene el DOBLE enlace, y el triple pasa a prefijo (etinil–). Se admite también 3,4-dimetil-3-vinilhex-1-ino, habitual en muchos libros.',
+            'ácido but-2-enodioico': 'La fórmula desarrollada plana no distingue los isómeros geométricos: el cis es el ácido maleico y el trans el ácido fumárico.',
+            'but-2-eno': 'Presenta isomería geométrica (cis y trans) que la fórmula plana no distingue.',
+            'ácido 2-hidroxipropanoico': 'Es el ácido láctico. Tiene un carbono asimétrico, así que presenta isomería óptica.',
+            'ácido 2-aminopropanoico': 'Es la alanina, uno de los veinte aminoácidos proteicos.',
+            'propano-1,2,3-triol': 'Es la glicerina o glicerol, el alcohol que forma parte de las grasas.',
+            'etano-1,2-diol': 'Es el etilenglicol, el anticongelante de los circuitos de refrigeración.',
+            'metanal': 'Es el formaldehído; su disolución acuosa al 40 % se conoce como formol.',
+            'propanona': 'Es la acetona. Se acepta también propan-2-ona, aunque el localizador es innecesario porque no hay otra posibilidad.',
+            'butanona': 'Se acepta también butan-2-ona. El carbonilo de una cetona nunca puede estar en un extremo de la cadena.',
+            '2,2,4-trimetilpentano': 'Es el isooctano, la referencia de índice de octano 100 en las gasolinas.',
+            'etanonitrilo': 'Ojo al contar carbonos: el carbono del grupo –C≡N cuenta como C1 de la cadena.',
+            'propanodinitrilo': 'Los dos carbonos de los grupos nitrilo cuentan en la cadena: por eso es propano y no metano.',
+            '4-etil-3-metilhepta-1,5-dieno': 'La cadena principal es la más larga que contiene el mayor número de enlaces múltiples: los dos dobles enlaces mandan sobre cualquier otra cadena de 7 carbonos.',
+            '4-etil-3-metilhept-1-en-5-ino': 'Con un doble y un triple enlace se numera dando los localizadores más bajos al conjunto {1,5}; si hubiera empate, la preferencia sería para el doble enlace.',
+            'propano-1,2-diol': 'Es el propilenglicol, muy usado como aditivo alimentario y en cosmética.',
+            '2,2-dimetilpropano': 'Se conoce tradicionalmente como neopentano.'
+        };
+        Object.keys(db).forEach(k => db[k].forEach(m => {
+            let nota = NOTAS[m.name] || '';
+            if (m.name.indexOf('vinil') !== -1)
+                nota += (nota ? ' ' : '') + 'El sustituyente vinil– (CH₂=CH–) se llama etenil– en la IUPAC actual; se aceptan los dos.';
+            if (m.name.indexOf('isopropil') !== -1)
+                nota += (nota ? ' ' : '') + 'El sustituyente isopropil– se nombra propan-2-il– en la IUPAC actual; se aceptan los dos.';
+            if (nota) m.nota = nota;
+        }));
+
         // --- RENDERIZADOR ---
+        // Color de un grupo lateral. Excluyente y en orden: el nitro (NO2) es un grupo
+        // nitrogenado, no un halogeno; antes se pintaba de verde como el Cl o el F.
+        function branchColorClass(g) {
+            if(/^NO2$/.test(g)) return "branch-atom-N";
+            if(/Cl|Br|I|F/.test(g)) return "branch-atom-X";
+            if(g.includes("N")) return "branch-atom-N";
+            if(g.includes("O")) return "branch-atom-O";
+            return "";
+        }
+
         function renderMoleculeHTML(data, isMini = false, noColor = false) {
             let html = `<div class="molecule-container chemical-font ${isMini ? 'text-xs' : ''}">`;
 
@@ -606,24 +775,22 @@
                 if(atom.includes("(CH2)")) atomClass += " atom-condensed";
 
                 if(!noColor && !atomClass.includes("condensed")) {
-                    if(atom.includes("O")) atomClass += " atom-O";
-                    if(atom.includes("N") || atom === "CN") atomClass += " atom-N";
-                    if(atom.includes("Cl")) atomClass += " atom-Cl";
-                    if(atom.includes("Br")) atomClass += " atom-Br";
-                    if(atom.includes("I")) atomClass += " atom-I";
-                    if(atom.includes("F")) atomClass += " atom-F";
+                    // Excluyentes y en orden de prioridad: antes se acumulaban varias clases
+                    // (p.ej. "ONa" recibia atom-O, atom-N y atom-Na a la vez).
                     if(atom.includes("Na") || atom.includes("K")) atomClass += " atom-Na";
+                    else if(atom.includes("Cl")) atomClass += " atom-Cl";
+                    else if(atom.includes("Br")) atomClass += " atom-Br";
+                    else if(atom.includes("I")) atomClass += " atom-I";
+                    else if(atom.includes("F")) atomClass += " atom-F";
+                    else if(atom.includes("N")) atomClass += " atom-N";
+                    else if(atom.includes("O")) atomClass += " atom-O";
                 }
 
                 html += '<div class="carbon-group">';
                 html += `<div class="flex flex-col items-center justify-end ${isMini ? 'h-5' : 'h-10'}" style="min-width:10px">`;
                 if (topBranch) {
                     let bClass = noColor ? "branch-atom-hard" : "branch-atom";
-                    if(!noColor) {
-                        if(topBranch.g.includes("O")) bClass += " branch-atom-O";
-                        if(topBranch.g.includes("N")) bClass += " branch-atom-N";
-                        if(topBranch.g.match(/Cl|Br|I|F|NO/)) bClass += " branch-atom-X";
-                    }
+                    if(!noColor) bClass += " " + branchColorClass(topBranch.g);
                     let gStr = topBranch.g.replace("=O","O");
                     if(gStr.length > 3) html += `<span class="${bClass}" style="font-size:0.7rem; white-space:nowrap; margin-left:-10px">${sub(gStr)}</span>`;
                     else html += `<span class="${bClass}">${sub(gStr)}</span>`;
@@ -632,19 +799,19 @@
                 }
                 html += '</div>';
 
-                html += `<div class="${atomClass}">${sub(atom)}</div>`;
+                // El grupo nitrilo se dibuja con su triple enlace explicito (C≡N),
+                // coherente con el resto de la app, que si muestra los enlaces multiples.
+                html += `<div class="${atomClass}">${sub(atom === "CN" ? "C≡N" : atom)}</div>`;
 
                 html += `<div class="flex flex-col items-center justify-start ${isMini ? 'h-5' : 'h-10'}" style="min-width:10px">`;
                 if (bottomBranch) {
                     let bClass = noColor ? "branch-atom-hard" : "branch-atom";
-                    if(!noColor) {
-                        if(bottomBranch.g.includes("OH") || bottomBranch.g.includes("O")) bClass += " branch-atom-O";
-                        if(bottomBranch.g.includes("N")) bClass += " branch-atom-N";
-                        if(bottomBranch.g.match(/Cl|Br|I|F|NO/)) bClass += " branch-atom-X";
-                    }
+                    if(!noColor) bClass += " " + branchColorClass(bottomBranch.g);
                     if(bottomBranch.pos === "bottom-double") html += `<div class="v-bond-double-down"></div>`; else html += `<div class="v-bond-down"></div>`;
 
-                    let gStr = bottomBranch.g;
+                    // El replace de "=O" faltaba aqui: una rama inferior con carbonilo
+                    // se habria impreso literalmente como "=O".
+                    let gStr = bottomBranch.g.replace("=O","O");
                     if(gStr.length > 3) html += `<span class="${bClass}" style="font-size:0.7rem; white-space:nowrap; margin-left:-10px">${sub(gStr)}</span>`;
                     else html += `<span class="${bClass}">${sub(gStr)}</span>`;
                 }
@@ -749,13 +916,24 @@
                 return;
             }
 
-            let uniquePool = shuffle(pool.slice());
-            if(uniquePool.length < count) {
-                while(uniquePool.length < count) uniquePool = uniquePool.concat(pool);
+            // Banco completo del nivel: sirve para construir distractores reales.
+            let bank;
+            if(isPro) bank = (currentMode === 'hydro') ? db.proHydro : db.proMix;
+            else if(isMix && !isHard) {
+                bank = [];
+                (currentMode === 'hydro' ? ['linear','branched','alkenes','alkynes']
+                                         : ['oxy1','oxy2','acids','nitrogen','halonitro'])
+                    .forEach(k => { if(db[k]) bank.push(...db[k]); });
             }
-            const finalSelection = uniquePool.slice(0, count);
+            else bank = db[dbKey] || pool;
 
-            state.questions = prepareQuestions(finalSelection, isHard, isPro);
+            // Sin repeticiones: si el nivel tiene menos moléculas que preguntas pedidas,
+            // se juega con las que hay en lugar de repetir la misma pregunta.
+            let uniquePool = shuffle(pool.slice());
+            const total = Math.min(count, uniquePool.length);
+            const finalSelection = uniquePool.slice(0, total);
+
+            state.questions = prepareQuestions(finalSelection, isHard, isPro, bank);
             state.idx = 0;
             state.score = 0;
             state.history = [];
@@ -763,86 +941,127 @@
             state.isHard = isHard;
             state.selected = null;
 
-            document.getElementById('level-indicator').innerText = isPro ? 'PRO' : (isHard ? 'EXPERTO' : 'NORMAL');
+            const etiqueta = isPro ? 'PRO' : (isHard ? 'EXPERTO' : 'NORMAL');
+            document.getElementById('level-indicator').innerText =
+                (state.questions.length < count) ? `${etiqueta} · ${state.questions.length} disponibles` : etiqueta;
 
             switchScreen('game-screen');
             renderQuestion();
         }
 
-        function prepareQuestions(source, isHard, isPro) {
+        // --- DISTRACTORES -------------------------------------------------------
+        // Antes se generaban alargando o acortando la cadena SIN mover los índices de
+        // ramas y enlaces, lo que producía moléculas imposibles (OH sobre un CH3,
+        // carbonos terminales CH2, alcoholes sin grupo –OH...). Ahora las opciones
+        // falsas son moléculas reales del mismo nivel y, como último recurso,
+        // homólogos construidos respetando la valencia.
+
+        function structKey(m) { return renderMoleculeHTML(m, true, true); }
+
+        // Inserta o elimina un CH2 en un punto seguro de la cadena, desplazando
+        // correctamente los índices de ramas y enlaces múltiples.
+        function homologo(item, delta) {
+            const m = JSON.parse(JSON.stringify(item));
+            const bonds = m.bonds || [];
+            const brs = m.branches || [];
+            const esC = a => /^C/.test(a);
+            if (delta > 0) {
+                for (let pos = 1; pos < m.chain.length; pos++) {
+                    if (!esC(m.chain[pos - 1]) || !esC(m.chain[pos])) continue;
+                    if (bonds.some(b => b.idx === pos - 1)) continue;   // no romper un enlace múltiple
+                    m.chain.splice(pos, 0, "CH2");
+                    brs.forEach(b => { if (b.idx >= pos) b.idx++; });
+                    bonds.forEach(b => { if (b.idx >= pos) b.idx++; });
+                    return m;
+                }
+                return null;
+            }
+            for (let i = 1; i < m.chain.length - 1; i++) {
+                if (m.chain[i] !== "CH2") continue;
+                if (brs.some(b => b.idx === i)) continue;
+                if (bonds.some(b => b.idx === i || b.idx === i - 1)) continue;
+                m.chain.splice(i, 1);
+                brs.forEach(b => { if (b.idx > i) b.idx--; });
+                bonds.forEach(b => { if (b.idx > i) b.idx--; });
+                return m;
+            }
+            return null;
+        }
+
+        function buildDistractors(item, bank) {
+            const k0 = structKey(item);
+            const out = [];
+            const puedeEntrar = m => {
+                if (!m) return false;
+                const k = structKey(m);
+                return k !== k0 && !out.some(o => structKey(o) === k);
+            };
+
+            const cands = (bank || []).filter(x => x && x.chain && x.type !== 'simple' && x.name !== item.name);
+            const cerca = shuffle(cands.filter(x => Math.abs(x.chain.length - item.chain.length) <= 1));
+            const lejos = shuffle(cands.filter(x => Math.abs(x.chain.length - item.chain.length) > 1));
+            cerca.concat(lejos).forEach(c => { if (out.length < 2 && puedeEntrar(c)) out.push(c); });
+
+            // Reserva: homólogos válidos de la propia molécula.
+            [1, -1, 1].forEach(d => {
+                if (out.length >= 2) return;
+                const h = homologo(out.length ? (out[0].chain ? out[0] : item) : item, d);
+                if (puedeEntrar(h)) out.push(h);
+            });
+            while (out.length < 2) {
+                const h = homologo(out[0] || item, 1);
+                if (!puedeEntrar(h)) break;
+                out.push(h);
+            }
+            return out;
+        }
+
+        function prepareQuestions(source, isHard, isPro, bank) {
             let res = [];
 
             source.forEach(item => {
-                // Respuestas válidas: aceptamos tildes/guiones/espacios equivalentes (comparación normalizada)
-                let validNames = [item.name];
-
-                // sinónimos simples (opcionales, mínimos) para aprendizaje
-                const syn = {
-                    'propanona': ['propan-2-ona'],
-                    'butanona': ['butan-2-ona']
-                };
-                if(syn[item.name]) validNames.push(...syn[item.name]);
-
-                // Variación ácido sin tilde (por si el alumno escribe "acido")
-                if(item.name.startsWith('ácido ')) validNames.push('acido ' + item.name.slice(6));
+                // Respuestas válidas: nombre IUPAC + formato clásico de localizadores +
+                // nombres tradicionales + sustituyentes alternativos (ver acceptedNames).
+                let validNames = acceptedNames(item);
 
                 let cleanItem = JSON.parse(JSON.stringify(item));
                 let qType = isPro ? 'naming' : (Math.random() > 0.4 ? 'naming' : 'formulating');
 
                 if(qType === 'naming') {
-                    res.push({ type: 'naming', mode: item.type==='simple'?'simple':'structural', q: cleanItem, a: validNames });
+                    res.push({ type: 'naming', mode: item.type==='simple'?'simple':'structural', q: cleanItem, a: validNames, nota: item.nota || '' });
                 } else {
-                    let w1 = JSON.parse(JSON.stringify(item));
-                    let w2 = JSON.parse(JSON.stringify(item));
+                    let opciones;
 
-                    // Distractores: ajuste suave de cadena para que sea plausible, evitando duplicados.
                     if(item.type === 'simple') {
-                        let f = w1.chain[0];
-                        if(f.includes("(CH2)")) {
-                            let n = parseInt(f.match(/\(CH2\)(\d+)/)[1]);
-                            w1.chain[0] = f.replace(`(CH2)${n}`, `(CH2)${Math.max(1, n-1)}`);
-                            w2.chain[0] = f.replace(`(CH2)${n}`, `(CH2)${n+1}`);
-                        } else {
-                            let n = f.match(/CH2/g) ? f.match(/CH2/g).length + 2 : (f==='CH4'?1:2);
-                            w1.chain[0] = getFormula(Math.max(1, n-1));
-                            w2.chain[0] = getFormula(n+1);
-                        }
+                        // Alcanos lineales: los homólogos inmediatos son moléculas reales.
+                        const f = item.chain[0];
+                        let nC;
+                        if(f.includes("(CH2)")) nC = parseInt(f.match(/\(CH2\)(\d+)/)[1]) + 2;
+                        else nC = f.match(/CH2/g) ? f.match(/CH2/g).length + 2 : (f === 'CH4' ? 1 : 2);
+                        const w1 = JSON.parse(JSON.stringify(item));
+                        const w2 = JSON.parse(JSON.stringify(item));
+                        w1.chain[0] = getFormula(Math.max(1, nC - 1));
+                        w2.chain[0] = getFormula(nC + 1);
+                        if(nC === 1) w1.chain[0] = getFormula(3);
+                        opciones = [w1, w2];
                     } else {
-                        if(w1.chain.some(x=>x.includes("(CH2)"))) {
-                            let idx = w1.chain.findIndex(x=>x.includes("(CH2)"));
-                            let n = parseInt(w1.chain[idx].match(/\d+/)[0]);
-                            w1.chain[idx] = `(CH2)${Math.max(1, n-1)}`;
-                            w2.chain[idx] = `(CH2)${n+1}`;
-                        } else {
-                            // Inferencias básicas por tipo funcional (por subtipo)
-                            const subtype = item.subtype || '';
-                            const isNitrile = !!item.isNitrile || subtype === 'nitrile';
-
-                            if(isNitrile) {
-                                // Evitar borrar el terminador CN en distractores
-                                w1.chain.splice(0, 0, "CH2");
-                                if(w2.chain.length > 2) w2.chain.splice(1, 1);
-                            } else {
-                                w1.chain.unshift("CH2");
-                                if(w2.chain.length > 2) w2.chain.pop();
-                                else w2.chain.push("CH2");
-                            }
-                        }
+                        opciones = buildDistractors(item, bank && bank.length ? bank : source);
                     }
 
-                    // Protección anti-duplicados (por HTML renderizado)
-                    const s0 = renderMoleculeHTML(item);
-                    let s1 = renderMoleculeHTML(w1);
-                    let s2 = renderMoleculeHTML(w2);
-                    if (s1 === s0 || s1 === s2) { w1.chain.push("CH2"); s1 = renderMoleculeHTML(w1); }
-                    if (s2 === s0 || s2 === s1) { w2.chain.unshift("CH2"); }
+                    if(opciones.length < 2) {
+                        // Sin distractores válidos no se plantea la pregunta de opción
+                        // múltiple: se convierte en pregunta de nombrar.
+                        res.push({ type: 'naming', mode: 'structural', q: cleanItem, a: validNames, nota: item.nota || '' });
+                        return;
+                    }
 
                     res.push({
                         type: 'formulating',
                         mode: item.type==='simple'?'simple':'structural',
                         name: item.name,
                         correctStruct: item,
-                        optionsStruct: [w1, w2]
+                        optionsStruct: opciones,
+                        nota: item.nota || ''
                     });
                 }
             });
@@ -871,7 +1090,7 @@
             document.getElementById('next-btn').classList.add('hidden');
             document.getElementById('user-input').value = '';
             state.selected = null;
-            document.getElementById('progress-bar').style.width = `${(state.idx / state.questions.length)*100}%`;
+            document.getElementById('progress-bar').style.width = `${((state.idx + 1) / state.questions.length)*100}%`;
 
             if(q.type === 'naming') {
                 document.getElementById('question-type-badge').innerText = "ESCRIBE EL NOMBRE";
@@ -907,13 +1126,15 @@
                         h: renderMoleculeHTML(o, true, state.isHard),
                         ok: false,
                         choice: o,
-                        choiceIsStruct: true
+                        choiceIsStruct: true,
+                        nombre: o.name || ''
                     }));
                     opts.push({
                         h: renderMoleculeHTML(q.correctStruct, true, state.isHard),
                         ok: true,
                         choice: q.correctStruct,
-                        choiceIsStruct: true
+                        choiceIsStruct: true,
+                        nombre: q.correctStruct.name || ''
                     });
                 }
 
@@ -935,11 +1156,24 @@
                         btn.className = selectedStyle;
                         btn.querySelector('div:first-child').className = circleSelected;
                         // FIX: guardar también la opción elegida (para la tabla de resultados)
-                        state.selected = { ok: opt.ok, choice: opt.choice, isStruct: opt.choiceIsStruct };
+                        state.selected = { ok: opt.ok, choice: opt.choice, isStruct: opt.choiceIsStruct, nombre: opt.nombre || '' };
                     };
                     optArea.appendChild(btn);
                 });
             }
+        }
+
+        // Aviso que NO corrige ni puntúa: sustituye a los "return" mudos, que hacían
+        // pensar al alumno que el botón Comprobar estaba estropeado.
+        function avisar(msg) {
+            const fb = document.getElementById('feedback-area');
+            fb.classList.remove('hidden');
+            fb.className = "mt-4 text-center p-4 bg-amber-50 rounded-xl border border-amber-200";
+            document.getElementById('feedback-icon').innerHTML = '<i class="fas fa-hand-point-up text-amber-500"></i>';
+            const txt = document.getElementById('feedback-text');
+            txt.innerText = msg;
+            txt.className = "font-bold text-base mb-1 text-amber-700";
+            document.getElementById('feedback-correction').innerText = "";
         }
 
         function checkAnswer() {
@@ -951,9 +1185,10 @@
 
                 if(q.type === 'naming') {
                     userAns = document.getElementById('user-input').value;
+                    if(!userAns.trim()) { avisar("Escribe un nombre antes de comprobar."); return; }
                     isOk = q.a.some(ans => normName(userAns) === normName(ans));
                 } else {
-                    if(!state.selected) return;
+                    if(!state.selected) { avisar("Selecciona una de las tres fórmulas."); return; }
                     isOk = state.selected.ok;
                     userAns = state.selected.choice;
                     userIsStruct = state.selected.isStruct;
@@ -980,25 +1215,43 @@
                 const txt = document.getElementById('feedback-text');
                 const corr = document.getElementById('feedback-correction');
 
+                // Explicación: nombre IUPAC, otras formas admitidas y nota didáctica.
+                let lineas = [];
+                if(q.type === 'naming') {
+                    if(!isOk) lineas.push(`Solución: ${q.a[0]}`);
+                    const otras = q.a.slice(1).filter(x => normName(x) !== normName(q.a[0]));
+                    if(otras.length) lineas.push(`También se acepta: ${otras.slice(0,3).join(' · ')}`);
+                } else {
+                    if(!isOk) {
+                        lineas.push(state.selected && state.selected.nombre
+                            ? `La estructura que has elegido es la del ${state.selected.nombre}.`
+                            : "Esa estructura corresponde a otro compuesto.");
+                        lineas.push(`Solución: la fórmula del ${q.name}.`);
+                    }
+                }
+                if(q.nota) lineas.push(q.nota);
+
                 if(isOk) {
                     fb.className = "mt-4 text-center p-4 bg-green-50 rounded-xl border border-green-100";
                     icon.innerHTML = '<i class="fas fa-check-circle text-green-500"></i>';
                     txt.innerText = "Correcto";
                     txt.className = "font-bold text-xl mb-1 text-green-700";
-                    corr.innerText = "";
                 } else {
                     fb.className = "mt-4 text-center p-4 bg-red-50 rounded-xl border border-red-100";
                     icon.innerHTML = '<i class="fas fa-times-circle text-red-500"></i>';
                     txt.innerText = "Incorrecto";
                     txt.className = "font-bold text-xl mb-1 text-red-700";
-                    corr.innerText = q.type==='naming' ? `Solución: ${q.a[0]}` : "Revisa la estructura";
                 }
+                corr.innerHTML = lineas.map(t => `<div class="mb-1">${escapeHtml(t)}</div>`).join('');
 
                 document.getElementById('check-btn').classList.add('hidden');
                 document.getElementById('next-btn').classList.remove('hidden');
             } catch(e) {
+                // Antes se saltaba la pregunta sin avisar y sin registrarla.
                 console.error("Error checking answer:", e);
-                nextQuestion();
+                avisar("No se ha podido corregir esta pregunta. Pulsa Siguiente para continuar.");
+                document.getElementById('check-btn').classList.add('hidden');
+                document.getElementById('next-btn').classList.remove('hidden');
             }
         }
 
@@ -1041,7 +1294,7 @@
                         if(typeof h.correct === 'string') {
                             solHTML = `<span class="text-xs font-bold text-blue-600">${escapeHtml(h.correct)}</span>`;
                         } else {
-                            solHTML = `<div class="overflow-x-auto max-w-[140px]">${renderMoleculeHTML(h.correct, true, true)}</div>`;
+                            solHTML = `<div class="overflow-x-auto max-w-[140px]">${renderMoleculeHTML(h.correct, true, h.isHard)}</div>`;
                         }
                     }
 
@@ -1071,7 +1324,15 @@
 
         // --- UI helpers ---
         function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
-        function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
+        function shuffle(arr) {
+            // Fisher-Yates: barajado uniforme. El anterior (sort con comparador aleatorio)
+            // estaba sesgado y dejaba la opción correcta tendencialmente al final.
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
         function addText(t) { const i=document.getElementById('user-input'); i.value+=t; i.focus(); }
         function backspace() { const i=document.getElementById('user-input'); i.value=i.value.slice(0,-1); i.focus(); }
 
