@@ -277,8 +277,8 @@
             { id: 205, chain: 4, subs: [{pos: 1, type: '=O', dir: 'up'}, {pos: 2, type: 'CH3', dir: 'down'}], nombres: ["2-metilbutanal"] },
             { id: 206, chain: 4, subs: [{pos: 1, type: '=O', dir: 'up'}, {pos: 3, type: 'CH3', dir: 'down'}], nombres: ["3-metilbutanal"] },
             { id: 207, chain: 5, subs: [{pos: 1, type: '=O', dir: 'up'}, {pos: 4, type: 'CH3', dir: 'down'}], nombres: ["4-metilpentanal"] },
-            { id: 301, chain: 3, subs: [{pos: 2, type: '=O', dir: 'up'}], nombres: ["propanona", "acetona"] },
-            { id: 302, chain: 4, subs: [{pos: 2, type: '=O', dir: 'up'}], nombres: ["butanona"] },
+            { id: 301, chain: 3, subs: [{pos: 2, type: '=O', dir: 'up'}], nombres: ["propan-2-ona", "propanona", "acetona", "dimetilcetona"] },
+            { id: 302, chain: 4, subs: [{pos: 2, type: '=O', dir: 'up'}], nombres: ["butan-2-ona", "butanona", "metiletilcetona"] },
             { id: 303, chain: 5, subs: [{pos: 2, type: '=O', dir: 'up'}], nombres: ["pentan-2-ona"] },
             { id: 304, chain: 5, subs: [{pos: 3, type: '=O', dir: 'up'}], nombres: ["pentan-3-ona"] },
             { id: 305, chain: 5, subs: [{pos: 2, type: '=O', dir: 'up'}, {pos: 4, type: 'CH3', dir: 'down'}], nombres: ["4-metilpentan-2-ona"] },
@@ -294,75 +294,75 @@
             { id: 504, chain: 7, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:5, type:'OH', dir:'up'}, {pos:6, type:'CH3', dir:'down'}, {pos:2, type:'CH3', dir:'up'}], nombres:["5-hidroxi-2,6-dimetilhept-3-enal"] },
             { id: 505, chain: 5, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'=O', dir:'down'}, {pos:4, type:'CH3', dir:'up'}, {pos:5, type:'OH', dir:'up'}], nombres:["5-hidroxi-4-metilpent-1-in-3-ona"] },
             { id: 506, chain: 6, bonds:[{pos:2, type:2}, {pos:4, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:6, type:'OH', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["6-hidroxi-3-metilhexa-2,4-dienal"] },
-            { id: 507, chain: 4, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'=O', dir:'down'}, {pos:3, type:'CH3', dir:'up'}, {pos:4, type:'OH', dir:'down'}], nombres:["1,4-dihidroxi-3-metilbut-2-ona"] },
+            { id: 507, chain: 4, subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'=O', dir:'down'}, {pos:3, type:'CH3', dir:'up'}, {pos:4, type:'OH', dir:'down'}], nombres:["1,4-dihidroxi-3-metilbutan-2-ona"] },
             { id: 508, chain: 7, bonds:[{pos:5, type:3}], subs:[{pos:2, type:'=O', dir:'up'}, {pos:4, type:'OH', dir:'down'}, {pos:3, type:'CH2CH3', dir:'up'}], nombres:["3-etil-4-hidroxihept-5-in-2-ona"] },
-            { id: 509, chain: 5, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'OH', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["2-hidroxipent-3-enal"] },
+            { id: 509, chain: 5, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'OH', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["2-hidroxihex-3-enal"] },
             { id: 510, chain: 6, bonds:[{pos:3, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'=O', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["5-metil-2-oxohex-3-inal"] },
-            { id: 511, chain: 7, bonds:[{pos:1, type:2}, {pos:3, type:2}], subs:[{pos:5, type:'=O', dir:'down'}, {pos:6, type:'OH', dir:'up'}, {pos:2, type:'CH3', dir:'down'}], nombres:["6-hidroxi-2-metilhepta-1,3-dien-5-ona"] },
+            { id: 511, chain: 7, bonds:[{pos:1, type:2}, {pos:3, type:2}], subs:[{pos:5, type:'=O', dir:'down'}, {pos:6, type:'OH', dir:'up'}, {pos:2, type:'CH3', dir:'down'}], nombres:["2-hidroxi-6-metilhepta-4,6-dien-3-ona"] },
             { id: 512, chain: 5, bonds:[{pos:4, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'=O', dir:'down'}, {pos:3, type:'CH(CH3)2', dir:'up'}], nombres:["1-hidroxi-3-isopropilpent-4-en-2-ona"] },
             { id: 513, chain: 6, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'OH', dir:'down'}, {pos:4, type:'=O', dir:'up'}, {pos:5, type:'CH3', dir:'down'}], nombres:["4-hidroxi-2-metilhex-5-in-3-ona"] },
             { id: 514, chain: 4, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'OH', dir:'down'}, {pos:2, type:'CH2CH3', dir:'up'}], nombres:["2-etil-4-hidroxibut-2-enal"] },
             { id: 515, chain: 7, bonds:[{pos:3, type:2}, {pos:5, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'=O', dir:'down'}, {pos:4, type:'CH3', dir:'up'}], nombres:["4-metil-2-oxohepta-3,5-dienal"] },
-            { id: 516, chain: 6, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'CH3', dir:'down'}, {pos:5, type:'=O', dir:'up'}, {pos:6, type:'OH', dir:'down'}], nombres:["1,6-dihidroxi-2-metilhex-3-en-5-ona"] },
+            { id: 516, chain: 6, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'CH3', dir:'down'}, {pos:5, type:'=O', dir:'up'}, {pos:6, type:'OH', dir:'down'}], nombres:["1,6-dihidroxi-5-metilhex-3-en-2-ona"] },
             { id: 517, chain: 5, bonds:[{pos:4, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'OH', dir:'down'}, {pos:3, type:'CH3', dir:'up'}], nombres:["2-hidroxi-3-metilpent-4-enal"] },
-            { id: 518, chain: 4, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:4, type:'OH', dir:'down'}], nombres:["but-2-in-1,4-diol"] },
-            { id: 519, chain: 6, bonds:[{pos:1, type:2}, {pos:3, type:2}], subs:[{pos:5, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}], nombres:["4-metilhexa-3,5-dien-2-ol"] },
+            { id: 518, chain: 4, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:4, type:'OH', dir:'down'}], nombres:["but-2-ino-1,4-diol"] },
+            { id: 519, chain: 6, bonds:[{pos:1, type:2}, {pos:3, type:2}], subs:[{pos:5, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}], nombres:["3-metilhexa-3,5-dien-2-ol"] },
             { id: 520, chain: 7, bonds:[{pos:4, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'=O', dir:'down'}, {pos:7, type:'OH', dir:'up'}], nombres:["7-hidroxi-2-oxohept-4-inal"] },
-            { id: 521, chain: 6, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH(CH3)2', dir:'down'}, {pos:5, type:'OH', dir:'up'}, {pos:6, type:'=O', dir:'up'}], nombres:["2-isopropil-5-hidroxi-6-oxohex-3-enal"] },
+            { id: 521, chain: 6, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH(CH3)2', dir:'down'}, {pos:5, type:'OH', dir:'up'}, {pos:6, type:'=O', dir:'up'}], nombres:["5-hidroxi-2-isopropilhex-3-enodial"] },
             { id: 522, chain: 7, bonds:[{pos:1, type:3}, {pos:5, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}], nombres:["4-metilhept-5-en-1-in-3-ol"] },
             { id: 523, chain: 5, bonds:[{pos:1, type:2}, {pos:3, type:3}], subs:[{pos:5, type:'=O', dir:'up'}, {pos:2, type:'CH3', dir:'down'}], nombres:["4-metilpent-4-en-2-inal"] },
-            { id: 524, chain: 6, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:3, type:'=O', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["1-hidroxi-5-metilhex-2-en-3-ona"] },
+            { id: 524, chain: 6, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'=O', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["1-hidroxi-5-metilhex-3-en-2-ona"] },
             { id: 525, chain: 4, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'OH', dir:'up'}], nombres:["4-hidroxibut-2-inal"] },
             { id: 526, chain: 7, bonds:[{pos:3, type:2}, {pos:5, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH3', dir:'down'}, {pos:7, type:'OH', dir:'up'}], nombres:["7-hidroxi-2-metilhept-3-en-5-inal"] },
             { id: 527, chain: 6, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'CH2CH3', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["4-etil-5-metilhex-1-en-3-ol"] },
             { id: 528, chain: 5, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:4, type:'=O', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["6-hidroxihex-4-in-3-ona"] },
             { id: 529, chain: 7, bonds:[{pos:1, type:2}, {pos:3, type:2}, {pos:5, type:2}], subs:[{pos:7, type:'OH', dir:'up'}], nombres:["hepta-2,4,6-trien-1-ol"] },
-            { id: 530, chain: 4, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'=O', dir:'up'}, {pos:4, type:'OH', dir:'down'}, {pos:2, type:'CH3', dir:'up'}], nombres:["4-hidroxi-2-metilbut-1-en-3-ona"] },
-            { id: 531, chain: 6, bonds:[{pos:4, type:3}], subs:[{pos:2, type:'=O', dir:'up'}, {pos:3, type:'OH', dir:'down'}], nombres:["3-hidroxihex-5-in-2-ona"] },
+            { id: 530, chain: 4, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'=O', dir:'up'}, {pos:4, type:'OH', dir:'down'}, {pos:2, type:'CH3', dir:'up'}], nombres:["1-hidroxi-3-metilbut-3-en-2-ona"] },
+            { id: 531, chain: 6, bonds:[{pos:4, type:3}], subs:[{pos:2, type:'=O', dir:'up'}, {pos:3, type:'OH', dir:'down'}], nombres:["3-hidroxihex-4-in-2-ona"] },
             { id: 532, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'CH3', dir:'down'}, {pos:4, type:'CH3', dir:'up'}], nombres:["3,4-dimetilpent-2-enal"] },
             { id: 533, chain: 7, bonds:[{pos:4, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'OH', dir:'down'}, {pos:3, type:'CH3', dir:'up'}], nombres:["2-hidroxi-3-metilhept-4-enal"] },
-            { id: 534, chain: 6, bonds:[{pos:3, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'=O', dir:'down'}, {pos:5, type:'CH(CH3)2', dir:'up'}], nombres:["1-hidroxi-5-isopropilhex-3-in-2-ona"] },
-            { id: 535, chain: 4, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'=O', dir:'down'}, {pos:2, type:'CH2CH3', dir:'up'}], nombres:["2-etil-3-hidroxibut-3-enal"] },
-            { id: 536, chain: 5, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'CH=CH2', dir:'down'}], nombres:["4-vinilpent-1-in-3-ol"] },
-            { id: 537, chain: 7, bonds:[{pos:2, type:2}, {pos:4, type:2}], subs:[{pos:6, type:'=O', dir:'up'}], nombres:["octa-3,5-dien-2-ona"] },
-            { id: 538, chain: 6, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'=O', dir:'up'}, {pos:4, type:'OH', dir:'down'}, {pos:5, type:'CH(CH3)2', dir:'up'}], nombres:["4-hidroxi-5-isopropilhex-1-en-3-ona"] },
+            { id: 534, chain: 6, bonds:[{pos:3, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'=O', dir:'down'}, {pos:5, type:'CH(CH3)2', dir:'up'}], nombres:["1-hidroxi-5,6-dimetilhept-3-in-2-ona"] },
+            { id: 535, chain: 4, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'=O', dir:'down'}, {pos:2, type:'CH2CH3', dir:'up'}], nombres:["3-etil-2-hidroxibut-3-enal"] },
+            { id: 536, chain: 5, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'CH=CH2', dir:'down'}], nombres:["4-metilhex-5-en-1-in-3-ol"] },
+            { id: 537, chain: 7, bonds:[{pos:2, type:2}, {pos:4, type:2}], subs:[{pos:6, type:'=O', dir:'up'}], nombres:["hepta-3,5-dien-2-ona"] },
+            { id: 538, chain: 6, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'=O', dir:'up'}, {pos:4, type:'OH', dir:'down'}, {pos:5, type:'CH(CH3)2', dir:'up'}], nombres:["4-hidroxi-5,6-dimetilhept-1-en-3-ona"] },
             { id: 539, chain: 5, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH=CH2', dir:'down'}, {pos:5, type:'OH', dir:'up'}], nombres:["5-hidroxi-2-vinilpent-3-enal"] },
             { id: 540, chain: 7, bonds:[{pos:5, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:3, type:'=O', dir:'down'}, {pos:4, type:'CH2CH3', dir:'up'}], nombres:["4-etil-1-hidroxihept-5-in-3-ona"] },
-            { id: 541, chain: 6, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:5, type:'=O', dir:'down'}, {pos:4, type:'CH3', dir:'up'}], nombres:["4-metilhex-2-en-1,5-diona"] },
-            { id: 542, chain: 4, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'=O', dir:'down'}], nombres:["but-2-inal"] },
+            { id: 541, chain: 6, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:5, type:'=O', dir:'down'}, {pos:4, type:'CH3', dir:'up'}], nombres:["4-metil-5-oxohex-2-enal"] },
+            { id: 542, chain: 4, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'=O', dir:'down'}], nombres:["but-2-inodial"] },
             { id: 543, chain: 5, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}, {pos:2, type:'CH(CH3)2', dir:'up'}], nombres:["2-isopropil-4-metilpent-1-en-3-ol"] },
-            { id: 544, chain: 7, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:5, type:'=O', dir:'down'}, {pos:6, type:'CH3', dir:'up'}], nombres:["1-hidroxi-6-metilhept-3-en-5-ona"] },
+            { id: 544, chain: 7, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:5, type:'=O', dir:'down'}, {pos:6, type:'CH3', dir:'up'}], nombres:["7-hidroxi-2-metilhept-4-en-3-ona"] },
             { id: 545, chain: 6, bonds:[{pos:4, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'OH', dir:'down'}, {pos:2, type:'CH3', dir:'up'}], nombres:["3-hidroxi-2-metilhex-4-inal"] },
-            { id: 546, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:4, type:'OH', dir:'down'}, {pos:3, type:'CH=CH2', dir:'up'}], nombres:["3-vinilpent-2-en-1,4-diol"] },
+            { id: 546, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:4, type:'OH', dir:'down'}, {pos:3, type:'CH=CH2', dir:'up'}], nombres:["3-vinilpent-2-eno-1,4-diol"] },
             { id: 547, chain: 7, bonds:[{pos:1, type:2}, {pos:6, type:2}], subs:[{pos:4, type:'=O', dir:'up'}], nombres:["hepta-1,6-dien-4-ona"] },
             { id: 548, chain: 6, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH2CH3', dir:'down'}, {pos:5, type:'OH', dir:'up'}], nombres:["2-etil-5-hidroxihex-3-enal"] },
             { id: 549, chain: 4, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'OH', dir:'up'}], nombres:["but-2-in-1-ol"] },
-            { id: 550, chain: 5, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'=O', dir:'down'}, {pos:4, type:'CH(CH3)2', dir:'up'}], nombres:["4-isopropilpent-1-in-3-ona"] },
+            { id: 550, chain: 5, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'=O', dir:'down'}, {pos:4, type:'CH(CH3)2', dir:'up'}], nombres:["4,5-dimetilhex-1-in-3-ona"] },
             { id: 551, chain: 4, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'=O', dir:'down'}], nombres:["2-hidroxibut-3-inal"] },
-            { id: 552, chain: 6, bonds:[{pos:4, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'=O', dir:'down'}, {pos:3, type:'CH3', dir:'up'}], nombres:["1-hidroxi-3-metilhex-4-in-2-ona"] },
+            { id: 552, chain: 6, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'CH3', dir:'down'}, {pos:5, type:'OH', dir:'up'}], nombres:["5-hidroxi-3-metilhex-2-enal"] },
             { id: 553, chain: 5, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'=O', dir:'up'}, {pos:4, type:'OH', dir:'down'}, {pos:2, type:'CH3', dir:'up'}], nombres:["4-hidroxi-2-metilpent-1-en-3-ona"] },
             { id: 554, chain: 4, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'=O', dir:'up'}], nombres:["but-2-inal"] },
-            { id: 555, chain: 7, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'CH3', dir:'down'}, {pos:5, type:'OH', dir:'up'}], nombres:["2-metilhept-3-en-1,5-diol"] },
+            { id: 555, chain: 7, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'CH3', dir:'down'}, {pos:5, type:'OH', dir:'up'}], nombres:["2-metilhept-3-eno-1,5-diol"] },
             { id: 556, chain: 6, bonds:[{pos:1, type:2}, {pos:5, type:2}], subs:[{pos:3, type:'=O', dir:'up'}, {pos:4, type:'CH3', dir:'down'}], nombres:["4-metilhexa-1,5-dien-3-ona"] },
-            { id: 558, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH2CH3', dir:'down'}], nombres:["4-etilpent-2-enal"] },
+            { id: 558, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH2CH3', dir:'down'}], nombres:["4-metilhex-2-enal"] },
             { id: 559, chain: 7, bonds:[{pos:4, type:3}], subs:[{pos:2, type:'OH', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3-metilhept-4-in-2-ol"] },
-            { id: 560, chain: 6, bonds:[{pos:1, type:2}], subs:[{pos:4, type:'=O', dir:'up'}, {pos:5, type:'CH=CH2', dir:'down'}], nombres:["2-vinilhex-5-en-3-ona"] },
-            { id: 561, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:4, type:'CH(CH3)2', dir:'down'}], nombres:["4-isopropilpent-2-en-1-ol"] },
+            { id: 560, chain: 6, bonds:[{pos:1, type:2}], subs:[{pos:4, type:'=O', dir:'up'}, {pos:5, type:'CH=CH2', dir:'down'}], nombres:["3-metilhepta-1,6-dien-4-ona"] },
+            { id: 561, chain: 6, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}], nombres:["4-metilhex-2-en-1-ol"] },
             { id: 562, chain: 7, bonds:[{pos:3, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:6, type:'CH3', dir:'down'}], nombres:["6-metilhept-3-inal"] },
             { id: 563, chain: 6, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["4,5-dimetilhex-2-en-1-ol"] },
-            { id: 564, chain: 4, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'=O', dir:'down'}, {pos:3, type:'CH3', dir:'up'}], nombres:["3-metilpent-1-in-3-ona"] },
-            { id: 565, chain: 7, bonds:[{pos:1, type:2}, {pos:3, type:2}, {pos:5, type:2}], subs:[{pos:7, type:'OH', dir:'up'}], nombres:["hepta-2,4,6-trien-1-ol"] },
+            { id: 564, chain: 5, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'=O', dir:'down'}, {pos:4, type:'CH3', dir:'up'}], nombres:["4-metilpent-1-in-3-ona"] },
+            { id: 565, chain: 6, bonds:[{pos:3, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'CH3', dir:'down'}], nombres:["2-metilhex-3-in-1-ol"] },
             { id: 566, chain: 5, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH3', dir:'down'}], nombres:["4-metilpent-2-inal"] },
             { id: 567, chain: 6, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'CH2CH3', dir:'down'}], nombres:["2-etilhex-3-en-1-ol"] },
             { id: 568, chain: 4, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH(CH3)2', dir:'down'}], nombres:["2-isopropilbut-2-enal"] },
             { id: 569, chain: 7, bonds:[{pos:5, type:2}], subs:[{pos:2, type:'=O', dir:'up'}, {pos:3, type:'CH3', dir:'down'}, {pos:4, type:'CH3', dir:'up'}], nombres:["3,4-dimetilhept-5-en-2-ona"] },
             { id: 571, chain: 6, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["4,5-dimetilhex-1-in-3-ol"] },
-            { id: 572, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH=CH2', dir:'down'}], nombres:["4-vinilpent-2-enal"] },
-            { id: 573, chain: 4, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:2, type:'CH(CH3)2', dir:'down'}], nombres:["2,3-dimetilpent-1-en-3-ol"] },
+            { id: 572, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH=CH2', dir:'down'}], nombres:["4-metilhexa-2,5-dienal"] },
+            { id: 573, chain: 4, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:2, type:'CH(CH3)2', dir:'down'}], nombres:["3-isopropilbut-3-en-2-ol"] },
             { id: 574, chain: 7, bonds:[{pos:3, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:5, type:'CH3', dir:'down'}, {pos:6, type:'CH3', dir:'up'}], nombres:["5,6-dimetilhept-3-in-1-ol"] },
             { id: 575, chain: 6, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:5, type:'OH', dir:'down'}], nombres:["5-hidroxihex-2-inal"] },
             { id: 576, chain: 5, bonds:[{pos:1, type:2}, {pos:4, type:2}], subs:[{pos:3, type:'OH', dir:'up'}], nombres:["penta-1,4-dien-3-ol"] },
-            { id: 577, chain: 4, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'OH', dir:'up'}], nombres:["but-2-in-1-ol"] },
+            { id: 577, chain: 6, bonds:[{pos:4, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3-metilhex-4-en-1-ol"] },
             { id: 578, chain: 7, bonds:[{pos:4, type:2}], subs:[{pos:2, type:'=O', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3-metilhept-4-en-2-ona"] },
             { id: 579, chain: 6, bonds:[{pos:1, type:2}, {pos:3, type:3}], subs:[{pos:5, type:'OH', dir:'up'}], nombres:["hex-5-en-3-in-2-ol"] },
             { id: 581, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:4, type:'=O', dir:'down'}], nombres:["5-hidroxipent-3-en-2-ona"] },
@@ -370,66 +370,51 @@
             { id: 583, chain: 7, bonds:[{pos:2, type:3}, {pos:5, type:2}], subs:[{pos:1, type:'=O', dir:'up'}], nombres:["hept-5-en-2-inal"] },
             { id: 584, chain: 6, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:5, type:'=O', dir:'down'}], nombres:["6-hidroxihex-3-en-2-ona"] },
             { id: 585, chain: 5, bonds:[{pos:1, type:2}], subs:[{pos:4, type:'OH', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3-metilpent-4-en-2-ol"] },
-            { id: 586, chain: 4, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'CH=CH2', dir:'down'}], nombres:["3-vinilbut-2-enal"] },
-            { id: 587, chain: 7, bonds:[{pos:4, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'OH', dir:'down'}], nombres:["hept-4-in-1,2-diol"] },
-            { id: 588, chain: 6, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH(CH3)2', dir:'down'}], nombres:["4-isopropilhex-2-enal"] },
+            { id: 586, chain: 4, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'CH=CH2', dir:'down'}], nombres:["3-metilpenta-2,4-dienal"] },
+            { id: 587, chain: 7, bonds:[{pos:4, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:2, type:'OH', dir:'down'}], nombres:["hept-4-ino-1,2-diol"] },
+            { id: 588, chain: 6, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH(CH3)2', dir:'down'}], nombres:["4-etil-5-metilhex-2-enal"] },
             { id: 589, chain: 5, bonds:[{pos:1, type:3}], subs:[{pos:4, type:'=O', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3-metilpent-4-in-2-ona"] },
             { id: 590, chain: 7, bonds:[{pos:3, type:2}, {pos:5, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:6, type:'CH3', dir:'down'}], nombres:["6-metilhepta-3,5-dienal"] },
             { id: 592, chain: 6, bonds:[{pos:4, type:3}], subs:[{pos:1, type:'OH', dir:'up'}], nombres:["hex-4-in-1-ol"] },
             { id: 593, chain: 5, bonds:[{pos:1, type:2}, {pos:3, type:2}], subs:[{pos:5, type:'=O', dir:'up'}], nombres:["penta-2,4-dienal"] },
             { id: 594, chain: 4, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'OH', dir:'up'}], nombres:["but-3-in-2-ol"] },
             { id: 595, chain: 7, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:5, type:'CH3', dir:'down'}, {pos:6, type:'CH3', dir:'up'}], nombres:["5,6-dimetilhept-2-enal"] },
-            { id: 596, chain: 6, bonds:[{pos:3, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:5, type:'OH', dir:'down'}], nombres:["hex-3-in-1,5-diol"] },
+            { id: 596, chain: 6, bonds:[{pos:3, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:5, type:'OH', dir:'down'}], nombres:["hex-3-ino-1,5-diol"] },
             { id: 597, chain: 5, bonds:[{pos:1, type:2}], subs:[{pos:4, type:'=O', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3-metilpent-4-en-2-ona"] },
-            { id: 598, chain: 4, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["2-metilbut-2-en-1-ol"] },
+            { id: 598, chain: 4, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3-metilbut-2-en-1-ol"] },
             { id: 599, chain: 7, bonds:[{pos:1, type:3}, {pos:6, type:2}], subs:[{pos:4, type:'OH', dir:'up'}], nombres:["hept-1-en-6-in-4-ol"] },
-            { id: 600, chain: 6, bonds:[{pos:2, type:2}, {pos:4, type:2}], nombres:["hexa-2,4-dienal"] },
-            { id: 601, chain: 7, bonds:[{pos:1, type:2}, {pos:3, type:2}, {pos:6, type:2}], subs:[{pos:5, type:'OH', dir:'up'}, {pos:5, type:'CH3', dir:'down'}], nombres:["5-metilhepta-1,3,6-trien-5-ol"] },
+            { id: 600, chain: 6, bonds:[{pos:2, type:2}, {pos:4, type:2}], subs:[{pos:1, type:'=O', dir:'up'}], nombres:["hexa-2,4-dienal"] },
+            { id: 601, chain: 7, bonds:[{pos:1, type:2}, {pos:3, type:2}, {pos:6, type:2}], subs:[{pos:5, type:'OH', dir:'up'}, {pos:5, type:'CH3', dir:'down'}], nombres:["3-metilhepta-1,4,6-trien-3-ol"] },
             { id: 602, chain: 6, bonds:[{pos:1, type:2}, {pos:4, type:2}], subs:[{pos:3, type:'=O', dir:'up'}, {pos:4, type:'CH2CH3', dir:'down'}, {pos:2, type:'CH(CH3)2', dir:'down'}], nombres:["4-etil-2-isopropilhexa-1,4-dien-3-ona"] },
-            { id: 603, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'CH=CH2', dir:'down'}], nombres:["3-vinilpent-2-enal"] },
+            { id: 603, chain: 7, bonds:[{pos:3, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH3', dir:'down'}], nombres:["2-metilhept-3-enal"] },
             { id: 604, chain: 6, bonds:[{pos:1, type:3}, {pos:5, type:3}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3-metilhexa-1,5-diin-3-ol"] },
             { id: 605, chain: 7, bonds:[{pos:1, type:2}, {pos:6, type:2}], subs:[{pos:3, type:'=O', dir:'up'}, {pos:4, type:'CH2CH3', dir:'down'}, {pos:5, type:'CH=CH2', dir:'up'}], nombres:["4-etil-5-vinilhepta-1,6-dien-3-ona"] },
-            { id: 606, chain: 6, bonds:[{pos:1, type:2}, {pos:3, type:2}, {pos:5, type:3}], subs:[{pos:2, type:'CH(CH3)2', dir:'down'}, {pos:1, type:'=O', dir:'up'}], nombres:["2-isopropilhexa-3-en-5-inal"] },
-            { id: 607, chain: 5, bonds:[{pos:1, type:3}, {pos:4, type:2}], subs:[{pos:2, type:'OH', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3-metilpent-4-en-1-in-2-ol"] },
-            { id: 608, chain: 4, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH2CH3', dir:'down'}, {pos:3, type:'CH=CH2', dir:'up'}], nombres:["2-etil-3-vinilbut-2-enal"] },
+            { id: 606, chain: 6, bonds:[{pos:3, type:2}, {pos:5, type:3}], subs:[{pos:2, type:'CH(CH3)2', dir:'down'}, {pos:1, type:'=O', dir:'up'}], nombres:["2-isopropilhex-3-en-5-inal"] },
+            { id: 607, chain: 5, bonds:[{pos:1, type:3}, {pos:4, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3-metilpent-1-en-4-in-3-ol"] },
+            { id: 608, chain: 4, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH2CH3', dir:'down'}, {pos:3, type:'CH=CH2', dir:'up'}], nombres:["2-etil-3-metilpenta-2,4-dienal"] },
             { id: 609, chain: 6, bonds:[{pos:1, type:2}, {pos:2, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["4,5-dimetilhexa-1,2-dien-3-ol"] },
             { id: 610, chain: 5, bonds:[{pos:1, type:2}, {pos:4, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'CH2CH3', dir:'down'}, {pos:2, type:'CH(CH3)2', dir:'up'}], nombres:["3-etil-2-isopropilpenta-1,4-dienal"] },
             { id: 611, chain: 7, bonds:[{pos:2, type:3}, {pos:5, type:3}], subs:[{pos:1, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}], nombres:["4-metilhepta-2,5-diin-1-ol"] },
-            { id: 612, chain: 4, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'CH=CH2', dir:'down'}, {pos:3, type:'CH3', dir:'up'}], nombres:["3-metil-3-vinilbut-2-enal"] },
-            { id: 613, chain: 6, bonds:[{pos:4, type:2}], subs:[{pos:2, type:'=O', dir:'up'}, {pos:5, type:'CH(CH3)2', dir:'down'}, {pos:3, type:'CH3', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3,3,5-trimetilhept-4-en-2-ona"] },
+            { id: 612, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'CH3', dir:'up'}, {pos:4, type:'OH', dir:'down'}], nombres:["4-hidroxi-3-metilpent-2-enal"] },
+            { id: 613, chain: 6, bonds:[{pos:4, type:2}], subs:[{pos:2, type:'=O', dir:'up'}, {pos:5, type:'CH(CH3)2', dir:'down'}, {pos:3, type:'CH3', dir:'up'}, {pos:3, type:'CH3', dir:'down'}], nombres:["3,3,5,6-tetrametilhept-4-en-2-ona"] },
             { id: 614, chain: 6, bonds:[{pos:1, type:2}, {pos:3, type:2}, {pos:5, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH2CH3', dir:'down'}, {pos:2, type:'CH3', dir:'up'}], nombres:["4-etil-2-metilhexa-1,3,5-trienal"] },
             { id: 615, chain: 7, bonds:[{pos:1, type:2}, {pos:4, type:2}, {pos:6, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:3, type:'CH=CH2', dir:'down'}], nombres:["3-vinilhepta-1,4,6-trien-3-ol"] },
             { id: 616, chain: 5, bonds:[{pos:1, type:2}, {pos:4, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH2CH3', dir:'down'}, {pos:3, type:'CH2CH3', dir:'up'}], nombres:["2,3-dietilpenta-1,4-dienal"] },
             { id: 617, chain: 6, bonds:[{pos:1, type:2}, {pos:3, type:3}], subs:[{pos:2, type:'OH', dir:'up'}, {pos:5, type:'CH3', dir:'down'}], nombres:["5-metilhex-1-en-3-in-2-ol"] },
             { id: 618, chain: 7, bonds:[{pos:1, type:3}, {pos:5, type:3}], subs:[{pos:4, type:'=O', dir:'up'}, {pos:3, type:'CH(CH3)2', dir:'down'}], nombres:["3-isopropilhepta-1,5-diin-4-ona"] },
-            { id: 619, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'CH2CH3', dir:'down'}, {pos:4, type:'CH=CH2', dir:'up'}], nombres:["3-etil-4-vinilpent-2-enal"] },
-            { id: 620, chain: 6, bonds:[{pos:1, type:2}, {pos:2, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["4,5-dimetilhexa-1,2-dien-3-ol"] },
-            { id: 621, chain: 5, bonds:[{pos:1, type:3}], subs:[{pos:3, type:'=O', dir:'up'}, {pos:4, type:'CH3', dir:'down'}, {pos:5, type:'OH', dir:'up'}], nombres:["5-hidroxi-4-metilpent-1-in-3-ona"] },
+            { id: 619, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'CH2CH3', dir:'down'}, {pos:4, type:'CH=CH2', dir:'up'}], nombres:["3-etil-4-metilhexa-2,5-dienal"] },
+            { id: 620, chain: 7, bonds:[{pos:2, type:2}, {pos:5, type:2}], subs:[{pos:7, type:'OH', dir:'up'}, {pos:4, type:'CH3', dir:'down'}], nombres:["4-metilhepta-2,5-dien-1-ol"] },
+            { id: 621, chain: 7, bonds:[{pos:5, type:2}], subs:[{pos:2, type:'=O', dir:'up'}, {pos:3, type:'CH3', dir:'down'}, {pos:7, type:'OH', dir:'up'}], nombres:["7-hidroxi-3-metilhept-5-en-2-ona"] },
             { id: 622, chain: 6, bonds:[{pos:2, type:2}, {pos:4, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:6, type:'OH', dir:'down'}], nombres:["6-hidroxihexa-2,4-dienal"] },
             { id: 623, chain: 7, bonds:[{pos:3, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:2, type:'CH3', dir:'down'}, {pos:5, type:'CH3', dir:'up'}], nombres:["2,5-dimetilhept-3-inal"] },
-            { id: 624, chain: 4, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:2, type:'CH3', dir:'down'}], nombres:["2-metilbut-3-en-2-ol"] },
-            { id: 625, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH(CH3)2', dir:'down'}], nombres:["4-isopropilpent-2-enal"] },
+            { id: 624, chain: 4, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:2, type:'CH3', dir:'down'}], nombres:["3-metilbut-3-en-2-ol"] },
+            { id: 625, chain: 5, bonds:[{pos:2, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH(CH3)2', dir:'down'}], nombres:["4,5-dimetilhex-2-enal"] },
             { id: 626, chain: 6, bonds:[{pos:1, type:3}, {pos:4, type:2}], subs:[{pos:3, type:'OH', dir:'up'}], nombres:["hex-4-en-1-in-3-ol"] },
             { id: 627, chain: 7, bonds:[{pos:2, type:3}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:4, type:'CH(CH3)2', dir:'down'}, {pos:5, type:'OH', dir:'up'}], nombres:["5-hidroxi-4-isopropilhept-2-inal"] },
             { id: 628, chain: 5, bonds:[{pos:2, type:2}, {pos:4, type:2}], subs:[{pos:1, type:'=O', dir:'up'}, {pos:3, type:'CH2CH3', dir:'down'}], nombres:["3-etilpenta-2,4-dienal"] },
             { id: 629, chain: 6, bonds:[{pos:1, type:3}, {pos:5, type:3}], subs:[{pos:3, type:'=O', dir:'up'}, {pos:4, type:'CH3', dir:'down'}], nombres:["4-metilhexa-1,5-diin-3-ona"] },
-            { id: 630, chain: 4, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:3, type:'CH=CH2', dir:'down'}], nombres:["3-vinilbut-3-en-2-ol"] }
+            { id: 630, chain: 4, bonds:[{pos:1, type:2}], subs:[{pos:3, type:'OH', dir:'up'}, {pos:3, type:'CH=CH2', dir:'down'}], nombres:["3-metilpenta-1,4-dien-3-ol"] }
         ];
-
-        // Autocomplete técnico dinámico (120 reales)
-        const prefixes = ["3-metil", "2-etil", "4-hidroxi", "3-isopropil", "2-vinil"];
-        const bodies = ["hex-4-en-2-ona", "pent-3-inal", "hept-5-enodial", "but-2-en-1-ol"];
-        if (DB_PRO.length < 120) {
-            for (let i = DB_PRO.length; i < 120; i++) {
-                DB_PRO.push({
-                    id: 950 + i,
-                    chain: 6,
-                    bonds: [{pos: 2, type: 2}],
-                    subs: [{pos: 2, type: i%2==0?'=O':'OH', dir: 'up'}, {pos: 3, type: 'CH3', dir: 'down'}, {pos: 5, type: 'OH', dir: 'up'}],
-                    nombres: [`Compuesto Técnico ${i+1}`]
-                });
-            }
-        }
 
         let currentMode = 'pro';
         let quizPool = [], index = 0, score = 0, sessionHistory = [];
@@ -459,6 +444,10 @@
             updateHomeStats();
         }
 
+        function escapeHTML(t) { return String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+        function shuffle(a) { const r = [...a]; for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; }
+
         function normalize(s) { return s.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "").replace(/-/g, ""); }
         function getGlobalHistory() { const data = localStorage.getItem(`quimica_${currentMode}_vistos`); return data ? JSON.parse(data).map(Number) : []; }
         function saveToGlobalHistory(id) { let seen = getGlobalHistory(); if (!seen.includes(Number(id))) { seen.push(Number(id)); localStorage.setItem(`quimica_${currentMode}_vistos`, JSON.stringify(seen)); } }
@@ -483,7 +472,7 @@
                 setTimeout(updateHomeStats, 3000);
             }
 
-            quizPool = available.sort(() => 0.5 - Math.random()).slice(0, count);
+            quizPool = shuffle(available).slice(0, count);
             index = 0; score = 0; sessionHistory = [];
             ui.home.classList.add('hidden'); ui.quiz.classList.remove('hidden');
             ui.title.innerText = `Desafío ${currentMode.toUpperCase()}`;
@@ -498,7 +487,8 @@
                 ui.bar.style.width = `${((index + 1) / quizPool.length) * 100}%`;
                 ui.input.value = ""; ui.input.disabled = false; ui.input.focus();
                 ui.msg.classList.add('hidden'); ui.btn.classList.remove('hidden'); ui.nextBtn.classList.add('hidden');
-                ui.input.className = ui.input.className.replace(/border-(green|red)-500|bg-(green|red)-50/, "border-slate-200 bg-slate-50 shadow-sm");
+                ui.input.classList.remove('border-green-500','bg-green-50','border-red-500','bg-red-50','border-emerald-500','bg-emerald-50','border-cyan-500','bg-cyan-50','border-purple-500','bg-purple-50','border-amber-500','bg-amber-50');
+                ui.input.classList.add('border-slate-200','bg-slate-50','shadow-sm');
             } else { showResults(); }
         }
 
@@ -540,7 +530,7 @@
                 row.className = "hover:bg-slate-50 transition-colors";
                 row.innerHTML = `
                     <td class="py-10 pl-2 align-middle text-left"><div class="flex justify-start">${item.formulaSVG}</div></td>
-                    <td class="py-10 align-middle"><span class="text-[10px] md:text-xs font-bold ${item.isCorrect ? 'text-green-600' : 'text-red-500 line-through'} break-words block pr-2">${item.user}</span></td>
+                    <td class="py-10 align-middle"><span class="text-[10px] md:text-xs font-bold ${item.isCorrect ? 'text-green-600' : 'text-red-500 line-through'} break-words block pr-2">${escapeHTML(item.user)}</span></td>
                     <td class="py-10 align-middle"><span class="text-[10px] md:text-xs font-black uppercase text-rose-700 bg-rose-50 px-2 py-1 rounded border border-rose-100 break-words inline-block">${item.correctName}</span></td>
                 `;
                 ui.tableBody.appendChild(row);
