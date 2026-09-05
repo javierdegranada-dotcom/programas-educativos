@@ -214,7 +214,7 @@
             { id: 5, chain: 4, subs: [{pos: 2, type: 'CH3', dir: 'up'}, {pos: 2, type: 'CH3', dir: 'down'}], nombres: ["2,2-dimetilbutano"] },
             { id: 6, chain: 4, subs: [{pos: 2, type: 'CH2CH3', dir: 'up'}], nombres: ["3-metilpentano"] }, 
             { id: 7, chain: 5, subs: [{pos: 2, type: 'CH3', dir: 'up'}], nombres: ["2-metilpentano"] },
-            { id: 8, chain: 5, subs: [{pos: 3, type: 'CH3', dir: 'up'}], nombres: ["3-metilpentano"] },
+            { id: 8, chain: 5, subs: [{pos: 2, type: 'CH3', dir: 'up'}, {pos: 2, type: 'CH3', dir: 'down'}, {pos: 4, type: 'CH3', dir: 'up'}], nombres: ["2,2,4-trimetilpentano", "isooctano"] },
             { id: 9, chain: 5, subs: [{pos: 2, type: 'CH3', dir: 'up'}, {pos: 3, type: 'CH3', dir: 'down'}], nombres: ["2,3-dimetilpentano"] },
             { id: 10, chain: 5, subs: [{pos: 2, type: 'CH3', dir: 'up'}, {pos: 4, type: 'CH3', dir: 'up'}], nombres: ["2,4-dimetilpentano"] },
             { id: 11, chain: 5, subs: [{pos: 3, type: 'CH2CH3', dir: 'up'}], nombres: ["3-etilpentano"] },
@@ -227,9 +227,9 @@
             { id: 17, chain: 6, subs: [{pos: 3, type: 'CH3', dir: 'down'}], nombres: ["3-metilhexano"] },
             { id: 18, chain: 6, subs: [{pos: 3, type: 'CH2CH3', dir: 'up'}], nombres: ["3-etilhexano"] },
             { id: 19, chain: 6, subs: [{pos: 2, type: 'CH3', dir: 'up'}, {pos: 3, type: 'CH3', dir: 'down'}], nombres: ["2,3-dimetilhexano"] },
-            { id: 20, chain: 6, subs: [{pos: 2, type: 'CH3', dir: 'up'}, {pos: 4, type: 'CH3', dir: 'up'}], nombres: ["2,4-dimetilhexano"] },
+            { id: 20, chain: 7, subs: [{pos: 3, type: 'CH3', dir: 'up'}, {pos: 4, type: 'CH3', dir: 'down'}], nombres: ["3,4-dimetilheptano"] },
             { id: 21, chain: 6, subs: [{pos: 2, type: 'CH3', dir: 'up'}, {pos: 5, type: 'CH3', dir: 'down'}], nombres: ["2,5-dimetilhexano"] },
-            { id: 22, chain: 6, subs: [{pos: 3, type: 'CH2CH3', dir: 'up'}, {pos: 2, type: 'CH3', dir: 'down'}], nombres: ["3-etil-2-metilhexano"] },
+            { id: 22, chain: 7, subs: [{pos: 3, type: 'CH2CH3', dir: 'up'}, {pos: 5, type: 'CH3', dir: 'down'}], nombres: ["3-etil-5-metilheptano"] },
             { id: 23, chain: 6, subs: [{pos: 3, type: 'CH2CH3', dir: 'up'}, {pos: 4, type: 'CH3', dir: 'down'}], nombres: ["3-etil-4-metilhexano"] },
             // CORREGIDO IUPAC: Prioridad a la cadena más sustituida (Etil+Metil vs Isopropil)
             { id: 24, chain: 6, subs: [{pos: 3, type: 'CH(CH3)2', dir: 'up'}], nombres: ["3-etil-2-metilhexano", "3-isopropilhexano"] },
@@ -283,6 +283,10 @@
             statsText: document.getElementById('global-stats-text')
         };
 
+        function escapeHTML(t) { return String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+        function shuffle(a) { const r = [...a]; for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; }
+
         function normalize(s) {
             return s.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "").replace(/-/g, "");
         }
@@ -313,7 +317,7 @@
 
         function updateHomeStats() {
             const seenCount = getGlobalHistory().length;
-            ui.statsText.innerText = `Has visto ${seenCount} de 50 compuestos del mazo.`;
+            ui.statsText.innerText = `Has visto ${seenCount} de ${DB.length} compuestos del mazo.`;
         }
 
         function goToHome() {
@@ -338,7 +342,7 @@
             }
 
             // Seleccionar aleatorios del grupo disponible
-            quizPool = available.sort(() => 0.5 - Math.random()).slice(0, count);
+            quizPool = shuffle(available).slice(0, count);
             
             index = 0;
             score = 0;
@@ -368,7 +372,8 @@
                 ui.btn.disabled = false;
                 ui.nextBtn.classList.add('hidden');
                 
-                ui.input.className = ui.input.className.replace(/border-(green|red)-500|bg-(green|red)-50/, "border-slate-200 bg-slate-50");
+                ui.input.classList.remove('border-green-500','bg-green-50','border-red-500','bg-red-50','border-emerald-500','bg-emerald-50','border-cyan-500','bg-cyan-50','border-purple-500','bg-purple-50','border-amber-500','bg-amber-50');
+                ui.input.classList.add('border-slate-200','bg-slate-50');
             } else {
                 showResults();
             }
@@ -429,7 +434,7 @@
                 row.innerHTML = `
                     <td class="py-4 pl-2">${item.formulaSVG}</td>
                     <td class="py-4 pr-2">
-                        <span class="text-xs font-bold ${item.isCorrect ? 'text-green-600' : 'text-red-500 line-through'}">${item.user}</span>
+                        <span class="text-xs font-bold ${item.isCorrect ? 'text-green-600' : 'text-red-500 line-through'}">${escapeHTML(item.user)}</span>
                     </td>
                     <td class="py-4">
                         <span class="text-[10px] font-black uppercase text-indigo-700 bg-indigo-50 px-2 py-1 rounded border border-indigo-100">${item.correctName}</span>
